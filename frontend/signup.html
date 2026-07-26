@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DigitalTwin - Sign Up</title>
+    <!-- Replaced CDN script with production output stylesheet -->
+    <link href="./dist/output.css" rel="stylesheet">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center font-sans p-4">
+
+    <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-xl w-full max-w-md">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-teal-400 tracking-wide">Create Account</h1>
+            <p class="text-slate-400 text-sm mt-1">Initialize your individualized health dashboard</p>
+        </div>
+
+        <form id="signupForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1">Full Name</label>
+                <input type="text" id="fullName" placeholder="John Doe" required class="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500 transition">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1">Email Address</label>
+                <input type="email" id="email" placeholder="anu@gmail.com" required class="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500 transition">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-300 mb-1">Password</label>
+                <input type="password" id="password" placeholder="••••••••" required class="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500 transition">
+            </div>
+
+            <p id="infoMsg" class="text-sm font-medium hidden"></p>
+
+            <button type="submit" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-3 px-4 rounded-xl transition shadow-lg mt-2">
+                Register Platform
+            </button>
+        </form>
+
+        <div class="text-center mt-6 text-sm text-slate-400">
+            Already registered? <a href="login.html" class="text-teal-400 hover:underline">Log in here</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const infoMsg = document.getElementById('infoMsg');
+            infoMsg.classList.add('hidden');
+
+            const payload = {
+                full_name: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    infoMsg.className = "text-emerald-400 text-sm font-medium";
+                    infoMsg.innerText = "Account ready! Redirecting to login...";
+                    infoMsg.classList.remove('hidden');
+                    setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+                } else {
+                    infoMsg.className = "text-rose-500 text-sm font-medium";
+                    
+                    // Format error clean message if Pydantic validation fails
+                    if (Array.isArray(data.detail)) {
+                        infoMsg.innerText = data.detail.map(err => `${err.loc[1]}: ${err.msg}`).join(", ");
+                    } else {
+                        infoMsg.innerText = data.detail || "Signup failed.";
+                    }
+                    
+                    infoMsg.classList.remove('hidden');
+                }
+            } catch (err) {
+                infoMsg.className = "text-rose-500 text-sm font-medium";
+                infoMsg.innerText = "Cannot connect to backend server.";
+                infoMsg.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

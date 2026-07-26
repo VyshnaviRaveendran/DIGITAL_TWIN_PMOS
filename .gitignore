@@ -1,0 +1,10 @@
+# VS Code editor settings
+.vscode/
+
+# Python cache files (backend)
+__pycache__/
+*.pyc
+
+# Node modules & build files (frontend)
+frontend/node_modules/
+frontend/dist/

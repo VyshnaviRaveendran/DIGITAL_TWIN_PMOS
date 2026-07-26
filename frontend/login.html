@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Twin Health - Login</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+  <div class="w-full max-w-md bg-slate-800/80 border border-slate-700 rounded-xl p-8 shadow-2xl backdrop-blur">
+    
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-teal-400 tracking-wide">Digital Twin</h1>
+      <p class="text-slate-400 text-sm mt-1">Authenticate to access health telemetry</p>
+    </div>
+
+    <!-- Alert / Message Banner -->
+    <div id="alertMessage" class="hidden mb-6 p-3 rounded-lg text-sm text-center font-medium"></div>
+
+    <!-- Login Form -->
+    <form id="loginForm" class="space-y-5">
+      <div>
+        <label for="email" class="block text-sm font-medium text-slate-300 mb-1">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          required 
+          placeholder="name@example.com"
+          class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+        >
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm font-medium text-slate-300 mb-1">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          required 
+          placeholder="••••••••"
+          class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+        >
+      </div>
+
+      <button 
+        type="submit" 
+        id="submitBtn"
+        class="w-full py-3 bg-teal-500 hover:bg-teal-600 font-semibold text-slate-900 rounded-lg shadow-lg hover:shadow-teal-500/20 transition duration-200"
+      >
+        Sign In
+      </button>
+    </form>
+
+    <!-- Footer link -->
+    <div class="mt-6 text-center text-sm text-slate-400">
+      Don't have an account? 
+      <a href="signup.html" class="text-teal-400 hover:underline font-medium">Sign up here</a>
+    </div>
+
+  </div>
+
+  <!-- JavaScript Integration -->
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const alertMessage = document.getElementById('alertMessage');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function showAlert(message, isError = true) {
+      alertMessage.textContent = message;
+      alertMessage.classList.remove('hidden', 'bg-red-500/10', 'text-red-400', 'border-red-500/30', 'bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/30');
+      
+      if (isError) {
+        alertMessage.classList.add('bg-red-500/10', 'text-red-400', 'border', 'border-red-500/30');
+      } else {
+        alertMessage.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border', 'border-emerald-500/30');
+      }
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // UI feedback during loading
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Authenticating...';
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showAlert('Login successful! Redirecting...', false);
+
+          // Save active user info to browser storage for dashboard usage
+          localStorage.setItem('user_id', data.user_id);
+          localStorage.setItem('full_name', data.full_name);
+
+          // Redirect to main digital twin dashboard page after 1 second
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1000);
+
+        } else {
+          // FastAPI return details (e.g., "Invalid email or password" or validation errors)
+          if (Array.isArray(data.detail)) {
+            showAlert(data.detail[0].msg);
+          } else {
+            showAlert(data.detail || 'Login failed. Please check your credentials.');
+          }
+        }
+      } catch (error) {
+        console.error('Login Fetch Error:', error);
+        showAlert('Unable to reach backend server. Make sure Uvicorn is running.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In';
+      }
+    });
+  </script>
+
+</body>
+</html>
