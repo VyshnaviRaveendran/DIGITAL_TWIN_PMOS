@@ -4,12 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digital Twin Health - Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com">
+
+   
+  // Check if user is logged in
+  const token = localStorage.getItem("user_token");
+  if (!token) {
+    // If no token, redirect to login page immediately
+    window.location.href = "login.html";
+  }
+
+  </script>
 </head>
 <body class="bg-[#0B0F19] text-slate-100 font-sans min-h-screen flex">
 
   <!-- ================= SIDEBAR ================= -->
-  <aside class="w-64 bg-[#111625] border-r border-slate-800 flex flex-col justify-between p-5 min-h-screen">
+  <aside class="w-64 bg-[#111625] border-r border-slate-800 flex flex-col justify-between p-5 min-h-screen shrink-0">
     <div>
       <!-- Brand Logo -->
       <div class="flex items-center gap-3 mb-8">
@@ -17,7 +27,7 @@
           DT
         </div>
         <div>
-          <h1 class="font-bold text-lg text-white leading-tight">AURA TWIN</h1>
+          <h1 class="font-bold text-lg text-white leading-tight">DIGITAL TWIN</h1>
           <p class="text-[10px] text-slate-400 tracking-wider">PRECISION HEALTH</p>
         </div>
       </div>
@@ -27,7 +37,7 @@
         <a href="#" class="flex items-center gap-3 px-4 py-2.5 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-lg text-sm font-medium">
           <span>❖</span> Digital Twin
         </a>
-        <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-lg text-sm font-medium transition">
+        <a href="javascript:void(0)" onclick="openLogModal()" class="flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-lg text-sm font-medium transition">
           <span>📊</span> Health Log / Twin Update
         </a>
       </nav>
@@ -47,16 +57,26 @@
 
   <!-- ================= MAIN CONTENT ================= -->
   <main class="flex-1 p-8 overflow-y-auto">
+    
     <!-- Top Header -->
     <header class="flex justify-between items-center mb-8">
       <div>
         <h2 class="text-2xl font-bold text-white">Digital Twin Overview</h2>
         <p class="text-sm text-slate-400">Real-time biological state & telemetry status</p>
       </div>
-      <div class="flex gap-3">
+      
+      <div class="flex items-center gap-3">
+        <!-- Intake Assessment Button -->
+        <button onclick="openIntakeModal()" class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-sm font-medium rounded-lg transition flex items-center gap-2">
+          <span>📋</span> Intake Assessment
+        </button>
+
+        <!-- Quick Log Button -->
         <button onclick="openLogModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-medium rounded-lg transition">
           + Quick Log
         </button>
+
+        <!-- Sync Biometrics Button -->
         <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-sm font-medium text-white rounded-lg shadow-lg shadow-indigo-600/20 transition">
           ↻ Sync Biometrics
         </button>
@@ -128,17 +148,169 @@
     </div>
   </main>
 
-  <script>
-    // Verify logged-in user session
-    document.addEventListener('DOMContentLoaded', () => {
-      const userId = localStorage.getItem('user_id');
-      const fullName = localStorage.getItem('full_name');
+  <!-- ================= QUICK LOG MODAL ================= -->
+  <div id="logModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div class="bg-[#111625] border border-slate-700 rounded-xl max-w-md w-full p-6 shadow-2xl relative">
+      
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-bold text-white">Update Digital Twin Metrics</h3>
+        <button onclick="closeLogModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
 
-      if (!userId) {
-        // Redirect to login if unauthenticated
-        window.location.href = 'login.html';
+      <!-- Update Form -->
+      <form id="healthLogForm" class="space-y-4 text-xs">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Stress Level (0 - 10)</label>
+          <input type="number" id="stressInput" min="0" max="10" step="1" value="4" required
+            class="w-full bg-[#181F32] border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Sleep Duration (Hours)</label>
+          <input type="number" id="sleepInput" min="0" max="24" step="0.5" value="7.5" required
+            class="w-full bg-[#181F32] border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Exercise (Minutes)</label>
+          <input type="number" id="exerciseInput" min="0" max="300" value="30" required 
+            class="w-full bg-[#181F32] border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Diet Quality Score (1 - 10)</label>
+          <input type="number" id="dietInput" min="1" max="10" value="8" required
+            class="w-full bg-[#181F32] border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Medication Taken (1 for Yes, 0 for No)</label>
+          <input type="number" id="medicationInput" min="0" max="1" value="1" required
+            class="w-full bg-[#181F32] border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="pt-2 flex gap-3">
+          <button type="button" onclick="closeLogModal()" 
+            class="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-lg">Cancel</button>
+          <button type="submit" id="submitLogBtn" 
+            class="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg shadow-lg shadow-indigo-600/20">Submit Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dynamic Component Container for Intake Assessment Modal -->
+  <div id="intakeContainer"></div>
+
+  <!-- ================= SCRIPTS ================= -->
+  <script>
+  // DYNAMIC INTAKE COMPONENT INJECTION
+  document.addEventListener("DOMContentLoaded", async function() {
+    try {
+      const res = await fetch("intake.html");
+      if (res.ok) {
+        document.getElementById("intakeContainer").innerHTML = await res.text();
       }
-    });
+    } catch (err) {
+      console.error("Error loading intake.html:", err);
+    }
+  });
+
+  // MODAL CONTROLLERS
+  window.openIntakeModal = function() {
+    const modal = document.getElementById('intakeModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+    } else {
+      console.error("intakeModal element not ready in DOM.");
+    }
+  };
+
+  window.closeIntakeModal = function() {
+    const modal = document.getElementById('intakeModal');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+    }
+  };
+
+  window.openLogModal = function() {
+    const modal = document.getElementById('logModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+    }
+  };
+
+  window.closeLogModal = function() {
+    const modal = document.getElementById('logModal');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+    }
+  };
+
+  // INTAKE FORM SUBMISSION HANDLER
+  window.submitIntakeForm = async function(event) {
+    if (event) event.preventDefault();
+
+    const userId = localStorage.getItem('user_id') || '1';
+
+    const submitBtn = document.getElementById('submitIntakeBtn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Calibrating Twin...';
+    }
+
+    const payload = {
+      user_id: parseInt(userId),
+      symp_periods: document.getElementById('symp_periods')?.checked || false,
+      symp_hair: document.getElementById('symp_hair')?.checked || false,
+      symp_thinning: document.getElementById('symp_thinning')?.checked || false,
+      symp_acne: document.getElementById('symp_acne')?.checked || false,
+      symp_stress: document.getElementById('symp_stress')?.checked || false,
+      symp_weight: document.getElementById('symp_weight')?.checked || false,
+      usg_result: document.getElementById('usgInput')?.value || 'normal',
+      prior_diagnosis: document.getElementById('diagInput')?.value || 'none'
+    };
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/submit-intake', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (document.getElementById('phenotypeTitle')) {
+          document.getElementById('phenotypeTitle').textContent = data.assigned_phenotype;
+        }
+        if (document.getElementById('phenotypeTag')) {
+          document.getElementById('phenotypeTag').textContent = 'PHENOTYPE CALIBRATED';
+        }
+        if (document.getElementById('phenotypeSubtitle')) {
+          document.getElementById('phenotypeSubtitle').textContent = 'Profile saved to MySQL telemetry database.';
+        }
+        
+        alert(`Success! Digital Twin updated: ${data.assigned_phenotype}`);
+        setTimeout(() => window.closeIntakeModal(), 1200);
+      } else {
+        alert('Error saving assessment: ' + (data.detail || 'Unknown server error'));
+      }
+    } catch (err) {
+      console.error('Submission error:', err);
+      alert('Unable to connect to http://127.0.0.1:8000. Ensure Uvicorn is active.');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '⚙ Calibrate Digital Twin & Update Phenotype';
+      }
+    }
+  };
   </script>
 </body>
 </html>

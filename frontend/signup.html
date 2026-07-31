@@ -50,7 +50,7 @@
             infoMsg.classList.add('hidden');
 
             const payload = {
-                full_name: document.getElementById('fullName').value,
+                full_name: document.getElementById('fullName').value, // Matches SignupSchema full_name field
                 email: document.getElementById('email').value,
                 password: document.getElementById('password').value
             };
@@ -71,7 +71,7 @@
                 } else {
                     infoMsg.className = "text-rose-500 text-sm font-medium";
                     
-                    // Format error clean message if Pydantic validation fails
+                    // Format clean error message if Pydantic validation fails
                     if (Array.isArray(data.detail)) {
                         infoMsg.innerText = data.detail.map(err => `${err.loc[1]}: ${err.msg}`).join(", ");
                     } else {

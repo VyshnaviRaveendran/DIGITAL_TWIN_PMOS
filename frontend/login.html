@@ -130,6 +130,27 @@
         submitBtn.textContent = 'Sign In';
       }
     });
+
+    async function handleLogin(email, password) {
+  const response = await fetch("http://127.0.0.1:8000/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await response.json();
+
+  if (response.ok) {
+    // Save token/user state
+    localStorage.setItem("user_token", data.access_token);
+    localStorage.setItem("user_id", data.user_id);
+    
+    // Redirect to main dashboard
+    window.location.href = "index.html";
+  } else {
+    alert(data.detail || "Login failed");
+  }
+}
   </script>
 
 </body>
