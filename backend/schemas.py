@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 
 class SignupSchema(BaseModel):
     full_name: str
@@ -35,3 +35,25 @@ class HealthLogSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ================= DIET & MEAL SCHEMAS =================
+class MealLogCreate(BaseModel):
+    user_id: int
+    meal_name: str
+    calories: int
+    protein: float = 0.0
+    carbs: float = 0.0
+    fats: float = 0.0
+    meal_type: Optional[str] = "Lunch"
+    glycemic_risk: Optional[str] = "Optimal Choice"
+
+    class Config:
+        from_attributes = True
+
+
+class FlexibleScanRequest(BaseModel):
+    user_id: Optional[int] = 1
+    image_filename: Optional[str] = None
+    meal_name: Optional[str] = None
+    meal_description: Optional[str] = "Mixed Meal"

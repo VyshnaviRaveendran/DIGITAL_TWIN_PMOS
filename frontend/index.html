@@ -3,314 +3,186 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Digital Twin Health - Dashboard</title>
-  <script src="https://cdn.tailwindcss.com">
-
-   
-  // Check if user is logged in
-  const token = localStorage.getItem("user_token");
-  if (!token) {
-    // If no token, redirect to login page immediately
-    window.location.href = "login.html";
-  }
-
-  </script>
+  <title>Digital Twin Health - Precision PMOS Care</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-[#0B0F19] text-slate-100 font-sans min-h-screen flex">
+<body class="bg-[#0B0F19] text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
 
-  <!-- ================= SIDEBAR ================= -->
-  <aside class="w-64 bg-[#111625] border-r border-slate-800 flex flex-col justify-between p-5 min-h-screen shrink-0">
-    <div>
+  <!-- ================= NAVBAR ================= -->
+  <header class="border-b border-slate-800/80 bg-[#111625]/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      
       <!-- Brand Logo -->
-      <div class="flex items-center gap-3 mb-8">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-400 flex items-center justify-center font-bold text-white shadow-lg">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-extrabold text-white text-lg shadow-lg shadow-indigo-500/20">
           DT
         </div>
         <div>
-          <h1 class="font-bold text-lg text-white leading-tight">DIGITAL TWIN</h1>
-          <p class="text-[10px] text-slate-400 tracking-wider">PRECISION HEALTH</p>
+          <span class="font-bold text-lg text-white tracking-wide">DIGITAL TWIN</span>
+          <span class="block text-[10px] text-slate-400 font-medium tracking-widest uppercase">Precision Health</span>
         </div>
       </div>
 
-      <!-- Nav Links -->
-      <nav class="space-y-2">
-        <a href="#" class="flex items-center gap-3 px-4 py-2.5 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-lg text-sm font-medium">
-          <span>❖</span> Digital Twin
-        </a>
-        <a href="javascript:void(0)" onclick="openLogModal()" class="flex items-center gap-3 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-lg text-sm font-medium transition">
-          <span>📊</span> Health Log / Twin Update
-        </a>
+      <!-- Navigation Links -->
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+        <a href="#about" class="hover:text-indigo-400 transition">How It Works</a>
+        <a href="#pillars" class="hover:text-indigo-400 transition">5 Pillars</a>
+        <a href="#telemetry" class="hover:text-indigo-400 transition">Bio-Telemetry</a>
       </nav>
-    </div>
 
-    <!-- Stability Index Widget (Bottom Left) -->
-    <div class="bg-[#181F32] border border-slate-800 rounded-xl p-4 text-center">
-      <div class="flex items-center justify-center gap-2 text-xs text-emerald-400 mb-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Twin Synced
+      <!-- Auth Action Buttons -->
+      <div class="flex items-center gap-4">
+        <a href="login.html" class="text-sm font-medium text-slate-300 hover:text-white px-4 py-2 rounded-lg hover:bg-slate-800/60 transition">
+          Sign In
+        </a>
+        <a href="signup.html" class="text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-600/30 hover:shadow-indigo-500/40 transition">
+          Get Started
+        </a>
       </div>
-      <div class="relative w-20 h-20 mx-auto flex items-center justify-center rounded-full border-4 border-indigo-500/30 border-t-indigo-500 mb-2">
-        <span id="scoreDisplay" class="text-xl font-bold text-white">67</span>
-      </div>
-      <p class="text-[11px] text-slate-400">Stability Risk Index</p>
-    </div>
-  </aside>
 
-  <!-- ================= MAIN CONTENT ================= -->
-  <main class="flex-1 p-8 overflow-y-auto">
-    
-    <!-- Top Header -->
-    <header class="flex justify-between items-center mb-8">
-      <div>
-        <h2 class="text-2xl font-bold text-white">Digital Twin Overview</h2>
-        <p class="text-sm text-slate-400">Real-time biological state & telemetry status</p>
-      </div>
+    </div>
+  </header>
+
+  <!-- ================= HERO SECTION ================= -->
+  <section class="relative pt-16 pb-24 px-6 overflow-hidden">
+    <!-- Ambient Glow Backgrounds -->
+    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-indigo-600/15 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute top-1/3 left-1/3 w-[300px] h-[300px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+    <div class="max-w-5xl mx-auto text-center relative z-10">
       
-      <div class="flex items-center gap-3">
-        <!-- Intake Assessment Button -->
-        <button onclick="openIntakeModal()" class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-sm font-medium rounded-lg transition flex items-center gap-2">
-          <span>📋</span> Intake Assessment
-        </button>
-
-        <!-- Quick Log Button -->
-        <button onclick="openLogModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-medium rounded-lg transition">
-          + Quick Log
-        </button>
-
-        <!-- Sync Biometrics Button -->
-        <button class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-sm font-medium text-white rounded-lg shadow-lg shadow-indigo-600/20 transition">
-          ↻ Sync Biometrics
-        </button>
+      <!-- Feature Pill -->
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-950/60 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-8 shadow-inner">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        AI-Powered Precision Health Twin
       </div>
-    </header>
 
-    <!-- Grid Layout: Center Visual (40%) + Diagnostics (60%) -->
-    <div class="grid grid-cols-12 gap-6">
+      <!-- Main Headline -->
+      <h1 class="text-4xl md:text-6xl font-extrabold text-white tracking-tight leading-[1.15] mb-6">
+        Your Personal Biological <br>
+        <span class="bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">Digital Twin for PMOS</span>
+      </h1>
 
-      <!-- Center Card: Interactive Biological Twin -->
-      <div class="col-span-5 bg-[#111625] border border-slate-800 rounded-xl p-6 flex flex-col justify-between relative min-h-[420px]">
-        <h3 class="text-sm font-semibold text-slate-300">Interactive Biological Twin</h3>
+      <p class="text-base md:text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+        Understand your metabolic phenotype, simulate meal glucose spikes, and stabilize cycle health with real-time biometric telemetry and calibrated nutrition.
+      </p>
+
+      <!-- CTA Buttons -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="signup.html" class="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-xl shadow-indigo-600/30 transition flex items-center justify-center gap-2">
+          <span>Create Your Digital Twin</span>
+          <span>→</span>
+        </a>
+        <a href="login.html" class="w-full sm:w-auto px-8 py-3.5 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-200 font-medium rounded-xl transition">
+          Access Dashboard
+        </a>
+      </div>
+
+      <!-- App Highlights Strip -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mt-20 pt-10 border-t border-slate-800/80 text-left">
+        <div class="p-4 bg-[#111625]/60 border border-slate-800 rounded-xl">
+          <p class="text-xs text-indigo-400 font-semibold mb-1">01. Intake Model</p>
+          <p class="text-sm font-bold text-white">Phenotype Calibration</p>
+        </div>
+        <div class="p-4 bg-[#111625]/60 border border-slate-800 rounded-xl">
+          <p class="text-xs text-emerald-400 font-semibold mb-1">02. Smart Nutrition</p>
+          <p class="text-sm font-bold text-white">Photo Calorie Scanner</p>
+        </div>
+        <div class="p-4 bg-[#111625]/60 border border-slate-800 rounded-xl">
+          <p class="text-xs text-pink-400 font-semibold mb-1">03. Simulations</p>
+          <p class="text-sm font-bold text-white">Glucose Curve Modeling</p>
+        </div>
+        <div class="p-4 bg-[#111625]/60 border border-slate-800 rounded-xl">
+          <p class="text-xs text-amber-400 font-semibold mb-1">04. 5 Pillars</p>
+          <p class="text-sm font-bold text-white">Targeted Daily Care</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= PILLARS OVERVIEW SECTION ================= -->
+  <section id="pillars" class="py-20 px-6 bg-[#0E1320] border-t border-slate-800">
+    <div class="max-w-6xl mx-auto">
+      
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">Holistic Management</h2>
+        <h3 class="text-3xl font-bold text-white">The 5 Pillars of Precision Care</h3>
+        <p class="text-slate-400 text-sm mt-3">Personalized daily interventions to lower insulin resistance, balance hormones, and sustain recovery.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
-        <!-- Abstract Body Schema Visual -->
-        <div class="my-auto flex flex-col items-center justify-center space-y-6 relative py-6">
-          <div class="w-12 h-12 rounded-full bg-indigo-500/20 border-2 border-indigo-500 flex items-center justify-center text-xs font-bold text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.3)]">
-            Brain
+        <!-- Pillar 1 -->
+        <div class="bg-[#111625] border border-slate-800 hover:border-indigo-500/50 p-6 rounded-2xl transition">
+          <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-xl mb-4">
+            🥑
           </div>
-          <div class="w-10 h-10 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-            Metabolic
-          </div>
-          <div class="w-14 h-14 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-xs font-bold text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.3)]">
-            Recovery
-          </div>
-        </div>
-
-        <!-- Legend -->
-        <div class="flex justify-center gap-4 text-[11px] text-slate-400 pt-4 border-t border-slate-800/60">
-          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Optimal</span>
-          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Mild Stress</span>
-          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span> High Risk</span>
-        </div>
-      </div>
-
-      <!-- Right Column: Diagnostics Cards -->
-      <div class="col-span-7 space-y-4">
-        <!-- Diagnostic Card 1 -->
-        <div class="bg-[#111625] border border-slate-800 rounded-xl p-5">
-          <div class="flex justify-between items-center mb-3">
-            <h4 class="font-semibold text-sm text-slate-200">System Telemetry & Stress</h4>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Mild Fluctuation</span>
-          </div>
-          <div class="grid grid-cols-3 gap-4 text-slate-400 text-xs">
-            <div>
-              <p class="text-slate-500 mb-1">Stress Level</p>
-              <p id="stressVal" class="text-base font-bold text-white">4 / 10</p>
-            </div>
-            <div>
-              <p class="text-slate-500 mb-1">Sleep Duration</p>
-              <p id="sleepVal" class="text-base font-bold text-white">7.5 hrs</p>
-            </div>
-            <div>
-              <p class="text-slate-500 mb-1">Exercise</p>
-              <p id="exerciseVal" class="text-base font-bold text-white">45 mins</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Dynamic AI Intervention Output -->
-        <div class="bg-[#111625] border border-indigo-500/30 rounded-xl p-5 relative overflow-hidden">
-          <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl"></div>
-          <h4 class="font-semibold text-sm text-indigo-400 mb-2">⚡ AI Twin Dynamic Recommendation</h4>
-          <p id="recommendationText" class="text-xs text-slate-300 leading-relaxed">
-            Optimal state parameters maintained. Digital Twin operating in nominal range.
+          <h4 class="text-lg font-bold text-white mb-2">1. Diet & Nutrition</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Smart photo meal estimation, remaining calorie split matrix calculations, and glycemic-safe recipes tailored to your body state.
           </p>
         </div>
+
+        <!-- Pillar 2 -->
+        <div class="bg-[#111625] border border-slate-800 hover:border-indigo-500/50 p-6 rounded-2xl transition">
+          <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-xl mb-4">
+            🏋️
+          </div>
+          <h4 class="text-lg font-bold text-white mb-2">2. Exercise & Movement</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Cortisol-conscious strength and mobility tracking that prevents metabolic burnout while building lean muscle sensitivity.
+          </p>
+        </div>
+
+        <!-- Pillar 3 -->
+        <div class="bg-[#111625] border border-slate-800 hover:border-indigo-500/50 p-6 rounded-2xl transition">
+          <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-xl mb-4">
+            🛌
+          </div>
+          <h4 class="text-lg font-bold text-white mb-2">3. Sleep Architecture</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Deep restorative sleep tracking to balance nocturnal glucose levels and regulate endocrine rhythms.
+          </p>
+        </div>
+
+        <!-- Pillar 4 -->
+        <div class="bg-[#111625] border border-slate-800 hover:border-indigo-500/50 p-6 rounded-2xl transition">
+          <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-xl mb-4">
+            💊
+          </div>
+          <h4 class="text-lg font-bold text-white mb-2">4. Medicine & Supplements</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Timely adherence schedules for inositol, vitamin D3, omega-3s, and clinical prescriptions.
+          </p>
+        </div>
+
+        <!-- Pillar 5 -->
+        <div class="bg-[#111625] border border-slate-800 hover:border-indigo-500/50 p-6 rounded-2xl transition md:col-span-2">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-xl mb-4">
+            🧠
+          </div>
+          <h4 class="text-lg font-bold text-white mb-2">5. Mental Wealth & Stress</h4>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Adrenal telemetry and stress scores to keep sympathetic nervous activation low and prevent cortisol-driven androgen spikes.
+          </p>
+        </div>
+
       </div>
 
     </div>
-  </main>
+  </section>
 
-  <!-- ================= QUICK LOG MODAL ================= -->
-  <div id="logModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-    <div class="bg-[#111625] border border-slate-700 rounded-xl max-w-md w-full p-6 shadow-2xl relative">
-      
-      <!-- Modal Header -->
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-lg font-bold text-white">Update Digital Twin Metrics</h3>
-        <button onclick="closeLogModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+  <!-- ================= FOOTER ================= -->
+  <footer class="border-t border-slate-800 bg-[#0B0F19] py-8 px-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+      <p>© 2026 Digital Twin Precision Health. All rights reserved.</p>
+      <div class="flex gap-6">
+        <a href="login.html" class="hover:text-slate-300 transition">Sign In</a>
+        <a href="signup.html" class="hover:text-slate-300 transition">Register</a>
       </div>
-
-      <!-- Update Form -->
-      <form id="healthLogForm" class="space-y-4 text-xs">
-        <div>
-          <label class="block text-slate-300 font-medium mb-1">Stress Level (0 - 10)</label>
-          <input type="number" id="stressInput" min="0" max="10" step="1" value="4" required
-            class="w-full bg-[#181F32] border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500">
-        </div>
-
-        <div>
-          <label class="block text-slate-300 font-medium mb-1">Sleep Duration (Hours)</label>
-          <input type="number" id="sleepInput" min="0" max="24" step="0.5" value="7.5" required
-            class="w-full bg-[#181F32] border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500">
-        </div>
-
-        <div>
-          <label class="block text-slate-300 font-medium mb-1">Exercise (Minutes)</label>
-          <input type="number" id="exerciseInput" min="0" max="300" value="30" required 
-            class="w-full bg-[#181F32] border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500">
-        </div>
-
-        <div>
-          <label class="block text-slate-300 font-medium mb-1">Diet Quality Score (1 - 10)</label>
-          <input type="number" id="dietInput" min="1" max="10" value="8" required
-            class="w-full bg-[#181F32] border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500">
-        </div>
-
-        <div>
-          <label class="block text-slate-300 font-medium mb-1">Medication Taken (1 for Yes, 0 for No)</label>
-          <input type="number" id="medicationInput" min="0" max="1" value="1" required
-            class="w-full bg-[#181F32] border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-indigo-500">
-        </div>
-
-        <div class="pt-2 flex gap-3">
-          <button type="button" onclick="closeLogModal()" 
-            class="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-lg">Cancel</button>
-          <button type="submit" id="submitLogBtn" 
-            class="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg shadow-lg shadow-indigo-600/20">Submit Update</button>
-        </div>
-      </form>
     </div>
-  </div>
+  </footer>
 
-  <!-- Dynamic Component Container for Intake Assessment Modal -->
-  <div id="intakeContainer"></div>
-
-  <!-- ================= SCRIPTS ================= -->
-  <script>
-  // DYNAMIC INTAKE COMPONENT INJECTION
-  document.addEventListener("DOMContentLoaded", async function() {
-    try {
-      const res = await fetch("intake.html");
-      if (res.ok) {
-        document.getElementById("intakeContainer").innerHTML = await res.text();
-      }
-    } catch (err) {
-      console.error("Error loading intake.html:", err);
-    }
-  });
-
-  // MODAL CONTROLLERS
-  window.openIntakeModal = function() {
-    const modal = document.getElementById('intakeModal');
-    if (modal) {
-      modal.classList.remove('hidden');
-      modal.style.display = 'flex';
-    } else {
-      console.error("intakeModal element not ready in DOM.");
-    }
-  };
-
-  window.closeIntakeModal = function() {
-    const modal = document.getElementById('intakeModal');
-    if (modal) {
-      modal.classList.add('hidden');
-      modal.style.display = 'none';
-    }
-  };
-
-  window.openLogModal = function() {
-    const modal = document.getElementById('logModal');
-    if (modal) {
-      modal.classList.remove('hidden');
-      modal.style.display = 'flex';
-    }
-  };
-
-  window.closeLogModal = function() {
-    const modal = document.getElementById('logModal');
-    if (modal) {
-      modal.classList.add('hidden');
-      modal.style.display = 'none';
-    }
-  };
-
-  // INTAKE FORM SUBMISSION HANDLER
-  window.submitIntakeForm = async function(event) {
-    if (event) event.preventDefault();
-
-    const userId = localStorage.getItem('user_id') || '1';
-
-    const submitBtn = document.getElementById('submitIntakeBtn');
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Calibrating Twin...';
-    }
-
-    const payload = {
-      user_id: parseInt(userId),
-      symp_periods: document.getElementById('symp_periods')?.checked || false,
-      symp_hair: document.getElementById('symp_hair')?.checked || false,
-      symp_thinning: document.getElementById('symp_thinning')?.checked || false,
-      symp_acne: document.getElementById('symp_acne')?.checked || false,
-      symp_stress: document.getElementById('symp_stress')?.checked || false,
-      symp_weight: document.getElementById('symp_weight')?.checked || false,
-      usg_result: document.getElementById('usgInput')?.value || 'normal',
-      prior_diagnosis: document.getElementById('diagInput')?.value || 'none'
-    };
-
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/submit-intake', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        if (document.getElementById('phenotypeTitle')) {
-          document.getElementById('phenotypeTitle').textContent = data.assigned_phenotype;
-        }
-        if (document.getElementById('phenotypeTag')) {
-          document.getElementById('phenotypeTag').textContent = 'PHENOTYPE CALIBRATED';
-        }
-        if (document.getElementById('phenotypeSubtitle')) {
-          document.getElementById('phenotypeSubtitle').textContent = 'Profile saved to MySQL telemetry database.';
-        }
-        
-        alert(`Success! Digital Twin updated: ${data.assigned_phenotype}`);
-        setTimeout(() => window.closeIntakeModal(), 1200);
-      } else {
-        alert('Error saving assessment: ' + (data.detail || 'Unknown server error'));
-      }
-    } catch (err) {
-      console.error('Submission error:', err);
-      alert('Unable to connect to http://127.0.0.1:8000. Ensure Uvicorn is active.');
-    } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = '⚙ Calibrate Digital Twin & Update Phenotype';
-      }
-    }
-  };
-  </script>
 </body>
 </html>

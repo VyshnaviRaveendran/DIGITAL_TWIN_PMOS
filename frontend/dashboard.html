@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Twin Health - Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    const token = localStorage.getItem("user_token");
+    if (!token) {
+      window.location.href = "login.html";
+    }
+  </script>
+</head>
+<body class="bg-[#0B0F19] text-slate-100 font-sans h-screen flex overflow-hidden selection:bg-indigo-500 selection:text-white">
+
+  <!-- ================= COLLAPSIBLE SIDEBAR ================= -->
+  <aside id="sidebar" class="w-64 bg-[#111625] border-r border-slate-800 flex flex-col justify-between p-5 h-full shrink-0 transition-all duration-300 relative z-30">
+    
+    <!-- Sidebar Toggle Arrow Button -->
+    <button onclick="toggleSidebar()" id="sidebarToggleBtn" class="absolute -right-3.5 top-7 w-7 h-7 bg-[#181F32] border border-slate-700 hover:border-indigo-500 text-indigo-300 rounded-full flex items-center justify-center text-xs shadow-md transition hover:scale-110 z-50">
+      ◀
+    </button>
+
+    <div>
+      <!-- Clickable User Profile Header / Avatar -->
+      <div onclick="switchTab('profile')" class="flex items-center gap-3.5 mb-8 p-2 -m-2 rounded-xl hover:bg-slate-800/60 cursor-pointer transition group" title="Click to view User Profile">
+        <div id="sideAvatarBadge" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-extrabold text-white text-sm shadow-lg shadow-indigo-500/20 group-hover:scale-105 shrink-0 transition-transform">
+          👤
+        </div>
+        <div class="overflow-hidden sidebar-label">
+          <h1 id="sideUserName" class="font-bold text-sm text-white leading-tight truncate">User Account</h1>
+          <p id="sideUserEmail" class="text-xs text-slate-400 truncate">user@example.com</p>
+        </div>
+      </div>
+
+      <!-- Nav Links -->
+      <nav class="space-y-2">
+        <button id="navOverview" onclick="switchTab('overview')" class="w-full flex items-center gap-3.5 px-4 py-2.5 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">❖</span> <span class="sidebar-label truncate">Digital Twin</span>
+        </button>
+
+        <button id="navPillars" onclick="switchTab('pillars')" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">🏛️</span> <span class="sidebar-label truncate">5 Pillars</span>
+        </button>
+
+        <button onclick="openLogModal()" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">📊</span> <span class="sidebar-label truncate">Telemetry Log</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Stability Risk Index (Compact) -->
+    <div class="bg-[#181F32] border border-slate-800 rounded-2xl p-4 text-center sidebar-label">
+      <div class="flex items-center justify-center gap-2 text-xs text-emerald-400 mb-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Synced
+      </div>
+      <div class="relative w-16 h-16 mx-auto flex items-center justify-center rounded-full border-2 border-indigo-500/30 border-t-indigo-500 mb-1.5">
+        <span id="scoreDisplay" class="text-lg font-bold text-white">67</span>
+      </div>
+      <p class="text-xs text-slate-400">Stability Index</p>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN CONTENT (SCROLL CONTAINER) ================= -->
+  <main class="flex-1 px-8 py-6 overflow-y-auto h-full flex flex-col justify-between">
+
+    <!-- ================= SECTION 1: DIGITAL TWIN OVERVIEW ================= -->
+    <div id="overviewSection" class="w-full space-y-5">
+      <header class="flex justify-between items-center">
+        <div>
+          <h2 class="text-2xl font-bold text-white">Digital Twin Overview</h2>
+          <p class="text-xs text-slate-400 mt-0.5" id="userGreeting">Real-time biological state & telemetry status</p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <button onclick="openIntakeModal()" class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded-xl transition flex items-center gap-2">
+            <span>📋</span> Intake Assessment
+          </button>
+          <button onclick="openLogModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium rounded-xl transition">
+            + Quick Log
+          </button>
+        </div>
+      </header>
+
+      <!-- Calibrated Phenotype Display Banner -->
+      <div class="bg-[#111625] border border-purple-500/30 rounded-2xl p-5 flex justify-between items-center shadow-lg">
+        <div>
+          <p class="text-xs font-semibold text-purple-400 uppercase tracking-wider">Calibrated Biological Profile</p>
+          <h3 id="dashPhenotypeDisplay" class="text-lg font-bold text-white mt-1">
+            Loading calibrated profile...
+          </h3>
+        </div>
+        <span id="dashPhenotypeBadge" class="bg-purple-900/40 text-purple-300 border border-purple-500/40 text-xs px-3.5 py-1.5 rounded-full font-medium">
+          Calibrating...
+        </span>
+      </div>
+
+      <!-- Overview Visuals & Stats (Balanced Height) -->
+      <div class="grid grid-cols-12 gap-5">
+        <div class="col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 flex flex-col justify-between min-h-[380px]">
+          <h3 class="text-sm font-semibold text-slate-300">Interactive Biological Twin</h3>
+          
+          <div class="my-auto flex flex-col items-center justify-center space-y-6 py-4">
+            <div class="w-14 h-14 rounded-full bg-indigo-500/20 border-2 border-indigo-500 flex items-center justify-center text-xs font-bold text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.3)]">Brain</div>
+            <div class="w-12 h-12 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]">Metabolic</div>
+            <div class="w-14 h-14 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-xs font-bold text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.3)]">Recovery</div>
+          </div>
+
+          <div class="flex justify-center gap-4 text-xs text-slate-400 pt-4 border-t border-slate-800/80">
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Optimal</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Mild Stress</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span> High Risk</span>
+          </div>
+        </div>
+
+        <div class="col-span-7 space-y-5">
+          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="font-semibold text-sm text-slate-200">System Telemetry & Stress</h4>
+              <span class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Mild Fluctuation</span>
+            </div>
+            <div class="grid grid-cols-3 gap-4 text-xs">
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800/80">
+                <p class="text-slate-500 text-xs mb-1">Stress Level</p>
+                <p id="stressVal" class="text-base font-bold text-white">4 / 10</p>
+              </div>
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800/80">
+                <p class="text-slate-500 text-xs mb-1">Sleep Duration</p>
+                <p id="sleepVal" class="text-base font-bold text-white">7.5 hrs</p>
+              </div>
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800/80">
+                <p class="text-slate-500 text-xs mb-1">Exercise</p>
+                <p id="exerciseVal" class="text-base font-bold text-white">45 mins</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-[#111625] border border-indigo-500/30 rounded-2xl p-6">
+            <h4 class="font-semibold text-sm text-indigo-400 mb-2">⚡ AI Twin Dynamic Recommendation</h4>
+            <p id="recommendationText" class="text-xs text-slate-300 leading-relaxed">
+              Optimal state parameters maintained. Digital Twin operating in nominal biological range. Calibrated nutrition and low cortisol load sustained.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= SECTION 2: 5 PMOS PILLARS ================= -->
+    <div id="pillarsSection" class="hidden w-full space-y-4">
+      
+      <!-- Top Navigation Tabs + Header Controls -->
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-2.5 overflow-x-auto">
+          <button class="bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-4 py-2 rounded-xl text-xs flex items-center gap-2 whitespace-nowrap shadow-sm">
+            🥑 Diet & Nutrition
+          </button>
+          <button class="bg-[#111625] border border-slate-800 text-slate-400 px-4 py-2 rounded-xl text-xs flex items-center gap-2 opacity-60 cursor-not-allowed whitespace-nowrap">
+            🏋️ Exercise
+          </button>
+          <button class="bg-[#111625] border border-slate-800 text-slate-400 px-4 py-2 rounded-xl text-xs flex items-center gap-2 opacity-60 cursor-not-allowed whitespace-nowrap">
+            🛌 Sleep
+          </button>
+          <button class="bg-[#111625] border border-slate-800 text-slate-400 px-4 py-2 rounded-xl text-xs flex items-center gap-2 opacity-60 cursor-not-allowed whitespace-nowrap">
+            💊 Medicine
+          </button>
+          <button class="bg-[#111625] border border-slate-800 text-slate-400 px-4 py-2 rounded-xl text-xs flex items-center gap-2 opacity-60 cursor-not-allowed whitespace-nowrap">
+            🧠 Stress
+          </button>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="resetDayRollover()" class="bg-indigo-950 hover:bg-indigo-900/80 border border-indigo-500/40 text-indigo-300 text-xs px-3.5 py-2 rounded-xl font-medium transition flex items-center gap-1.5">
+            <span>🔄</span> Reset Day
+          </button>
+          <button onclick="openIntakeModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-2 rounded-xl text-xs text-slate-300 font-medium">
+            📋 Intake Quiz
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Diet Grid (5 Cols Left / 7 Cols Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+
+        <!-- LEFT COLUMN: Scanner & Calorie Splitter (5 cols) -->
+        <div class="lg:col-span-5 space-y-4 flex flex-col justify-between">
+          
+          <!-- Scanner Card -->
+          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2 mb-2.5">
+              <span>📷</span> Smart Scanner & Meal Logging
+            </h3>
+
+            <!-- Mini Drag & Drop -->
+            <div id="dropZone" 
+                 onclick="document.getElementById('mealFileInput').click()" 
+                 class="border border-dashed border-slate-700 hover:border-indigo-500 bg-[#0B0F19]/60 rounded-xl p-3 text-center cursor-pointer transition flex items-center justify-center min-h-[64px] mb-3">
+              
+              <div id="uploadPlaceholder" class="flex items-center gap-2 text-slate-400 text-xs">
+                <span class="text-indigo-400 text-base">☁️</span>
+                <span>Click or drag meal photo to estimate macros</span>
+              </div>
+
+              <div id="previewContainer" class="hidden items-center gap-3">
+                <img id="imagePreview" src="" alt="Preview" class="h-9 w-9 rounded-lg object-cover border border-slate-700">
+                <p class="text-xs text-indigo-300 font-medium truncate max-w-[200px]" id="fileNameDisplay"></p>
+              </div>
+
+              <input type="file" id="mealFileInput" accept="image/*" class="hidden" onchange="handleFileSelect(this.files)">
+            </div>
+
+            <!-- Input + Meal Slot Selector -->
+            <div class="grid grid-cols-12 gap-2 mb-3">
+              <div class="col-span-7">
+                <input type="text" id="mealNameInput" value="Fresh Fruit Bowl" placeholder="Meal Item Name" class="bg-[#0B0F19] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-indigo-500">
+              </div>
+              <div class="col-span-5">
+                <select id="mealSlotSelect" class="bg-[#0B0F19] border border-slate-700 rounded-xl px-3 py-2 text-xs text-indigo-300 font-semibold w-full focus:outline-none focus:border-indigo-500">
+                  <option value="Breakfast">🍳 Breakfast</option>
+                  <option value="Lunch" selected>🥗 Lunch</option>
+                  <option value="Dinner">🍲 Dinner</option>
+                  <option value="Snack">🥜 Snack</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Macro Preview Box -->
+            <div id="mlScanResult" class="bg-[#0B0F19] border border-slate-800 rounded-xl p-3 mb-3">
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-bold text-white text-xs truncate max-w-[180px]" id="resMealName">Fresh Fruit Bowl</span>
+                <span class="bg-emerald-900/50 text-emerald-400 border border-emerald-600/50 text-[10px] px-2.5 py-0.5 rounded-full font-medium" id="resPhenotypeTag">
+                  Optimal Choice
+                </span>
+              </div>
+
+              <div class="grid grid-cols-4 gap-2 text-center">
+                <div class="bg-[#111625] p-1.5 rounded-lg border border-slate-800">
+                  <p class="text-slate-400 text-[9px]">KCAL</p>
+                  <p class="text-indigo-400 font-bold text-xs" id="resCalories">520</p>
+                </div>
+                <div class="bg-[#111625] p-1.5 rounded-lg border border-slate-800">
+                  <p class="text-slate-400 text-[9px]">PROT</p>
+                  <p class="text-emerald-400 font-bold text-xs" id="resProtein">36g</p>
+                </div>
+                <div class="bg-[#111625] p-1.5 rounded-lg border border-slate-800">
+                  <p class="text-slate-400 text-[9px]">CARB</p>
+                  <p class="text-amber-400 font-bold text-xs" id="resCarbs">42g</p>
+                </div>
+                <div class="bg-[#111625] p-1.5 rounded-lg border border-slate-800">
+                  <p class="text-slate-400 text-[9px]">FAT</p>
+                  <p class="text-cyan-400 font-bold text-xs" id="resFats">28g</p>
+                </div>
+              </div>
+            </div>
+
+            <button onclick="addMealToLog()" id="addLogBtn" class="w-full bg-emerald-600/20 border border-emerald-500/40 hover:bg-emerald-600/30 text-emerald-300 font-semibold text-xs py-2.5 rounded-xl transition">
+              + Log Selected Meal Time
+            </button>
+          </div>
+
+          <!-- Dynamic 4-Slot Calorie Splitter -->
+          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl">
+            <div class="flex justify-between items-center mb-2.5">
+              <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                <span>⚖️</span> Calorie Splitter
+              </h3>
+              <span id="dayStatusBadge" class="bg-indigo-950 text-indigo-400 border border-indigo-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-semibold">
+                In Progress
+              </span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 text-center mb-3">
+              <div class="bg-[#0B0F19] p-2 rounded-xl border border-slate-800">
+                <p class="text-slate-400 text-[10px]">Target</p>
+                <p class="text-xs font-bold text-white"><span id="valTDEE">1,939</span> kcal</p>
+              </div>
+              <div class="bg-[#0B0F19] p-2 rounded-xl border border-slate-800">
+                <p class="text-slate-400 text-[10px]">Logged</p>
+                <p class="text-xs font-bold text-emerald-400"><span id="valLogged">0</span> kcal</p>
+              </div>
+              <div class="bg-[#0B0F19] p-2 rounded-xl border border-slate-800">
+                <p class="text-slate-400 text-[10px]">Remaining</p>
+                <p class="text-xs font-bold text-indigo-400"><span id="valRemaining">1,939</span> kcal</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-xs" id="allowanceSlotsContainer">
+              <div id="slotRow_Breakfast" class="flex justify-between items-center bg-[#0B0F19] px-3 py-2 rounded-xl border border-slate-800">
+                <span class="text-slate-300">🍳 Breakfast</span>
+                <span class="font-bold text-rose-400" id="valBreakfastSplit">485 kcal</span>
+              </div>
+              <div id="slotRow_Lunch" class="flex justify-between items-center bg-[#0B0F19] px-3 py-2 rounded-xl border border-slate-800">
+                <span class="text-slate-300">🥗 Lunch</span>
+                <span class="font-bold text-rose-400" id="valLunchSplit">679 kcal</span>
+              </div>
+              <div id="slotRow_Dinner" class="flex justify-between items-center bg-[#0B0F19] px-3 py-2 rounded-xl border border-slate-800">
+                <span class="text-slate-300">🍲 Dinner</span>
+                <span class="font-bold text-rose-400" id="valDinnerSplit">582 kcal</span>
+              </div>
+              <div id="slotRow_Snack" class="flex justify-between items-center bg-[#0B0F19] px-3 py-2 rounded-xl border border-slate-800">
+                <span class="text-slate-300">🥜 Snack</span>
+                <span class="font-bold text-rose-400" id="valSnackSplit">193 kcal</span>
+              </div>
+            </div>
+
+            <div id="dayCompletedBanner" class="hidden mt-2 p-2 bg-emerald-950/40 border border-emerald-500/40 rounded-xl text-center">
+              <p class="text-xs font-bold text-emerald-300">🎉 All 4 Daily Meals Logged!</p>
+              <button onclick="resetDayRollover()" class="mt-1 text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded-lg font-semibold transition">
+                Begin Next Day →
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: 4 Phenotype Recommendations (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col justify-between">
+          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl h-full flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <span>🍽️</span> 4-Meal Calibrated Recommendations
+                </h3>
+                <span id="recomPhenoBadge" class="bg-purple-900/40 text-purple-300 border border-purple-500/40 text-[10px] px-2.5 py-1 rounded-full font-medium">
+                  Active Phenotype Plan
+                </span>
+              </div>
+
+              <div class="bg-purple-950/30 border border-purple-600/30 rounded-xl p-3 mb-3">
+                <p class="text-xs text-purple-300 font-semibold" id="recommendationTitle">
+                  <span>💡</span> Calibrated Daily Matrix:
+                </p>
+                <p class="text-xs text-purple-200/80 leading-relaxed mt-0.5" id="recommendationBody">
+                  Loading tailored biological nutritional guidance...
+                </p>
+              </div>
+
+              <!-- 4 Meal Cards Grid (2x2 layout filling space evenly) -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="recipeContainer">
+                <!-- Populated dynamically via loadPhenotypeDietSuggestions() -->
+              </div>
+            </div>
+
+            <div class="mt-4 p-3 bg-[#0B0F19] rounded-xl border border-slate-800/80 text-xs text-slate-400 flex items-center justify-between">
+              <span>Need to change clinical diagnosis or symptoms?</span>
+              <button onclick="openIntakeModal()" class="text-indigo-400 hover:text-indigo-300 underline font-medium">
+                Retake Assessment
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= SECTION 3: USER PROFILE ================= -->
+    <div id="profileSection" class="hidden w-full space-y-5">
+      <header class="flex justify-between items-center">
+        <div>
+          <h2 class="text-2xl font-bold text-white">Profile & Twin Specifications</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Manage account credentials and baseline biological parameters</p>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-3.5 mb-6">
+              <div id="profAvatarBadge" class="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-xl text-indigo-300 font-extrabold shadow-lg">
+                👤
+              </div>
+              <div class="overflow-hidden">
+                <h3 id="profFullName" class="text-lg font-bold text-white truncate">User Account</h3>
+                <p id="profEmail" class="text-xs text-slate-400 truncate">user@example.com</p>
+              </div>
+            </div>
+
+            <div class="space-y-2.5 text-xs border-t border-slate-800 pt-4">
+              <div class="flex justify-between py-0.5">
+                <span class="text-slate-400">User ID</span>
+                <span id="profUserId" class="font-semibold text-white">1</span>
+              </div>
+              <div class="flex justify-between py-0.5">
+                <span class="text-slate-400">Account Status</span>
+                <span class="text-emerald-400 font-medium">● Active & Synced</span>
+              </div>
+              <div class="flex justify-between py-0.5">
+                <span class="text-slate-400">Target TDEE</span>
+                <span class="font-semibold text-indigo-400">1,939 kcal</span>
+              </div>
+              <div class="flex justify-between py-0.5">
+                <span class="text-slate-400">Date of Birth</span>
+                <span id="profDobDisplay" class="font-semibold text-slate-200">Not set</span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="logout()" class="w-full mt-6 py-2.5 bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-2">
+            <span>🚪</span> Sign Out
+          </button>
+        </div>
+
+        <div class="lg:col-span-2 space-y-5">
+          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-sm font-bold text-white">Calibrated Biological Profile</h3>
+              <button onclick="openIntakeModal()" class="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+                <span>🔄</span> Recalibrate
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-purple-500/30">
+                <p class="text-slate-400 text-[10px] uppercase font-medium">Active Phenotype</p>
+                <p id="profPhenotype" class="text-xs font-bold text-purple-300 mt-1 leading-tight">Pending</p>
+              </div>
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
+                <p class="text-slate-400 text-[10px] uppercase font-medium">Glycemic Status</p>
+                <p class="text-xs font-bold text-emerald-400 mt-1">Sensitive</p>
+              </div>
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
+                <p class="text-slate-400 text-[10px] uppercase font-medium">Adrenal Load</p>
+                <p class="text-xs font-bold text-amber-400 mt-1">Moderate</p>
+              </div>
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
+                <p class="text-slate-400 text-[10px] uppercase font-medium">Cycle Status</p>
+                <p class="text-xs font-bold text-cyan-400 mt-1">Monitored</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <h3 class="text-sm font-bold text-white mb-4">Edit Details & Security</h3>
+            
+            <div id="profileUpdateAlert" class="hidden mb-3 p-2.5 rounded-xl text-xs text-center font-medium"></div>
+
+            <form id="profileUpdateForm" onsubmit="updateUserProfile(event)" class="space-y-3.5 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">Full Name</label>
+                  <input type="text" id="editFullName" required class="w-full px-3.5 py-2 bg-[#0B0F19] border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">Date of Birth</label>
+                  <input type="date" id="editDob" class="w-full px-3.5 py-2 bg-[#0B0F19] border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">New Password</label>
+                  <input type="password" id="editNewPassword" placeholder="••••••••" class="w-full px-3.5 py-2 bg-[#0B0F19] border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">Confirm Password</label>
+                  <input type="password" id="editConfirmPassword" placeholder="••••••••" class="w-full px-3.5 py-2 bg-[#0B0F19] border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+                </div>
+              </div>
+
+              <div class="flex justify-end pt-1">
+                <button type="submit" id="saveProfileBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ================= QUICK LOG MODAL ================= -->
+  <div id="logModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div class="bg-[#111625] border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-base font-bold text-white">Update Twin Biometrics</h3>
+        <button onclick="closeLogModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <form id="healthLogForm" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Stress Level (0 - 10)</label>
+          <input type="number" id="stressInput" min="0" max="10" step="1" value="4" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Sleep Duration (Hours)</label>
+          <input type="number" id="sleepInput" min="0" max="24" step="0.5" value="7.5" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Exercise (Minutes)</label>
+          <input type="number" id="exerciseInput" min="0" max="300" value="30" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Diet Quality Score (1 - 10)</label>
+          <input type="number" id="dietInput" min="1" max="10" value="8" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Medication Taken (1 for Yes, 0 for No)</label>
+          <input type="number" id="medicationInput" min="0" max="1" value="1" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="pt-2 flex gap-3">
+          <button type="button" onclick="closeLogModal()" class="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl">Cancel</button>
+          <button type="submit" id="submitLogBtn" class="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="intakeContainer"></div>
+
+  <!-- ================= SCRIPTS ================= -->
+  <script>
+  let targetTDEE = 1939;
+  let currentScannedCalories = 520;
+  let currentScannedProtein = 36;
+  let currentScannedCarbs = 42;
+  let currentScannedFats = 28;
+  let isSidebarCollapsed = false;
+
+  // SIDEBAR TOGGLE HANDLER
+  function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("sidebarToggleBtn");
+    const labels = document.querySelectorAll(".sidebar-label");
+
+    isSidebarCollapsed = !isSidebarCollapsed;
+
+    if (isSidebarCollapsed) {
+      sidebar.classList.remove("w-64");
+      sidebar.classList.add("w-20", "items-center");
+      labels.forEach(el => el.classList.add("hidden"));
+      toggleBtn.innerText = "▶";
+    } else {
+      sidebar.classList.remove("w-20", "items-center");
+      sidebar.classList.add("w-64");
+      labels.forEach(el => el.classList.remove("hidden"));
+      toggleBtn.innerText = "◀";
+    }
+  }
+
+  // Logout Handler
+  function logout() {
+    localStorage.removeItem("user_token");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("full_name");
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("user_dob");
+    localStorage.removeItem("user_phenotype");
+    window.location.href = "login.html";
+  }
+
+  // Initial Load
+  document.addEventListener("DOMContentLoaded", async function() {
+    refreshUserDisplay();
+    await fetchUserProfileAndPhenotype();
+    fetchDietSummary();
+    loadPhenotypeDietSuggestions();
+  });
+
+  async function fetchUserProfileAndPhenotype() {
+    const userId = localStorage.getItem("user_id") || "1";
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/user-profile/${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.assigned_phenotype) {
+          localStorage.setItem("user_phenotype", data.assigned_phenotype);
+          applyPhenotypeUI(data.assigned_phenotype, true);
+        } else {
+          applyPhenotypeUI("Pending Assessment — Click 'Intake Assessment' to calibrate", false);
+        }
+      } else {
+        const cachedPheno = localStorage.getItem("user_phenotype");
+        if (cachedPheno) applyPhenotypeUI(cachedPheno, true);
+      }
+    } catch (err) {
+      const cachedPheno = localStorage.getItem("user_phenotype");
+      if (cachedPheno) applyPhenotypeUI(cachedPheno, true);
+    }
+  }
+
+  function applyPhenotypeUI(phenotypeName, isCalibrated) {
+    if (document.getElementById("dashPhenotypeDisplay")) document.getElementById("dashPhenotypeDisplay").innerText = phenotypeName;
+    if (document.getElementById("profPhenotype")) document.getElementById("profPhenotype").innerText = phenotypeName;
+    if (document.getElementById("dashPhenotypeBadge")) {
+      if (isCalibrated) {
+        document.getElementById("dashPhenotypeBadge").innerText = "Live Calibrated";
+        document.getElementById("dashPhenotypeBadge").className = "bg-emerald-900/40 text-emerald-300 border border-emerald-500/40 text-xs px-3.5 py-1.5 rounded-full font-medium";
+      } else {
+        document.getElementById("dashPhenotypeBadge").innerText = "Uncalibrated";
+        document.getElementById("dashPhenotypeBadge").className = "bg-purple-900/40 text-purple-300 border border-purple-500/40 text-xs px-3.5 py-1.5 rounded-full font-medium";
+      }
+    }
+  }
+
+  function refreshUserDisplay() {
+    const fullName = localStorage.getItem("full_name") || "User";
+    const email = localStorage.getItem("user_email") || "user@example.com";
+    const userId = localStorage.getItem("user_id") || "1";
+    const dob = localStorage.getItem("user_dob") || "Not set";
+
+    const initials = fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "U";
+
+    if (document.getElementById("sideAvatarBadge")) document.getElementById("sideAvatarBadge").innerText = initials;
+    if (document.getElementById("profAvatarBadge")) document.getElementById("profAvatarBadge").innerText = initials;
+    if (document.getElementById("sideUserName")) document.getElementById("sideUserName").innerText = fullName;
+    if (document.getElementById("sideUserEmail")) document.getElementById("sideUserEmail").innerText = email;
+    if (document.getElementById("userGreeting")) document.getElementById("userGreeting").innerText = `Welcome back, ${fullName}! Real-time biological telemetry status`;
+    if (document.getElementById("profFullName")) document.getElementById("profFullName").innerText = fullName;
+    if (document.getElementById("profEmail")) document.getElementById("profEmail").innerText = email;
+    if (document.getElementById("profUserId")) document.getElementById("profUserId").innerText = userId;
+    if (document.getElementById("profDobDisplay")) document.getElementById("profDobDisplay").innerText = dob;
+
+    if (document.getElementById("editFullName")) document.getElementById("editFullName").value = fullName;
+    if (document.getElementById("editDob") && dob !== "Not set") document.getElementById("editDob").value = dob;
+  }
+
+  function updateUserProfile(event) {
+    event.preventDefault();
+    const alertBox = document.getElementById("profileUpdateAlert");
+    const newName = document.getElementById("editFullName").value.trim();
+    const newDob = document.getElementById("editDob").value;
+    const newPass = document.getElementById("editNewPassword").value;
+    const confirmPass = document.getElementById("editConfirmPassword").value;
+
+    if (newPass && newPass !== confirmPass) {
+      alertBox.textContent = "Passwords do not match!";
+      alertBox.className = "mb-3 p-2.5 rounded-xl text-xs text-center font-medium bg-rose-500/10 text-rose-400 border border-rose-500/30";
+      return;
+    }
+
+    if (newName) localStorage.setItem("full_name", newName);
+    if (newDob) localStorage.setItem("user_dob", newDob);
+
+    alertBox.textContent = "Profile updated successfully!";
+    alertBox.className = "mb-3 p-2.5 rounded-xl text-xs text-center font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
+
+    document.getElementById("editNewPassword").value = "";
+    document.getElementById("editConfirmPassword").value = "";
+
+    refreshUserDisplay();
+    setTimeout(() => alertBox.classList.add("hidden"), 3000);
+  }
+
+  function switchTab(tabName) {
+    const overviewSec = document.getElementById("overviewSection");
+    const pillarsSec = document.getElementById("pillarsSection");
+    const profileSec = document.getElementById("profileSection");
+    const navOverview = document.getElementById("navOverview");
+    const navPillars = document.getElementById("navPillars");
+
+    overviewSec.classList.add("hidden");
+    pillarsSec.classList.add("hidden");
+    profileSec.classList.add("hidden");
+
+    const activeClass = "w-full flex items-center gap-3.5 px-4 py-2.5 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-xl text-sm font-medium transition text-left";
+    const inactiveClass = "w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left";
+
+    navOverview.className = inactiveClass;
+    navPillars.className = inactiveClass;
+
+    if (tabName === "pillars") {
+      pillarsSec.classList.remove("hidden");
+      navPillars.className = activeClass;
+      fetchDietSummary();
+      loadPhenotypeDietSuggestions();
+    } else if (tabName === "profile") {
+      profileSec.classList.remove("hidden");
+    } else {
+      overviewSec.classList.remove("hidden");
+      navOverview.className = activeClass;
+    }
+  }
+
+  // File Upload Drag and Drop
+  document.addEventListener("DOMContentLoaded", async function() {
+    try {
+      const res = await fetch("intake.html");
+      if (res.ok) document.getElementById("intakeContainer").innerHTML = await res.text();
+    } catch (err) {
+      console.error("Intake loader error:", err);
+    }
+
+    const dropZone = document.getElementById('dropZone');
+    if (dropZone) {
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+      });
+      dropZone.addEventListener('drop', (e) => {
+        handleFileSelect(e.dataTransfer.files);
+      }, false);
+    }
+  });
+
+  function handleFileSelect(files) {
+    if (files && files[0]) {
+      const file = files[0];
+      document.getElementById('mealNameInput').value = file.name;
+      document.getElementById('fileNameDisplay').innerText = file.name;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('imagePreview').src = e.target.result;
+        document.getElementById('uploadPlaceholder').classList.add('hidden');
+        document.getElementById('previewContainer').classList.remove('hidden');
+        document.getElementById('previewContainer').classList.add('flex');
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  window.openIntakeModal = () => { const m = document.getElementById('intakeModal'); if(m) { m.classList.remove('hidden'); m.style.display = 'flex'; }};
+  window.closeIntakeModal = () => { const m = document.getElementById('intakeModal'); if(m) { m.classList.add('hidden'); m.style.display = 'none'; }};
+  window.openLogModal = () => { const m = document.getElementById('logModal'); if(m) { m.classList.remove('hidden'); m.style.display = 'flex'; }};
+  window.closeLogModal = () => { const m = document.getElementById('logModal'); if(m) { m.classList.add('hidden'); m.style.display = 'none'; }};
+
+  // Intake Form Submit
+  window.submitIntakeForm = async function(event) {
+    if (event) event.preventDefault();
+    const userId = localStorage.getItem('user_id') || '1';
+
+    const payload = {
+      user_id: parseInt(userId),
+      symp_periods: document.getElementById('symp_periods')?.checked || false,
+      symp_hair: document.getElementById('symp_hair')?.checked || false,
+      symp_thinning: document.getElementById('symp_thinning')?.checked || false,
+      symp_acne: document.getElementById('symp_acne')?.checked || false,
+      symp_stress: document.getElementById('symp_stress')?.checked || false,
+      symp_weight: document.getElementById('symp_weight')?.checked || false,
+      usg_result: document.getElementById('usgInput')?.value || 'normal',
+      prior_diagnosis: document.getElementById('diagInput')?.value || 'none'
+    };
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/submit-intake', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (response.ok) {
+        localStorage.setItem("user_phenotype", data.assigned_phenotype);
+        applyPhenotypeUI(data.assigned_phenotype, true);
+        setTimeout(() => {
+          window.closeIntakeModal();
+          loadPhenotypeDietSuggestions();
+        }, 800);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Health Log Form Submit
+  document.getElementById("healthLogForm")?.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const userId = localStorage.getItem("user_id") || "1";
+    const payload = {
+      user_id: parseInt(userId),
+      stress_level: parseInt(document.getElementById("stressInput").value),
+      sleep_hours: parseFloat(document.getElementById("sleepInput").value),
+      exercise_mins: parseInt(document.getElementById("exerciseInput").value),
+      diet_score: parseInt(document.getElementById("dietInput").value),
+      medication_status: parseInt(document.getElementById("medicationInput").value)
+    };
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/submit-health-log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        document.getElementById("stressVal").innerText = `${payload.stress_level} / 10`;
+        document.getElementById("sleepVal").innerText = `${payload.sleep_hours} hrs`;
+        document.getElementById("exerciseVal").innerText = `${payload.exercise_mins} mins`;
+        document.getElementById("scoreDisplay").innerText = data.stability_score;
+        closeLogModal();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  });
+
+  // DIET TELEMETRY FUNCTIONS
+  async function scanMealWithML() {
+    const mealFileName = document.getElementById("mealNameInput").value || "Fresh Fruit Bowl";
+    const userId = localStorage.getItem("user_id") || "1";
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/scan-meal-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: parseInt(userId), image_filename: mealFileName })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        document.getElementById("resMealName").innerText = data.scanned_image;
+        document.getElementById("resCalories").innerText = `${data.extracted_macros.calories}`;
+        document.getElementById("resProtein").innerText = `${data.extracted_macros.protein}g`;
+        document.getElementById("resCarbs").innerText = `${data.extracted_macros.carbs}g`;
+        document.getElementById("resFats").innerText = `${data.extracted_macros.fats}g`;
+        currentScannedCalories = data.extracted_macros.calories;
+        currentScannedProtein = data.extracted_macros.protein;
+        currentScannedCarbs = data.extracted_macros.carbs;
+        currentScannedFats = data.extracted_macros.fats;
+      }
+    } catch (err) {
+      document.getElementById("resMealName").innerText = mealFileName;
+    }
+  }
+
+  async function fetchDietSummary() {
+    const userId = localStorage.getItem("user_id") || "1";
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/diet-summary/${userId}`);
+      const data = await res.json();
+      if (res.ok) {
+        document.getElementById("valTDEE").innerText = Math.round(data.daily_target);
+        document.getElementById("valLogged").innerText = data.logged_today;
+        document.getElementById("valRemaining").innerText = Math.round(data.remaining_balance);
+
+        const slots = ["Breakfast", "Lunch", "Dinner", "Snack"];
+        slots.forEach(slot => {
+          const row = document.getElementById(`slotRow_${slot}`);
+          const splitValEl = document.getElementById(`val${slot}Split`);
+          if (data.logged_slots && data.logged_slots.includes(slot)) {
+            if (row) row.classList.add("opacity-40", "bg-slate-900/60");
+            if (splitValEl) splitValEl.innerText = "✓ Logged";
+          } else {
+            if (row) row.classList.remove("opacity-40", "bg-slate-900/60");
+            if (splitValEl) splitValEl.innerText = `${data.allowance_split[slot] || 0} kcal`;
+          }
+        });
+
+        const badge = document.getElementById("dayStatusBadge");
+        const banner = document.getElementById("dayCompletedBanner");
+        const addBtn = document.getElementById("addLogBtn");
+
+        if (data.day_completed) {
+          badge.innerText = "Day Complete";
+          badge.className = "bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-xs px-3 py-1 rounded-full font-semibold";
+          banner.classList.remove("hidden");
+          addBtn.disabled = true;
+          addBtn.classList.add("opacity-50", "cursor-not-allowed");
+        } else {
+          badge.innerText = `${data.unlogged_slots ? data.unlogged_slots.length : 4} Left`;
+          badge.className = "bg-indigo-950 text-indigo-400 border border-indigo-500/30 text-xs px-3 py-1 rounded-full font-semibold";
+          banner.classList.add("hidden");
+          addBtn.disabled = false;
+          addBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function addMealToLog() {
+    const userId = localStorage.getItem("user_id") || "1";
+    const mealName = document.getElementById("mealNameInput")?.value || "Logged Meal";
+    const mealSlot = document.getElementById("mealSlotSelect")?.value || "Lunch";
+
+    const payload = {
+      user_id: parseInt(userId),
+      meal_name: mealName,
+      meal_type: mealSlot,
+      calories: currentScannedCalories,
+      protein: currentScannedProtein,
+      carbs: currentScannedCarbs,
+      fats: currentScannedFats,
+      glycemic_risk: "Optimal Choice"
+    };
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/log-meal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        await fetchDietSummary();
+        await loadPhenotypeDietSuggestions();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function loadPhenotypeDietSuggestions() {
+    const userId = localStorage.getItem("user_id") || "1";
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/diet-recommendations/${userId}`);
+      const data = await res.json();
+      if (res.ok) {
+        document.getElementById("recommendationTitle").innerHTML = `<span>💡</span> ${data.guidance_title}`;
+        document.getElementById("recommendationBody").innerText = data.guidance_body;
+        if (data.assigned_phenotype && document.getElementById("recomPhenoBadge")) {
+          document.getElementById("recomPhenoBadge").innerText = data.assigned_phenotype;
+        }
+
+        const container = document.getElementById("recipeContainer");
+        const slotIcons = { "Breakfast": "🍳", "Lunch": "🥗", "Dinner": "🍲", "Snack": "🥜" };
+
+        container.innerHTML = data.recipes.map(r => `
+          <div class="bg-[#0B0F19] p-3.5 rounded-xl border ${r.is_logged ? 'border-slate-800/40 opacity-40' : 'border-slate-800 hover:border-indigo-500/40'} flex flex-col justify-between transition min-h-[125px]">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-bold px-2 py-0.5 bg-indigo-950 text-indigo-300 rounded-md border border-indigo-500/30">
+                  ${slotIcons[r.meal_slot] || '🍽️'} ${r.meal_slot}
+                </span>
+                <span class="text-xs font-bold text-indigo-400">${r.kcal} kcal</span>
+              </div>
+              <p class="text-xs font-bold text-white leading-snug line-clamp-1">${r.name}</p>
+              <p class="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">${r.desc}</p>
+            </div>
+            
+            <div class="mt-3 flex items-center justify-between pt-2 border-t border-slate-800/60">
+              <span class="text-[10px] text-slate-400 font-medium">${r.protein}g P · ${r.fats}g F · GI ${r.gi}</span>
+              ${r.is_logged ? 
+                `<span class="text-emerald-400 font-bold text-xs">✓ Logged</span>` :
+                `<button onclick="selectSuggestedRecipe('${r.meal_slot}', '${r.name}', ${r.kcal}, ${r.protein}, ${r.carbs}, ${r.fats})" class="bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-xs px-2.5 py-1 rounded-lg transition font-medium">+ Select</button>`
+              }
+            </div>
+          </div>
+        `).join("");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function selectSuggestedRecipe(slot, name, kcal, protein, carbs, fats) {
+    document.getElementById("mealNameInput").value = name;
+    document.getElementById("mealSlotSelect").value = slot;
+    document.getElementById("resMealName").innerText = name;
+    document.getElementById("resCalories").innerText = `${kcal}`;
+    document.getElementById("resProtein").innerText = `${protein}g`;
+    document.getElementById("resCarbs").innerText = `${carbs}g`;
+    document.getElementById("resFats").innerText = `${fats}g`;
+
+    currentScannedCalories = kcal;
+    currentScannedProtein = protein;
+    currentScannedCarbs = carbs;
+    currentScannedFats = fats;
+
+    addMealToLog();
+  }
+
+  async function resetDayRollover() {
+    const userId = localStorage.getItem("user_id") || "1";
+    if (confirm("Reset day & refresh all 4 meal allowances?")) {
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/api/reset-day/${userId}`, { method: "POST" });
+        if (res.ok) {
+          await fetchDietSummary();
+          await loadPhenotypeDietSuggestions();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+  </script>
+</body>
+</html>

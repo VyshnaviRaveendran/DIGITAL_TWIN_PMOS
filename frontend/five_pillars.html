@@ -1,0 +1,555 @@
+<div class="p-6 bg-slate-950 text-slate-100 font-sans min-h-screen">
+
+    <!-- Header Section -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-white tracking-wide">The 5 PMOS Management Pillars</h1>
+            <p class="text-slate-400 text-sm">Diet, Exercise, Sleep, Medicine & Mental Wealth Interventions</p>
+        </div>
+        <div class="flex space-x-3">
+            <button onclick="resetDayRollover()" class="bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-500/40 text-indigo-300 text-xs px-3.5 py-2 rounded-xl font-medium transition">
+                🔄 Reset / Next Day
+            </button>
+            <button onclick="openIntakeModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-medium">📋 Intake Quiz</button>
+            <button onclick="openLogModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-medium">⚡ Quick Log</button>
+        </div>
+    </div>
+
+    <!-- Main Banner -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>🏛️</span> The 5 Pillars of PMOS Management
+        </h2>
+        <p class="text-slate-400 text-sm mt-1">Comprehensive daily interventions to regulate insulin resistance, lower androgens, and stabilize cycle health.</p>
+    </div>
+
+    <!-- Pillar Navigation Tabs -->
+    <div class="flex space-x-3 mb-6 overflow-x-auto pb-2">
+        <button class="bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-5 py-2.5 rounded-xl text-sm flex items-center gap-2">
+            🥑 1. Diet & Nutrition
+        </button>
+        <button class="bg-slate-900 border border-slate-800 text-slate-400 px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 opacity-60 cursor-not-allowed">
+            🏋️ 2. Exercise & Movement
+        </button>
+        <button class="bg-slate-900 border border-slate-800 text-slate-400 px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 opacity-60 cursor-not-allowed">
+            🛌 3. Sleep Architecture
+        </button>
+        <button class="bg-slate-900 border border-slate-800 text-slate-400 px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 opacity-60 cursor-not-allowed">
+            💊 4. Medicine & Supplements
+        </button>
+        <button class="bg-slate-900 border border-slate-800 text-slate-400 px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 opacity-60 cursor-not-allowed">
+            🧠 5. Mental Wealth & Stress
+        </button>
+    </div>
+
+    <!-- 2x2 Grid Layout for Diet & Nutrition -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- CARD 1: Smart Meal Photo Scanner with Time Slot Selector -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+            <div>
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    📷 Smart Meal Calorie & Macro Scanner
+                </h3>
+                <p class="text-slate-400 text-xs mt-1">Upload a meal photo or select from recommended meals, choose your meal time, and log to deduct and rebalance your allowance.</p>
+
+                <!-- Interactive Drag & Drop Box -->
+                <div id="dropZone" 
+                     onclick="document.getElementById('mealFileInput').click()" 
+                     class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 rounded-2xl p-6 text-center my-4 cursor-pointer transition relative flex flex-col items-center justify-center min-h-[150px]">
+                    
+                    <div id="uploadPlaceholder" class="flex flex-col items-center">
+                        <div class="text-indigo-400 text-3xl mb-2">☁️</div>
+                        <p class="text-sm font-semibold text-slate-300">Drag & drop meal photo here or <span class="text-indigo-400 underline">Browse Image</span></p>
+                        <p class="text-[10px] text-slate-500 mt-1">Supports JPG, PNG, WEBP</p>
+                    </div>
+
+                    <div id="previewContainer" class="hidden flex-col items-center">
+                        <img id="imagePreview" src="" alt="Meal Preview" class="max-h-28 rounded-lg border border-slate-700 object-cover mb-2">
+                        <p class="text-xs text-indigo-300 font-medium" id="fileNameDisplay"></p>
+                    </div>
+
+                    <input type="file" id="mealFileInput" accept="image/*" class="hidden" onchange="handleFileSelect(this.files)">
+                </div>
+
+                <!-- Input + Meal Time Dropdown + Scan Button -->
+                <div class="space-y-2 mb-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                        <div class="sm:col-span-8">
+                            <input type="text" id="mealNameInput" value="Fresh Fruit Bowl" placeholder="Meal Description / Item Name" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white w-full focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div class="sm:col-span-4">
+                            <select id="mealSlotSelect" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-indigo-300 font-semibold w-full focus:outline-none focus:border-indigo-500">
+                                <option value="Breakfast">🍳 Breakfast</option>
+                                <option value="Lunch" selected>🥗 Lunch</option>
+                                <option value="Dinner">🍲 Dinner</option>
+                                <option value="Snack">🥜 Snack</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button onclick="scanMealWithML()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs py-2.5 rounded-xl transition">
+                        ⚡ Scan & Estimate Macros
+                    </button>
+                </div>
+
+                <!-- Macro Output Preview -->
+                <div id="mlScanResult" class="bg-slate-950 border border-slate-800 rounded-xl p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="font-bold text-white text-base" id="resMealName">Fresh Fruit Bowl</span>
+                        <span class="bg-emerald-900/50 text-emerald-400 border border-emerald-600/50 text-xs px-3 py-1 rounded-full font-medium" id="resPhenotypeTag">
+                            Optimal Choice
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-2 text-center mb-3">
+                        <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                            <p class="text-slate-400 text-[10px] uppercase">Calories</p>
+                            <p class="text-indigo-400 font-bold text-sm" id="resCalories">520 kcal</p>
+                        </div>
+                        <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                            <p class="text-slate-400 text-[10px] uppercase">Protein</p>
+                            <p class="text-emerald-400 font-bold text-sm" id="resProtein">36g</p>
+                        </div>
+                        <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                            <p class="text-slate-400 text-[10px] uppercase">Net Carbs</p>
+                            <p class="text-amber-400 font-bold text-sm" id="resCarbs">42g</p>
+                        </div>
+                        <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                            <p class="text-slate-400 text-[10px] uppercase">Healthy Fats</p>
+                            <p class="text-cyan-400 font-bold text-sm" id="resFats">28g</p>
+                        </div>
+                    </div>
+
+                    <p class="text-[11px] text-slate-400 leading-relaxed" id="mlDescriptionText">
+                        <b>Nutrition Status:</b> Optimal balance for energy without post-prandial insulin surges.
+                    </p>
+                </div>
+            </div>
+
+            <button onclick="addMealToLog()" id="addLogBtn" class="w-full bg-emerald-600/20 border border-emerald-500/40 hover:bg-emerald-600/30 text-emerald-300 font-semibold text-xs py-3 rounded-xl mt-4 transition">
+                + Log Selected Meal Time & Rebalance Split
+            </button>
+        </div>
+
+        <!-- CARD 2: Daily Calorie & Dynamic 4-Slot Splitter -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        ⚖️ Daily Calorie & Balance Splitter
+                    </h3>
+                    <span id="dayStatusBadge" class="bg-indigo-950 text-indigo-400 border border-indigo-500/30 text-[10px] px-2.5 py-1 rounded-full font-semibold">
+                        In Progress
+                    </span>
+                </div>
+                <p class="text-slate-400 text-xs mt-1">Calculates daily target and automatically divides the remaining calorie balance across your unlogged meal times.</p>
+
+                <!-- Macro Targets -->
+                <div class="grid grid-cols-3 gap-3 my-4">
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                        <p class="text-slate-400 text-xs">Daily Target</p>
+                        <p class="text-xl font-bold text-white mt-1"><span id="valTDEE">1,939</span> <span class="text-xs font-normal text-slate-400">kcal</span></p>
+                        <span class="inline-block mt-2 text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">Maintenance</span>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                        <p class="text-slate-400 text-xs">Logged Today</p>
+                        <p class="text-xl font-bold text-emerald-400 mt-1"><span id="valLogged">0</span> <span class="text-xs font-normal text-slate-400">kcal</span></p>
+                        <p class="text-[10px] text-slate-400 mt-2" id="valMealCount">0 / 4 Meals</p>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                        <p class="text-slate-400 text-xs">Remaining Balance</p>
+                        <p class="text-xl font-bold text-indigo-400 mt-1"><span id="valRemaining">1,939</span> <span class="text-xs font-normal text-slate-400">kcal</span></p>
+                        <p class="text-[10px] text-slate-400 mt-2">To Distribute</p>
+                    </div>
+                </div>
+
+                <!-- Dynamic Remaining Slots List -->
+                <div class="space-y-2.5" id="allowanceSlotsContainer">
+                    <p class="text-xs font-semibold text-slate-400 mb-1">Dynamic Remaining Meal Allowances:</p>
+
+                    <div id="slotRow_Breakfast" class="flex justify-between items-center bg-slate-950 px-4 py-2.5 rounded-xl border border-slate-800 transition">
+                        <span class="text-xs text-slate-300 flex items-center gap-2"><span>🍳</span> Breakfast Allowance</span>
+                        <span class="text-xs font-bold text-rose-400" id="valBreakfastSplit">485 kcal</span>
+                    </div>
+
+                    <div id="slotRow_Lunch" class="flex justify-between items-center bg-slate-950 px-4 py-2.5 rounded-xl border border-slate-800 transition">
+                        <span class="text-xs text-slate-300 flex items-center gap-2"><span>🥗</span> Lunch Allowance</span>
+                        <span class="text-xs font-bold text-rose-400" id="valLunchSplit">679 kcal</span>
+                    </div>
+
+                    <div id="slotRow_Dinner" class="flex justify-between items-center bg-slate-950 px-4 py-2.5 rounded-xl border border-slate-800 transition">
+                        <span class="text-xs text-slate-300 flex items-center gap-2"><span>🍲</span> Dinner Allowance</span>
+                        <span class="text-xs font-bold text-rose-400" id="valDinnerSplit">582 kcal</span>
+                    </div>
+
+                    <div id="slotRow_Snack" class="flex justify-between items-center bg-slate-950 px-4 py-2.5 rounded-xl border border-slate-800 transition">
+                        <span class="text-xs text-slate-300 flex items-center gap-2"><span>🥜</span> Evening Snack Allowance</span>
+                        <span class="text-xs font-bold text-rose-400" id="valSnackSplit">193 kcal</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day Completion Notification Banner -->
+            <div id="dayCompletedBanner" class="hidden mt-4 p-3 bg-emerald-950/40 border border-emerald-500/40 rounded-xl text-center">
+                <p class="text-xs font-bold text-emerald-300">🎉 All 4 Daily Meals Logged!</p>
+                <p class="text-[10px] text-slate-300 mt-0.5">Your biological digital twin has recorded all daily nutrition telemetry.</p>
+                <button onclick="resetDayRollover()" class="mt-2 text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-lg font-semibold transition">
+                    Begin Next Day & Refresh 4 Meals →
+                </button>
+            </div>
+        </div>
+
+        <!-- CARD 3: Post-Prandial Glucose Spike Simulator -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                📈 Post-Prandial Glucose Spike Simulator
+            </h3>
+            <p class="text-slate-400 text-xs mt-1">Simulate how meal glycemic index & protein-fiber pairing affects your insulin response curve.</p>
+
+            <div class="mt-4 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Meal Type</label>
+                    <select id="simMealSelect" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
+                        <option>PMOS Balanced (Quinoa, Wild Salmon, Avocado, Broccoli)</option>
+                        <option>High Glycemic Refined Carbs (White Rice, Sugary Sauce)</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="simBufferCheck" checked onchange="runGlucoseSimulation()" class="w-4 h-4 rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0">
+                    <label for="simBufferCheck" class="text-xs text-slate-300">Add starter salad / ACV buffer (Lowers Glucose Peak)</label>
+                </div>
+
+                <button onclick="runGlucoseSimulation()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition">
+                    Simulate Glucose Spike
+                </button>
+            </div>
+
+            <div class="mt-4 bg-slate-950 rounded-xl p-4 border border-slate-800">
+                <canvas id="glucoseCanvas" height="150"></canvas>
+            </div>
+        </div>
+
+        <!-- CARD 4: 4 Phenotype-Calibrated Daily Suggestions (Breakfast, Lunch, Dinner, Snack) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                🍽️ 4-Meal Phenotype Daily Recommendations
+            </h3>
+            <p class="text-slate-400 text-xs mt-1">Calibrated nutrition plan for your specific PMOS biological profile. Select any meal to log directly:</p>
+
+            <div class="bg-purple-950/30 border border-purple-600/30 rounded-xl p-3 my-3">
+                <p class="text-xs text-purple-300 font-semibold flex items-center gap-1.5" id="recommendationTitle">
+                    <span>💡</span> Calibrated Daily Matrix:
+                </p>
+                <p class="text-[11px] text-purple-200/80 mt-1 leading-relaxed" id="recommendationBody">
+                    Loading tailored biological nutritional guidance...
+                </p>
+            </div>
+
+            <!-- Dynamic 4 Meal Slots List -->
+            <div class="space-y-2" id="recipeContainer">
+                <!-- Populated dynamically via loadPhenotypeDietSuggestions() -->
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+  // Global Macro State
+  let currentScannedCalories = 520;
+  let currentScannedProtein = 36;
+  let currentScannedCarbs = 42;
+  let currentScannedFats = 28;
+
+  // Setup Drag and Drop listeners
+  document.addEventListener("DOMContentLoaded", function() {
+    const dropZone = document.getElementById('dropZone');
+    if (dropZone) {
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+      });
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.add('border-indigo-500', 'bg-indigo-950/20'), false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('border-indigo-500', 'bg-indigo-950/20'), false);
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        handleFileSelect(dt.files);
+      }, false);
+    }
+
+    fetchDietSummary();
+    loadPhenotypeDietSuggestions();
+  });
+
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  // Handle File Selection and Live Preview
+  function handleFileSelect(files) {
+    if (files && files[0]) {
+      const file = files[0];
+      
+      document.getElementById('mealNameInput').value = file.name;
+      document.getElementById('fileNameDisplay').innerText = file.name;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('imagePreview').src = e.target.result;
+        document.getElementById('uploadPlaceholder').classList.add('hidden');
+        document.getElementById('previewContainer').classList.remove('hidden');
+        document.getElementById('previewContainer').classList.add('flex');
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // 1. Scan Meal with ML Endpoint
+  async function scanMealWithML() {
+    const mealFileName = document.getElementById("mealNameInput").value || "Fresh Fruit Bowl";
+    const userId = localStorage.getItem("user_id") || "1";
+    
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/scan-meal-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          user_id: parseInt(userId),
+          image_filename: mealFileName 
+        })
+      });
+      
+      const data = await response.json();
+      if (response.ok) {
+        document.getElementById("resMealName").innerText = data.scanned_image;
+        document.getElementById("resCalories").innerText = `${data.extracted_macros.calories} kcal`;
+        document.getElementById("resProtein").innerText = `${data.extracted_macros.protein}g`;
+        document.getElementById("resCarbs").innerText = `${data.extracted_macros.carbs}g`;
+        document.getElementById("resFats").innerText = `${data.extracted_macros.fats}g`;
+        document.getElementById("resPhenotypeTag").innerText = "Optimal Choice";
+        
+        currentScannedCalories = data.extracted_macros.calories;
+        currentScannedProtein = data.extracted_macros.protein;
+        currentScannedCarbs = data.extracted_macros.carbs;
+        currentScannedFats = data.extracted_macros.fats;
+      }
+    } catch (err) {
+      console.log("Offline mode... using default meal estimation.");
+      document.getElementById("resMealName").innerText = mealFileName;
+      currentScannedCalories = 520;
+    }
+  }
+
+  // 2. Fetch & Render Diet Telemetry + Calorie Split
+  async function fetchDietSummary() {
+    const userId = localStorage.getItem("user_id") || "1";
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/diet-summary/${userId}`);
+      const data = await res.json();
+
+      if (res.ok) {
+        document.getElementById("valTDEE").innerText = Math.round(data.daily_target);
+        document.getElementById("valLogged").innerText = data.logged_today;
+        document.getElementById("valRemaining").innerText = Math.round(data.remaining_balance);
+        document.getElementById("valMealCount").innerText = `${data.meals_count} / 4 Meals`;
+
+        const slots = ["Breakfast", "Lunch", "Dinner", "Snack"];
+        slots.forEach(slot => {
+          const row = document.getElementById(`slotRow_${slot}`);
+          const splitValEl = document.getElementById(`val${slot}Split`);
+          
+          if (data.logged_slots && data.logged_slots.includes(slot)) {
+            if (row) {
+              row.classList.add("opacity-40", "bg-slate-900/60");
+              row.classList.remove("border-slate-800");
+            }
+            if (splitValEl) splitValEl.innerText = "✓ Logged";
+          } else {
+            if (row) {
+              row.classList.remove("opacity-40", "bg-slate-900/60");
+              row.classList.add("border-slate-800");
+            }
+            if (splitValEl) splitValEl.innerText = `${data.allowance_split[slot] || 0} kcal`;
+          }
+        });
+
+        // Day Status Badge & Banner updates
+        const badge = document.getElementById("dayStatusBadge");
+        const banner = document.getElementById("dayCompletedBanner");
+        const addBtn = document.getElementById("addLogBtn");
+
+        if (data.day_completed) {
+          badge.innerText = "Day Complete";
+          badge.className = "bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-[10px] px-2.5 py-1 rounded-full font-semibold";
+          banner.classList.remove("hidden");
+          addBtn.disabled = true;
+          addBtn.classList.add("opacity-50", "cursor-not-allowed");
+        } else {
+          badge.innerText = `${data.unlogged_slots ? data.unlogged_slots.length : 4} Slots Remaining`;
+          badge.className = "bg-indigo-950 text-indigo-400 border border-indigo-500/30 text-[10px] px-2.5 py-1 rounded-full font-semibold";
+          banner.classList.add("hidden");
+          addBtn.disabled = false;
+          addBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load diet summary:", err);
+    }
+  }
+
+  // 3. Log Meal with Selected Time Slot
+  async function addMealToLog() {
+    const userId = localStorage.getItem("user_id") || "1";
+    const mealName = document.getElementById("mealNameInput")?.value || "Logged Meal";
+    const mealSlot = document.getElementById("mealSlotSelect")?.value || "Lunch";
+
+    const payload = {
+      user_id: parseInt(userId),
+      meal_name: mealName,
+      meal_type: mealSlot,
+      calories: currentScannedCalories,
+      protein: currentScannedProtein,
+      carbs: currentScannedCarbs,
+      fats: currentScannedFats,
+      glycemic_risk: "Optimal Choice"
+    };
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/log-meal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        alert(`Logged ${mealSlot}: "${mealName}" (${payload.calories} kcal). Remaining daily allowances rebalanced!`);
+        await fetchDietSummary();
+        await loadPhenotypeDietSuggestions();
+      }
+    } catch (err) {
+      console.error("Error logging meal:", err);
+    }
+  }
+
+  // 4. Load 4 Phenotype-Specific Suggestions
+  async function loadPhenotypeDietSuggestions() {
+    const userId = localStorage.getItem("user_id") || "1";
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/diet-recommendations/${userId}`);
+      const data = await res.json();
+
+      if (res.ok) {
+        document.getElementById("recommendationTitle").innerHTML = `<span>💡</span> ${data.guidance_title}`;
+        document.getElementById("recommendationBody").innerText = data.guidance_body;
+
+        const container = document.getElementById("recipeContainer");
+        const slotIcons = { "Breakfast": "🍳", "Lunch": "🥗", "Dinner": "🍲", "Snack": "🥜" };
+
+        container.innerHTML = data.recipes.map(r => `
+          <div class="bg-slate-950 p-3 rounded-xl border ${r.is_logged ? 'border-slate-800/40 opacity-40' : 'border-slate-800 hover:border-indigo-500/40'} flex justify-between items-center transition">
+            <div>
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="text-[10px] font-bold px-2 py-0.5 bg-indigo-950 text-indigo-300 rounded-md border border-indigo-500/30">
+                  ${slotIcons[r.meal_slot] || '🍽️'} ${r.meal_slot}
+                </span>
+                <p class="text-xs font-bold text-white">${r.name}</p>
+              </div>
+              <p class="text-[10px] text-slate-400">${r.kcal} kcal | ${r.protein}g Protein | ${r.fats}g Fats | GI ${r.gi} (${r.desc})</p>
+            </div>
+            ${r.is_logged ? 
+              `<span class="text-emerald-400 font-bold text-xs px-3 py-1">✓ Logged</span>` :
+              `<button onclick="selectSuggestedRecipe('${r.meal_slot}', '${r.name}', ${r.kcal}, ${r.protein}, ${r.carbs}, ${r.fats})" class="bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-xs px-3 py-1.5 rounded-lg transition font-medium">+ Select</button>`
+            }
+          </div>
+        `).join("");
+      }
+    } catch (err) {
+      console.error("Failed to load phenotype suggestions:", err);
+    }
+  }
+
+  // 5. Select a Suggested Recipe to Populate Scanner Inputs
+  function selectSuggestedRecipe(slot, name, kcal, protein, carbs, fats) {
+    document.getElementById("mealNameInput").value = name;
+    document.getElementById("mealSlotSelect").value = slot;
+    document.getElementById("resMealName").innerText = name;
+    document.getElementById("resCalories").innerText = `${kcal} kcal`;
+    document.getElementById("resProtein").innerText = `${protein}g`;
+    document.getElementById("resCarbs").innerText = `${carbs}g`;
+    document.getElementById("resFats").innerText = `${fats}g`;
+
+    currentScannedCalories = kcal;
+    currentScannedProtein = protein;
+    currentScannedCarbs = carbs;
+    currentScannedFats = fats;
+
+    alert(`Selected ${slot}: "${name}". Click "+ Log Selected Meal Time" to confirm.`);
+  }
+
+  // 6. Reset Day Rollover
+  async function resetDayRollover() {
+    const userId = localStorage.getItem("user_id") || "1";
+    if (confirm("Begin next day? This will reset logged meals and restore all 4 meal slot allowances.")) {
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/api/reset-day/${userId}`, { method: "POST" });
+        if (res.ok) {
+          alert("Rolled over to new day! All 4 meal slots refreshed.");
+          await fetchDietSummary();
+          await loadPhenotypeDietSuggestions();
+        }
+      } catch (err) {
+        console.error("Reset error:", err);
+      }
+    }
+  }
+
+  // 7. Glucose Simulation Chart
+  function runGlucoseSimulation() {
+    const canvas = document.getElementById('glucoseCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = canvas.parentElement.clientWidth - 32;
+    canvas.height = 130;
+
+    const hasBuffer = document.getElementById('simBufferCheck')?.checked ?? true;
+    const peakHeight = hasBuffer ? 50 : 15;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1;
+    for (let y = 20; y < canvas.height; y += 30) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#22d3ee';
+    ctx.lineWidth = 3;
+
+    ctx.moveTo(10, 110);
+    ctx.bezierCurveTo(canvas.width * 0.3, peakHeight, canvas.width * 0.6, peakHeight + 10, canvas.width - 10, 100);
+    ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '10px sans-serif';
+    ctx.fillText('0m (Fasted)', 10, 125);
+    ctx.fillText('60m (Peak)', canvas.width * 0.3, 125);
+    ctx.fillText('180m', canvas.width - 35, 125);
+  }
+
+  window.onload = runGlucoseSimulation;
+</script>

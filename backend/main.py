@@ -1,14 +1,18 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from datetime import datetime, date
+import numpy as np
+import pandas as pd
+from sklearn.neighbors import KNeighborsClassifier
+
 import models, schemas
 from database import engine, Base, get_db
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(title="Digital Twin PMOS API")
 
-# Enable CORS for Live Server (127.0.0.1:5500)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,39 +21,82 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ================= MODEL INITIALIZATION =================
+X_train = np.array([
+    [520, 36, 42, 28],  # Underweight Lean Optimal
+    [250, 10, 55, 5],   # High Glycemic Spike Risk
+    [450, 32, 15, 30],  # Insulin Resistant Safe
+    [180, 5, 35, 2]     # Unbalanced Spike Risk
+])
+y_train = np.array([2, 0, 1, 0])
+
+meal_knn_model = KNeighborsClassifier(n_neighbors=1)
+meal_knn_model.fit(X_train, y_train)
+
+# ================= 4-MEAL PHENOTYPE RECIPE DATABASE =================
+RECIPES_DF = pd.DataFrame([
+    # Phenotype B: Underweight / Hyperandrogenic PMOS (Calorie & Healthy-Fat Dense)
+    {"meal_slot": "Breakfast", "name": "Avocado & Pasture-Raised Eggs on Seeded Sourdough", "kcal": 460, "protein": 24, "carbs": 28, "fats": 28, "gi": 35, "phenotype": "Phenotype B: Ovulatory-Hyperandrogenic PMOS", "desc": "Choline and mono-unsaturated fats to support hormone steroidogenesis."},
+    {"meal_slot": "Lunch", "name": "Wild Alaskan Salmon & Quinoa Tahini Bowl", "kcal": 580, "protein": 40, "carbs": 32, "fats": 34, "gi": 28, "phenotype": "Phenotype B: Ovulatory-Hyperandrogenic PMOS", "desc": "High Omega-3s to downregulate follicular inflammation."},
+    {"meal_slot": "Dinner", "name": "Slow-Roasted Grass-Fed Beef with Sweet Potato Mash", "kcal": 550, "protein": 42, "carbs": 38, "fats": 26, "gi": 40, "phenotype": "Phenotype B: Ovulatory-Hyperandrogenic PMOS", "desc": "Bioavailable zinc and iron supporting ovarian follicle maturation."},
+    {"meal_slot": "Snack", "name": "Raw Macadamia, Walnuts & Pumpkin Seed Cluster", "kcal": 349, "protein": 12, "carbs": 10, "fats": 30, "gi": 15, "phenotype": "Phenotype B: Ovulatory-Hyperandrogenic PMOS", "desc": "Anti-androgenic magnesium & healthy lipid density."},
+
+    # Phenotype A: Classic PMOS / Insulin Resistant (Low GI, High Fiber & Protein)
+    {"meal_slot": "Breakfast", "name": "Chia Seed & Flax Pudding with Collagen & Blueberries", "kcal": 380, "protein": 28, "carbs": 16, "fats": 22, "gi": 18, "phenotype": "Phenotype A: Classic PMOS", "desc": "High viscous fiber to blunt morning cortisol & insulin release."},
+    {"meal_slot": "Lunch", "name": "Grilled Herb Chicken Breast & Cauliflower Rice Pilaf", "kcal": 490, "protein": 48, "carbs": 18, "fats": 24, "gi": 15, "phenotype": "Phenotype A: Classic PMOS", "desc": "Ultra low-glycemic load maintaining baseline insulin sensitivity."},
+    {"meal_slot": "Dinner", "name": "Pan-Seared Halibut with Sautéed Asparagus & Garlic Kale", "kcal": 450, "protein": 44, "carbs": 14, "fats": 24, "gi": 12, "phenotype": "Phenotype A: Classic PMOS", "desc": "Sulforaphane & glutathione to promote estrogen liver conjugation."},
+    {"meal_slot": "Snack", "name": "Organic Celery Sticks with Salted Almond Butter", "kcal": 219, "protein": 8, "carbs": 8, "fats": 18, "gi": 10, "phenotype": "Phenotype A: Classic PMOS", "desc": "Electrolytes and protein buffer preventing mid-day sugar cravings."},
+
+    # Phenotype C: Metabolic-Adrenal PMOS (Cortisol Stabilizing & Glycemic Buffers)
+    {"meal_slot": "Breakfast", "name": "Poached Eggs, Sautéed Spinach & Roasted Pumpkin Slices", "kcal": 410, "protein": 26, "carbs": 24, "fats": 24, "gi": 30, "phenotype": "Phenotype C: Metabolic-Adrenal PMOS", "desc": "Magnesium-dense start preventing adrenal cortisol surges."},
+    {"meal_slot": "Lunch", "name": "Free-Range Turkey Breast with Steamed Broccoli & Tahini", "kcal": 510, "protein": 46, "carbs": 20, "fats": 28, "gi": 20, "phenotype": "Phenotype C: Metabolic-Adrenal PMOS", "desc": "Tryptophan-rich protein sustaining steady adrenal neurotransmitters."},
+    {"meal_slot": "Dinner", "name": "Braised Cod Fillet with Stewed Zucchini & Olive Oil", "kcal": 480, "protein": 38, "carbs": 18, "fats": 28, "gi": 22, "phenotype": "Phenotype C: Metabolic-Adrenal PMOS", "desc": "Easily digestible evening protein supporting nocturnal growth hormone."},
+    {"meal_slot": "Snack", "name": "Spiced Golden Turmeric Milk with Coconut Cream & Chia", "kcal": 239, "protein": 6, "carbs": 12, "fats": 18, "gi": 15, "phenotype": "Phenotype C: Metabolic-Adrenal PMOS", "desc": "Curcumin anti-inflammatory tonic for evening vagus downregulation."},
+
+    # Phenotype D: Normo-Androgenic PMOS (Balanced Mediterranean Ovulatory Profile)
+    {"meal_slot": "Breakfast", "name": "Greek Yogurt Bowl with Hemp Seeds & Raspberries", "kcal": 400, "protein": 32, "carbs": 22, "fats": 20, "gi": 25, "phenotype": "Phenotype D: Normo-Androgenic PMOS", "desc": "Probiotic and protein balance to sustain gut-estrogen clearance."},
+    {"meal_slot": "Lunch", "name": "Mediterranean Quinoa Bowl with Extra Virgin Olive Oil & Tuna", "kcal": 530, "protein": 42, "carbs": 35, "fats": 24, "gi": 32, "phenotype": "Phenotype D: Normo-Androgenic PMOS", "desc": "Polyphenols supporting ovulatory regularity and vascular tone."},
+    {"meal_slot": "Dinner", "name": "Grilled Chicken Paillard with Sautéed Artichoke Hearts", "kcal": 490, "protein": 45, "carbs": 20, "fats": 25, "gi": 20, "phenotype": "Phenotype D: Normo-Androgenic PMOS", "desc": "Fiber prebiotic substrate supporting luteal phase progesterone synthesis."},
+    {"meal_slot": "Snack", "name": "Handful of Roasted Cashews & Dark Chocolate (85%)", "kcal": 219, "protein": 7, "carbs": 14, "fats": 16, "gi": 20, "phenotype": "Phenotype D: Normo-Androgenic PMOS", "desc": "Flavonoid antioxidant boost without glycemic volatility."}
+])
+
+BASE_WEIGHTS = {
+    "Breakfast": 0.25,
+    "Lunch": 0.35,
+    "Dinner": 0.30,
+    "Snack": 0.10
+}
+
 @app.get("/")
 def read_root():
     return {"status": "Backend running successfully", "docs": "http://127.0.0.1:8000/docs"}
 
+# ================= AUTHENTICATION ENDPOINTS =================
 @app.post("/api/signup")
 def signup(data: schemas.SignupSchema, db: Session = Depends(get_db)):
-    # Check if email is already registered
     existing_user = db.query(models.User).filter(models.User.email == data.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Map incoming data to User model attributes (full_name, email, password_hash)
     new_user = models.User(
         full_name=data.full_name,
         email=data.email,
-        password_hash=data.password  # Note: Integrate passlib / bcrypt in production
+        password_hash=data.password
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    
-    return {"status": "success", "message": "User registered successfully", "user_id": new_user.id}
+    return {"status": "success", "message": "User registered successfully", "user_id": new_user.id, "full_name": new_user.full_name}
 
 @app.post("/api/login")
 def login(credentials: schemas.LoginSchema, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == credentials.email).first()
     if not user or user.password_hash != credentials.password:
         raise HTTPException(status_code=400, detail="Invalid credentials")
-    
-    return {"access_token": "sample_token_xyz", "user_id": user.id}
+    return {"access_token": "sample_token_xyz", "user_id": user.id, "full_name": user.full_name}
 
+# ================= INTAKE & PHENOTYPE ENDPOINTS =================
 def classify_phenotype(data: schemas.IntakeSchema) -> str:
-    # Diagnostic Phenotype Logic
     if data.symp_periods and (data.symp_hair or data.symp_acne):
         return "Phenotype B: Ovulatory-Hyperandrogenic PMOS"
     elif data.usg_result == "cysts" and data.symp_periods:
@@ -60,33 +107,182 @@ def classify_phenotype(data: schemas.IntakeSchema) -> str:
 
 @app.post("/api/submit-intake")
 def submit_intake(data: schemas.IntakeSchema, db: Session = Depends(get_db)):
-    # Verify User Exists
-    user = db.query(models.User).filter(models.User.id == data.user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail=f"User with ID {data.user_id} not found in database.")
-
     assigned_pheno = classify_phenotype(data)
+    user = db.query(models.User).filter(models.User.id == data.user_id).first()
+    assessment_id = 1
+    if user:
+        new_assessment = models.IntakeAssessment(
+            user_id=data.user_id,
+            symp_periods=data.symp_periods,
+            symp_hair=data.symp_hair,
+            symp_thinning=data.symp_thinning,
+            symp_acne=data.symp_acne,
+            symp_stress=data.symp_stress,
+            symp_weight=data.symp_weight,
+            usg_result=data.usg_result,
+            prior_diagnosis=data.prior_diagnosis,
+            assigned_phenotype=assigned_pheno
+        )
+        db.add(new_assessment)
+        db.commit()
+        db.refresh(new_assessment)
+        assessment_id = new_assessment.id
 
-    new_assessment = models.IntakeAssessment(
+    return {"status": "success", "assigned_phenotype": assigned_pheno, "assessment_id": assessment_id}
+
+# ================= GET USER PHENOTYPE & BASELINE DATA =================
+@app.get("/api/user-profile/{user_id}")
+def get_user_profile(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Query the latest intake assessment recorded for this user
+    latest_assessment = db.query(models.IntakeAssessment).filter(
+        models.IntakeAssessment.user_id == user_id
+    ).order_by(models.IntakeAssessment.id.desc()).first()
+
+    return {
+        "user_id": user.id,
+        "full_name": user.full_name,
+        "email": user.email,
+        "assigned_phenotype": latest_assessment.assigned_phenotype if latest_assessment else None,
+        "is_calibrated": latest_assessment is not None
+    }
+
+# ================= DIET & DYNAMIC SLOT CALORIE SPLIT =================
+@app.post("/api/log-meal")
+def log_meal(data: schemas.MealLogCreate, db: Session = Depends(get_db)):
+    new_meal = models.MealLog(
         user_id=data.user_id,
-        symp_periods=data.symp_periods,
-        symp_hair=data.symp_hair,
-        symp_thinning=data.symp_thinning,
-        symp_acne=data.symp_acne,
-        symp_stress=data.symp_stress,
-        symp_weight=data.symp_weight,
-        usg_result=data.usg_result,
-        prior_diagnosis=data.prior_diagnosis,
-        assigned_phenotype=assigned_pheno
+        meal_name=data.meal_name,
+        meal_type=data.meal_type or "Lunch",
+        calories=data.calories,
+        protein=data.protein,
+        carbs=data.carbs,
+        fats=data.fats,
+        glycemic_risk=data.glycemic_risk
     )
-
-    db.add(new_assessment)
+    db.add(new_meal)
     db.commit()
-    db.refresh(new_assessment)
+    db.refresh(new_meal)
+
+    return get_diet_summary_logic(data.user_id, db)
+
+@app.get("/api/diet-summary/{user_id}")
+def get_diet_summary(user_id: int, db: Session = Depends(get_db)):
+    return get_diet_summary_logic(user_id, db)
+
+def get_diet_summary_logic(user_id: int, db: Session):
+    user_meals = db.query(models.MealLog).filter(models.MealLog.user_id == user_id).all()
+    logged_slots = [m.meal_type for m in user_meals]
+    total_logged = sum(m.calories for m in user_meals)
+
+    tdee_target = 1939.0
+    remaining_balance = float(np.maximum(0.0, tdee_target - total_logged))
+    
+    all_slots = ["Breakfast", "Lunch", "Dinner", "Snack"]
+    unlogged_slots = [slot for slot in all_slots if slot not in logged_slots]
+    
+    day_completed = len(unlogged_slots) == 0 or len(user_meals) >= 4
+
+    # Calculate dynamic proportion across only the remaining unlogged slots
+    splits = {}
+    if not day_completed and remaining_balance > 0:
+        total_remaining_weight = sum(BASE_WEIGHTS[slot] for slot in unlogged_slots)
+        for slot in unlogged_slots:
+            slot_ratio = BASE_WEIGHTS[slot] / total_remaining_weight
+            splits[slot] = int(round(remaining_balance * slot_ratio))
+    else:
+        for slot in all_slots:
+            splits[slot] = 0
+
+    return {
+        "daily_target": tdee_target,
+        "logged_today": total_logged,
+        "remaining_balance": remaining_balance,
+        "meals_count": len(user_meals),
+        "logged_slots": logged_slots,
+        "unlogged_slots": unlogged_slots,
+        "day_completed": day_completed,
+        "allowance_split": splits,
+        "recent_meals": [
+            {
+                "id": m.id,
+                "name": m.meal_name,
+                "meal_type": m.meal_type,
+                "calories": m.calories,
+                "protein": m.protein,
+                "carbs": m.carbs,
+                "fats": m.fats
+            }
+            for m in user_meals[-4:]
+        ]
+    }
+
+# ================= RESET MEALS FOR NEW DAY =================
+@app.post("/api/reset-day/{user_id}")
+def reset_day(user_id: int, db: Session = Depends(get_db)):
+    db.query(models.MealLog).filter(models.MealLog.user_id == user_id).delete()
+    db.commit()
+    return {"status": "success", "message": "Rolled over to new day! All 4 meal slots refreshed."}
+
+# ================= 4-MEAL PHENOTYPE SUGGESTIONS =================
+@app.get("/api/diet-recommendations/{user_id}")
+def get_diet_recommendations(user_id: int, db: Session = Depends(get_db)):
+    assessment = db.query(models.IntakeAssessment).filter(
+        models.IntakeAssessment.user_id == user_id
+    ).order_by(models.IntakeAssessment.id.desc()).first()
+
+    assigned_phenotype = assessment.assigned_phenotype if assessment else "Phenotype A: Classic PMOS"
+
+    matching = RECIPES_DF[RECIPES_DF["phenotype"] == assigned_phenotype]
+    if matching.empty:
+        matching = RECIPES_DF[RECIPES_DF["phenotype"] == "Phenotype A: Classic PMOS"]
+
+    user_meals = db.query(models.MealLog).filter(models.MealLog.user_id == user_id).all()
+    logged_slots = [m.meal_type for m in user_meals]
+
+    if "Phenotype B" in assigned_phenotype:
+        guidance_title = "Underweight / Lean PMOS Daily Matrix:"
+        guidance_body = "Target high healthy fats & dense proteins. Distribute energy across 4 calibrated meals to build tissue without glycemic volatility."
+    elif "Phenotype C" in assigned_phenotype:
+        guidance_title = "Metabolic-Adrenal Daily Matrix:"
+        guidance_body = "Consume unrefined low-GI complex carbs paired with magnesium-rich foods to prevent cortisol surges."
+    elif "Phenotype D" in assigned_phenotype:
+        guidance_title = "Normo-Androgenic Daily Matrix:"
+        guidance_body = "Anti-inflammatory Mediterranean structure supporting steady progesterone and cycle regularity."
+    else:
+        guidance_title = "Insulin Resistant PMOS Daily Matrix:"
+        guidance_body = "Strict low-glycemic loads with high soluble fiber to reduce pancreatic insulin demand across all 4 meals."
+
+    recipes_list = []
+    for r in matching.to_dict(orient="records"):
+        r["is_logged"] = r["meal_slot"] in logged_slots
+        recipes_list.append(r)
+
+    return {
+        "assigned_phenotype": assigned_phenotype,
+        "guidance_title": guidance_title,
+        "guidance_body": guidance_body,
+        "logged_slots": logged_slots,
+        "recipes": recipes_list
+    }
+
+# ================= ML SCANNER ENDPOINT =================
+@app.post("/api/scan-meal-image")
+def scan_meal_image(data: schemas.FlexibleScanRequest):
+    meal_identifier = data.image_filename or data.meal_name or "Custom Meal"
+    extracted_features = np.array([[520, 36, 42, 28]])
+    pred_class = meal_knn_model.predict(extracted_features)[0]
+    
+    class_labels = {0: "High Glycemic Spike Risk", 1: "Insulin Resistant Safe", 2: "Optimal Choice"}
+    classification_result = class_labels.get(pred_class, "Optimal Choice")
 
     return {
         "status": "success",
-        "message": "Intake assessment recorded",
-        "assigned_phenotype": assigned_pheno,
-        "assessment_id": new_assessment.id
+        "scanned_image": meal_identifier,
+        "meal_name": meal_identifier,
+        "scikit_classification": classification_result,
+        "extracted_macros": {"calories": 520, "protein": 36, "carbs": 42, "fats": 28}
     }

@@ -1,91 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DigitalTwin - Sign Up</title>
-    <!-- Replaced CDN script with production output stylesheet -->
-    <link href="./dist/output.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Twin Health - Register</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center font-sans p-4">
+<body class="bg-[#0B0F19] text-slate-100 min-h-screen flex items-center justify-center p-4 selection:bg-indigo-500 selection:text-white font-sans relative overflow-hidden">
 
-    <div class="bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-xl w-full max-w-md">
-        <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold text-teal-400 tracking-wide">Create Account</h1>
-            <p class="text-slate-400 text-sm mt-1">Initialize your individualized health dashboard</p>
-        </div>
+  <!-- Ambient Glow Backgrounds -->
+  <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-purple-600/15 rounded-full blur-[120px] pointer-events-none"></div>
 
-        <form id="signupForm" class="space-y-4">
-            <div>
-                <label class="block text-sm font-semibold text-slate-300 mb-1">Full Name</label>
-                <input type="text" id="fullName" placeholder="John Doe" required class="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500 transition">
-            </div>
-
-            <div>
-                <label class="block text-sm font-semibold text-slate-300 mb-1">Email Address</label>
-                <input type="email" id="email" placeholder="anu@gmail.com" required class="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500 transition">
-            </div>
-
-            <div>
-                <label class="block text-sm font-semibold text-slate-300 mb-1">Password</label>
-                <input type="password" id="password" placeholder="••••••••" required class="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500 transition">
-            </div>
-
-            <p id="infoMsg" class="text-sm font-medium hidden"></p>
-
-            <button type="submit" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-3 px-4 rounded-xl transition shadow-lg mt-2">
-                Register Platform
-            </button>
-        </form>
-
-        <div class="text-center mt-6 text-sm text-slate-400">
-            Already registered? <a href="login.html" class="text-teal-400 hover:underline">Log in here</a>
-        </div>
+  <div class="w-full max-w-md bg-[#111625] border border-slate-800 rounded-2xl p-8 shadow-2xl relative z-10">
+    
+    <!-- Brand Header -->
+    <div class="text-center mb-8">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-extrabold text-white text-xl mx-auto mb-4 shadow-lg shadow-indigo-500/20">
+        DT
+      </div>
+      <h1 class="text-2xl font-bold text-white tracking-wide">Create Account</h1>
+      <p class="text-slate-400 text-xs mt-1">Initialize your personalized biological health twin</p>
     </div>
 
-    <script>
-        document.getElementById('signupForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const infoMsg = document.getElementById('infoMsg');
-            infoMsg.classList.add('hidden');
+    <!-- Alert Message Banner -->
+    <div id="alertMessage" class="hidden mb-6 p-3 rounded-xl text-xs text-center font-medium"></div>
 
-            const payload = {
-                full_name: document.getElementById('fullName').value, // Matches SignupSchema full_name field
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value
-            };
+    <!-- Signup Form -->
+    <form id="signupForm" class="space-y-4 text-xs">
+      <div>
+        <label for="fullName" class="block font-semibold text-slate-300 mb-1.5">Full Name</label>
+        <input 
+          type="text" 
+          id="fullName" 
+          required 
+          placeholder="Jane Doe"
+          class="w-full px-4 py-3 bg-[#0B0F19] border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
+        >
+      </div>
 
-            try {
-                const response = await fetch('http://127.0.0.1:8000/api/signup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+      <div>
+        <label for="email" class="block font-semibold text-slate-300 mb-1.5">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          required 
+          placeholder="name@example.com"
+          class="w-full px-4 py-3 bg-[#0B0F19] border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
+        >
+      </div>
 
-                const data = await response.json();
-                if (response.ok) {
-                    infoMsg.className = "text-emerald-400 text-sm font-medium";
-                    infoMsg.innerText = "Account ready! Redirecting to login...";
-                    infoMsg.classList.remove('hidden');
-                    setTimeout(() => { window.location.href = 'login.html'; }, 1500);
-                } else {
-                    infoMsg.className = "text-rose-500 text-sm font-medium";
-                    
-                    // Format clean error message if Pydantic validation fails
-                    if (Array.isArray(data.detail)) {
-                        infoMsg.innerText = data.detail.map(err => `${err.loc[1]}: ${err.msg}`).join(", ");
-                    } else {
-                        infoMsg.innerText = data.detail || "Signup failed.";
-                    }
-                    
-                    infoMsg.classList.remove('hidden');
-                }
-            } catch (err) {
-                infoMsg.className = "text-rose-500 text-sm font-medium";
-                infoMsg.innerText = "Cannot connect to backend server.";
-                infoMsg.classList.remove('hidden');
-            }
+      <div>
+        <label for="password" class="block font-semibold text-slate-300 mb-1.5">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          required 
+          minlength="6"
+          placeholder="••••••••"
+          class="w-full px-4 py-3 bg-[#0B0F19] border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
+        >
+      </div>
+
+      <button 
+        type="submit" 
+        id="submitBtn"
+        class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 font-semibold text-white text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition duration-200 mt-2"
+      >
+        Initialize Digital Twin
+      </button>
+    </form>
+
+    <!-- Footer link -->
+    <div class="mt-6 text-center text-xs text-slate-400">
+      Already have an account? 
+      <a href="login.html" class="text-indigo-400 hover:text-indigo-300 font-medium">Sign in here</a>
+    </div>
+
+  </div>
+
+  <script>
+    const signupForm = document.getElementById('signupForm');
+    const alertMessage = document.getElementById('alertMessage');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function showAlert(message, isError = true) {
+      alertMessage.textContent = message;
+      alertMessage.classList.remove('hidden', 'bg-rose-500/10', 'text-rose-400', 'border-rose-500/30', 'bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/30');
+      
+      if (isError) {
+        alertMessage.classList.add('bg-rose-500/10', 'text-rose-400', 'border', 'border-rose-500/30');
+      } else {
+        alertMessage.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border', 'border-emerald-500/30');
+      }
+    }
+
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating Twin...';
+
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            full_name: fullName,
+            email: email,
+            password: password
+          })
         });
-    </script>
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showAlert('Account initialized! Redirecting to login...', false);
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 1000);
+        } else {
+          if (Array.isArray(data.detail)) {
+            showAlert(data.detail[0].msg);
+          } else {
+            showAlert(data.detail || 'Registration failed. Please try again.');
+          }
+        }
+      } catch (error) {
+        console.error('Signup Fetch Error:', error);
+        showAlert('Unable to reach backend server. Make sure Uvicorn is running on port 8000.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Initialize Digital Twin';
+      }
+    });
+  </script>
+
 </body>
 </html>
