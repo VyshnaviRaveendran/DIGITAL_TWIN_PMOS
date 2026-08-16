@@ -50,7 +50,7 @@
       </nav>
     </div>
 
-    <!-- Stability Risk Index (Compact) -->
+    <!-- Stability Risk Index Widget -->
     <div class="bg-[#181F32] border border-slate-800 rounded-2xl p-4 text-center sidebar-label">
       <div class="flex items-center justify-center gap-2 text-xs text-emerald-400 mb-2">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Synced
@@ -96,7 +96,7 @@
         </span>
       </div>
 
-      <!-- Overview Visuals & Stats (Balanced Height) -->
+      <!-- Overview Visuals & Stats -->
       <div class="grid grid-cols-12 gap-5">
         <div class="col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 flex flex-col justify-between min-h-[380px]">
           <h3 class="text-sm font-semibold text-slate-300">Interactive Biological Twin</h3>
@@ -136,12 +136,15 @@
             </div>
           </div>
 
-          <div class="bg-[#111625] border border-indigo-500/30 rounded-2xl p-6">
-            <h4 class="font-semibold text-sm text-indigo-400 mb-2">⚡ AI Twin Dynamic Recommendation</h4>
-            <p id="recommendationText" class="text-xs text-slate-300 leading-relaxed">
-              Optimal state parameters maintained. Digital Twin operating in nominal biological range. Calibrated nutrition and low cortisol load sustained.
-            </p>
-          </div>
+          <!-- AI Twin Dynamic Recommendation Card -->
+<div class="mt-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+  <div class="flex items-center gap-2 text-sm font-semibold text-indigo-400 mb-1">
+    <span>⚡ AI Twin Dynamic Recommendation</span>
+  </div>
+  <p id="recommendationText" class="text-xs text-slate-300 leading-relaxed">
+    Optimal state parameters maintained. Digital Twin operating in nominal biological range. Calibrated nutrition and low cortisol load sustained.
+  </p>
+</div>
         </div>
       </div>
     </div>
@@ -187,11 +190,14 @@
           
           <!-- Scanner Card -->
           <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2 mb-2.5">
-              <span>📷</span> Smart Scanner & Meal Logging
-            </h3>
+            <div class="flex justify-between items-center mb-2.5">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>📷</span> Smart Scanner & Meal Logging
+              </h3>
+              <span id="scanStatusBadge" class="text-[10px] text-slate-400 font-medium">Ready</span>
+            </div>
 
-            <!-- Mini Drag & Drop -->
+            <!-- Drag & Drop Zone -->
             <div id="dropZone" 
                  onclick="document.getElementById('mealFileInput').click()" 
                  class="border border-dashed border-slate-700 hover:border-indigo-500 bg-[#0B0F19]/60 rounded-xl p-3 text-center cursor-pointer transition flex items-center justify-center min-h-[64px] mb-3">
@@ -210,18 +216,24 @@
             </div>
 
             <!-- Input + Meal Slot Selector -->
-            <div class="grid grid-cols-12 gap-2 mb-3">
-              <div class="col-span-7">
-                <input type="text" id="mealNameInput" value="Fresh Fruit Bowl" placeholder="Meal Item Name" class="bg-[#0B0F19] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-indigo-500">
+            <div class="space-y-2 mb-3">
+              <div class="grid grid-cols-12 gap-2">
+                <div class="col-span-7">
+                  <input type="text" id="mealNameInput" value="Fresh Fruit Bowl" placeholder="Meal Item Name" class="bg-[#0B0F19] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="col-span-5">
+                  <select id="mealSlotSelect" class="bg-[#0B0F19] border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-indigo-300 font-semibold w-full focus:outline-none focus:border-indigo-500">
+                    <option value="Breakfast">🍳 Breakfast</option>
+                    <option value="Lunch" selected>🥗 Lunch</option>
+                    <option value="Dinner">🍲 Dinner</option>
+                    <option value="Snack">🥜 Snack</option>
+                  </select>
+                </div>
               </div>
-              <div class="col-span-5">
-                <select id="mealSlotSelect" class="bg-[#0B0F19] border border-slate-700 rounded-xl px-3 py-2 text-xs text-indigo-300 font-semibold w-full focus:outline-none focus:border-indigo-500">
-                  <option value="Breakfast">🍳 Breakfast</option>
-                  <option value="Lunch" selected>🥗 Lunch</option>
-                  <option value="Dinner">🍲 Dinner</option>
-                  <option value="Snack">🥜 Snack</option>
-                </select>
-              </div>
+
+              <button onclick="scanMealWithML()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/20">
+                <span>⚡</span> Scan & Evaluate Meal
+              </button>
             </div>
 
             <!-- Macro Preview Box -->
@@ -510,7 +522,7 @@
 
   <div id="intakeContainer"></div>
 
-  <!-- ================= SCRIPTS ================= -->
+ <!-- ================= SCRIPTS ================= -->
   <script>
   let targetTDEE = 1939;
   let currentScannedCalories = 520;
@@ -551,12 +563,65 @@
     window.location.href = "login.html";
   }
 
+  // Dynamic Live Twin State & AI Recommendation updater
+  function applyLiveTwinState(stress, sleep, exercise, stabilityScore) {
+    const stressNum = parseFloat(stress) || 4;
+    const sleepNum = parseFloat(sleep) || 7.5;
+    const exerciseNum = parseInt(exercise) || 30;
+
+    // 1. Update Telemetry Metric Displays
+    if (document.getElementById("stressVal")) document.getElementById("stressVal").innerText = `${stressNum} / 10`;
+    if (document.getElementById("sleepVal")) document.getElementById("sleepVal").innerText = `${sleepNum} hrs`;
+    if (document.getElementById("exerciseVal")) document.getElementById("exerciseVal").innerText = `${exerciseNum} mins`;
+    if (document.getElementById("scoreDisplay")) document.getElementById("scoreDisplay").innerText = stabilityScore;
+
+    // 2. Dynamic Node State Coloring
+    const allNodes = document.querySelectorAll("#overviewSection .rounded-full");
+    const recoveryNode = document.querySelector("#overviewSection .bg-rose-500\\/20") || allNodes[2];
+    if (recoveryNode) {
+      if (stressNum >= 8 || sleepNum < 6.5) {
+        recoveryNode.className = "w-14 h-14 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-xs font-bold text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.6)] animate-pulse";
+      } else {
+        recoveryNode.className = "w-14 h-14 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]";
+      }
+    }
+
+    // 3. Dynamic Clinical AI Guidance Box
+    const recEl = document.getElementById("recommendationText");
+    if (recEl) {
+      if (stressNum >= 7 || sleepNum < 6.5) {
+        recEl.innerHTML = `<span class="text-rose-400 font-semibold">⚠️ Adrenal & Recovery Strain Detected:</span> High sympathetic tone (${stressNum}/10 stress, ${sleepNum}h sleep). Cortisol spikes suppress progesterone and elevate androgens. Shift today's activity to 15-minute low-impact walking, vagus nerve breathing, and magnesium-dense nutrition.`;
+      } else {
+        recEl.innerText = "Optimal state parameters maintained. Digital Twin operating in nominal biological range. Calibrated nutrition and low cortisol load sustained.";
+      }
+    }
+  }
+
   // Initial Load
   document.addEventListener("DOMContentLoaded", async function() {
     refreshUserDisplay();
     await fetchUserProfileAndPhenotype();
     fetchDietSummary();
     loadPhenotypeDietSuggestions();
+
+    // Intake HTML Injection
+    try {
+      const res = await fetch("intake.html");
+      if (res.ok) document.getElementById("intakeContainer").innerHTML = await res.text();
+    } catch (err) {
+      console.error("Intake loader error:", err);
+    }
+
+    // Drag & Drop Listeners
+    const dropZone = document.getElementById('dropZone');
+    if (dropZone) {
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+      });
+      dropZone.addEventListener('drop', (e) => {
+        handleFileSelect(e.dataTransfer.files);
+      }, false);
+    }
   });
 
   async function fetchUserProfileAndPhenotype() {
@@ -674,23 +739,49 @@
     }
   }
 
-  // File Upload Drag and Drop
-  document.addEventListener("DOMContentLoaded", async function() {
-    try {
-      const res = await fetch("intake.html");
-      if (res.ok) document.getElementById("intakeContainer").innerHTML = await res.text();
-    } catch (err) {
-      console.error("Intake loader error:", err);
+  // Unified Health Log Form Submit
+  document.getElementById("healthLogForm")?.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const userId = localStorage.getItem("user_id") || "1";
+    const submitBtn = document.getElementById("submitLogBtn");
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Saving...";
     }
 
-    const dropZone = document.getElementById('dropZone');
-    if (dropZone) {
-      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+    const payload = {
+      user_id: parseInt(userId),
+      stress_level: parseInt(document.getElementById("stressInput").value),
+      sleep_hours: parseFloat(document.getElementById("sleepInput").value),
+      exercise_mins: parseInt(document.getElementById("exerciseInput").value),
+      diet_score: parseInt(document.getElementById("dietInput").value),
+      medication_status: parseInt(document.getElementById("medicationInput").value)
+    };
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/submit-health-log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
       });
-      dropZone.addEventListener('drop', (e) => {
-        handleFileSelect(e.dataTransfer.files);
-      }, false);
+      const data = await res.json();
+      
+      if (res.ok) {
+        // Trigger immediate UI node coloring & AI Dynamic text alert
+        applyLiveTwinState(payload.stress_level, payload.sleep_hours, payload.exercise_mins, data.stability_score);
+        closeLogModal();
+      } else {
+        alert("Error saving log: " + (data.detail || "Unable to save metrics."));
+      }
+    } catch (err) {
+      console.error("Telemetry submit error:", err);
+      alert("Unable to reach backend server at http://127.0.0.1:8000. Ensure Uvicorn is active.");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit";
+      }
     }
   });
 
@@ -708,6 +799,8 @@
         document.getElementById('previewContainer').classList.add('flex');
       };
       reader.readAsDataURL(file);
+
+      scanMealWithML();
     }
   }
 
@@ -753,62 +846,49 @@
     }
   };
 
-  // Health Log Form Submit
-  document.getElementById("healthLogForm")?.addEventListener("submit", async function(e) {
-    e.preventDefault();
-    const userId = localStorage.getItem("user_id") || "1";
-    const payload = {
-      user_id: parseInt(userId),
-      stress_level: parseInt(document.getElementById("stressInput").value),
-      sleep_hours: parseFloat(document.getElementById("sleepInput").value),
-      exercise_mins: parseInt(document.getElementById("exerciseInput").value),
-      diet_score: parseInt(document.getElementById("dietInput").value),
-      medication_status: parseInt(document.getElementById("medicationInput").value)
-    };
-
-    try {
-      const res = await fetch("http://127.0.0.1:8000/api/submit-health-log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (res.ok) {
-        document.getElementById("stressVal").innerText = `${payload.stress_level} / 10`;
-        document.getElementById("sleepVal").innerText = `${payload.sleep_hours} hrs`;
-        document.getElementById("exerciseVal").innerText = `${payload.exercise_mins} mins`;
-        document.getElementById("scoreDisplay").innerText = data.stability_score;
-        closeLogModal();
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  });
-
   // DIET TELEMETRY FUNCTIONS
   async function scanMealWithML() {
-    const mealFileName = document.getElementById("mealNameInput").value || "Fresh Fruit Bowl";
+    const mealFileName = document.getElementById("mealNameInput").value || "Custom Meal";
     const userId = localStorage.getItem("user_id") || "1";
+    const statusBadge = document.getElementById("scanStatusBadge");
+
+    if (statusBadge) statusBadge.innerText = "Evaluating...";
+
     try {
       const response = await fetch("http://127.0.0.1:8000/api/scan-meal-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: parseInt(userId), image_filename: mealFileName })
+        body: JSON.stringify({ user_id: parseInt(userId), image_filename: mealFileName, meal_name: mealFileName })
       });
       const data = await response.json();
       if (response.ok) {
-        document.getElementById("resMealName").innerText = data.scanned_image;
+        document.getElementById("resMealName").innerText = data.meal_name;
         document.getElementById("resCalories").innerText = `${data.extracted_macros.calories}`;
         document.getElementById("resProtein").innerText = `${data.extracted_macros.protein}g`;
         document.getElementById("resCarbs").innerText = `${data.extracted_macros.carbs}g`;
         document.getElementById("resFats").innerText = `${data.extracted_macros.fats}g`;
+
+        const tag = document.getElementById("resPhenotypeTag");
+        tag.innerText = data.classification;
+
+        if (data.classification === "High Glycemic Spike Risk") {
+          tag.className = "bg-rose-900/50 text-rose-400 border border-rose-600/50 text-[10px] px-2.5 py-0.5 rounded-full font-medium";
+        } else if (data.classification === "Insulin Resistant Safe") {
+          tag.className = "bg-amber-900/50 text-amber-300 border border-amber-600/50 text-[10px] px-2.5 py-0.5 rounded-full font-medium";
+        } else {
+          tag.className = "bg-emerald-900/50 text-emerald-400 border border-emerald-600/50 text-[10px] px-2.5 py-0.5 rounded-full font-medium";
+        }
+
         currentScannedCalories = data.extracted_macros.calories;
         currentScannedProtein = data.extracted_macros.protein;
         currentScannedCarbs = data.extracted_macros.carbs;
         currentScannedFats = data.extracted_macros.fats;
+
+        if (statusBadge) statusBadge.innerText = "Scanned ✓";
       }
     } catch (err) {
-      document.getElementById("resMealName").innerText = mealFileName;
+      console.error(err);
+      if (statusBadge) statusBadge.innerText = "Error";
     }
   }
 
