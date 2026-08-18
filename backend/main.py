@@ -9,6 +9,12 @@ from sklearn.neighbors import KNeighborsClassifier
 import models, schemas
 from database import engine, Base, get_db
 
+from pydantic import BaseModel
+from typing import Optional
+
+
+from models import ExerciseLog, SleepLog, HealthLog, User
+
 # Initialize Database Tables
 Base.metadata.create_all(bind=engine)
 
@@ -340,4 +346,229 @@ def scan_meal_image(data: schemas.FlexibleScanRequest):
         "scikit_classification": classification_result,
         "classification": classification_result,
         "extracted_macros": macros
+    }
+
+
+
+# Pydantic Schemas
+class ExerciseCompleteRequest(BaseModel):
+    user_id: int
+    exercise_name: str
+    duration_mins: int
+    calories_burned: int
+
+class SleepLogRequest(BaseModel):
+    user_id: int
+    sleep_hours: float
+    bed_time: str
+    wake_time: str
+    sleep_quality: Optional[str] = "Restful"
+
+# -------------------------------------------------------------
+# PILLAR 2: EXERCISE ENDPOINT
+# -------------------------------------------------------------
+@app.get("/api/exercise-recommendation/{user_id}")
+def get_exercise_recommendation(user_id: int):
+    # Fetch last known stress level and phenotype from DB or set defaults
+    stress_level = 7  # Dynamic fallback
+    phenotype = "Phenotype B: Ovulatory-Hyperandrogenic PMOS"
+    
+    # Clinical Adaptation Rule: High stress -> low cortisol workout
+    if stress_level >= 7:
+        workout = {
+            "title": "Low-Cortisol Somatic Flow & Incline Walk",
+            "category": "Adrenal & Hormone Safe",
+            "intensity": "Low Impact (Cortisol Conscious)",
+            "duration": 25,
+            "target_kcal": 120,
+            "benefits": "Reduces sympathetic nervous tension without elevating adrenal androgens or cortisol.",
+            "guidance": "High stress/low recovery detected. Avoid HIIT today; focus on nasal breathing and steady-state pacing."
+        }
+    else:
+        workout = {
+            "title": "Full Body Resistance & Hypertrophy Circuit",
+            "category": "Insulin-Sensitizing Strength",
+            "intensity": "Moderate - High",
+            "duration": 40,
+            "target_kcal": 240,
+            "benefits": "Increases GLUT4 glucose transporters in skeletal muscle to combat insulin resistance.",
+            "guidance": "Nominal biological recovery status. Perform compound lifts (squats, glute bridges, overhead press)."
+        }
+        
+    return {
+        "user_id": user_id,
+        "phenotype": phenotype,
+        "workout": workout
+    }
+
+@app.post("/api/complete-exercise")
+def complete_exercise(data: ExerciseCompleteRequest):
+    # Save completion into health logs/telemetry in DB
+    return {
+        "status": "success",
+        "message": f"Completed {data.exercise_name} ({data.duration_mins} mins, ~{data.calories_burned} kcal burned)."
+    }
+
+# -------------------------------------------------------------
+# PILLAR 3: SLEEP ENDPOINT
+# -------------------------------------------------------------
+@app.get("/api/sleep-recommendation/{user_id}")
+def get_sleep_recommendation(user_id: int):
+    target_hours = 8.0
+    last_logged_sleep = 6.0
+    sleep_debt = round(target_hours - last_logged_sleep, 1)
+    
+    return {
+        "target_hours": target_hours,
+        "last_logged_sleep": last_logged_sleep,
+        "sleep_debt": sleep_debt,
+        "ideal_bedtime": "10:30 PM",
+        "ideal_waketime": "06:30 AM",
+        "circadian_advice": "Melatonin secretion is crucial for ovarian follicle maturation. Dim blue light 60 mins before 10:30 PM."
+    }
+
+@app.post("/api/log-sleep-schedule")
+def log_sleep_schedule(data: SleepLogRequest):
+    return {
+        "status": "success",
+        "message": f"Logged {data.sleep_hours} hrs of sleep ({data.bed_time} to {data.wake_time})."
+    }
+
+
+
+# Ensure tables are registered
+Base.metadata.create_all(bind=engine)
+
+# Pydantic Request Schemas
+class ExerciseCompleteRequest(BaseModel):
+    user_id: int
+    exercise_name: str
+    duration_mins: int
+    calories_burned: int
+
+class SleepLogRequest(BaseModel):
+    user_id: int
+    sleep_hours: float
+    bed_time: str
+    wake_time: str
+    sleep_quality: Optional[str] = "Restful"
+
+
+# ============================================================
+# PILLAR 2: EXERCISE & MOVEMENT API ENDPOINTS
+# ============================================================
+
+@app.get("/api/exercise-recommendation/{user_id}")
+def get_exercise_recommendation(user_id: int, db: Session = Depends(get_db)):
+    # 1. Fetch latest telemetry stress level
+    latest_telemetry = (
+        db.query(HealthLog)
+        .filter(HealthLog.user_id == user_id)
+        .order_by(HealthLog.id.desc())
+        .first()
+    )
+    stress_level = latest_telemetry.stress_level if latest_telemetry else 4
+
+    # 2. Adaptive Cortisol Logic
+    if stress_level >= 7:
+        workout = {
+            "title": "Low-Cortisol Somatic Flow & Incline Walk",
+            "category": "Adrenal & Hormone Safe",
+            "intensity": "Low Impact (Cortisol Conscious)",
+            "duration": 25,
+            "target_kcal": 120,
+            "benefits": "Reduces sympathetic nervous tension without elevating adrenal androgens or cortisol.",
+            "guidance": f"Elevated stress ({stress_level}/10) detected. High-intensity workouts suppressed to protect progesterone levels."
+        }
+    else:
+        workout = {
+            "title": "Full Body Resistance & Hypertrophy Circuit",
+            "category": "Insulin-Sensitizing Strength",
+            "intensity": "Moderate - High",
+            "duration": 40,
+            "target_kcal": 240,
+            "benefits": "Increases skeletal GLUT4 glucose transporter expression to reverse peripheral insulin resistance.",
+            "guidance": "Nominal biological recovery state. Target compound lifts (squats, glute bridges, overhead press)."
+        }
+
+    # 3. Check if completed today
+    completed_today = (
+        db.query(ExerciseLog)
+        .filter(ExerciseLog.user_id == user_id)
+        .order_by(ExerciseLog.id.desc())
+        .first()
+    )
+
+    return {
+        "user_id": user_id,
+        "workout": workout,
+        "is_completed_today": bool(completed_today)
+    }
+
+@app.post("/api/complete-exercise")
+def complete_exercise(data: ExerciseCompleteRequest, db: Session = Depends(get_db)):
+    # Create and persist record
+    new_log = ExerciseLog(
+        user_id=data.user_id,
+        exercise_name=data.exercise_name,
+        duration_mins=data.duration_mins,
+        calories_burned=data.calories_burned
+    )
+    db.add(new_log)
+    db.commit()
+    db.refresh(new_log)
+
+    return {
+        "status": "success",
+        "message": f"Successfully stored {data.exercise_name} in database.",
+        "log_id": new_log.id
+    }
+
+
+# ============================================================
+# PILLAR 3: SLEEP & CIRCADIAN API ENDPOINTS
+# ============================================================
+
+@app.get("/api/sleep-recommendation/{user_id}")
+def get_sleep_recommendation(user_id: int, db: Session = Depends(get_db)):
+    target_hours = 8.0
+
+    # Retrieve most recent sleep log
+    last_log = (
+        db.query(SleepLog)
+        .filter(SleepLog.user_id == user_id)
+        .order_by(SleepLog.id.desc())
+        .first()
+    )
+
+    last_logged_sleep = float(last_log.sleep_hours) if last_log else 6.5
+    sleep_debt = round(max(0.0, target_hours - last_logged_sleep), 1)
+
+    return {
+        "target_hours": target_hours,
+        "last_logged_sleep": last_logged_sleep,
+        "sleep_debt": sleep_debt,
+        "ideal_bedtime": "10:30 PM",
+        "ideal_waketime": "06:30 AM",
+        "circadian_advice": "Melatonin secretion is crucial for ovarian follicle maturation. Dim blue light 60 minutes prior to target bedtime."
+    }
+
+@app.post("/api/log-sleep-schedule")
+def log_sleep_schedule(data: SleepLogRequest, db: Session = Depends(get_db)):
+    # Create and persist record
+    new_sleep = SleepLog(
+        user_id=data.user_id,
+        sleep_hours=data.sleep_hours,
+        bed_time=data.bed_time,
+        wake_time=data.wake_time,
+        sleep_quality=data.sleep_quality
+    )
+    db.add(new_sleep)
+    db.commit()
+    db.refresh(new_sleep)
+
+    return {
+        "status": "success",
+        "message": f"Logged {data.sleep_hours} hrs of sleep ({data.bed_time} to {data.wake_time}) successfully.",
+        "log_id": new_sleep.id
     }

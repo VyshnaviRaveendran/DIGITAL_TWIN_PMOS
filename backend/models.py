@@ -3,6 +3,31 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
 
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy.sql import func
+from database import Base
+
+class ExerciseLog(Base):
+    __tablename__ = "exercise_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    exercise_name = Column(String(150), nullable=False)
+    duration_mins = Column(Integer, nullable=False)
+    calories_burned = Column(Integer, nullable=False)
+    completed_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class SleepLog(Base):
+    __tablename__ = "sleep_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    sleep_hours = Column(Float, nullable=False)
+    bed_time = Column(String(10), nullable=False)
+    wake_time = Column(String(10), nullable=False)
+    sleep_quality = Column(String(50), default="Restful")
+    logged_at = Column(DateTime(timezone=True), server_default=func.now())
+
 class User(Base):
     __tablename__ = "users"
 
@@ -23,7 +48,7 @@ class HealthLog(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     
     diet_score = Column(Integer, nullable=False)
-    sleep_hours = Column(Float, nullable=False)
+    sleep_hours = Column(Float, nullable=False) # Changed from Integer to Float
     exercise_mins = Column(Integer, nullable=False)
     medication_status = Column(Integer, nullable=False)
     stress_level = Column(Integer, nullable=False)
