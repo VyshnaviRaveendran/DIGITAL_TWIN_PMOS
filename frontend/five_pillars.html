@@ -1,305 +1,1162 @@
-<div class="p-6 bg-slate-950 text-slate-100 font-sans min-h-screen">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Twin Health - Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    const token = localStorage.getItem("user_token");
+    if (!token) {
+      window.location.href = "login.html";
+    }
+  </script>
+</head>
+<body class="bg-[#0B0F19] text-slate-100 font-sans h-screen flex overflow-hidden selection:bg-indigo-500 selection:text-white">
 
-    <!-- Header Section -->
-    <div class="flex justify-between items-center mb-6">
+  <!-- ================= COLLAPSIBLE SIDEBAR ================= -->
+  <aside id="sidebar" class="w-64 bg-[#111625] border-r border-slate-800 flex flex-col justify-between p-5 h-full shrink-0 transition-all duration-300 relative z-30">
+    
+    <!-- Sidebar Toggle Arrow Button -->
+    <button onclick="toggleSidebar()" id="sidebarToggleBtn" class="absolute -right-3.5 top-7 w-7 h-7 bg-[#181F32] border border-slate-700 hover:border-indigo-500 text-indigo-300 rounded-full flex items-center justify-center text-xs shadow-md transition hover:scale-110 z-50">
+      ◀
+    </button>
+
+    <div>
+      <!-- Clickable User Profile Header / Avatar -->
+      <div onclick="switchTab('profile')" class="flex items-center gap-3.5 mb-8 p-2 -m-2 rounded-xl hover:bg-slate-800/60 cursor-pointer transition group" title="Click to view User Profile">
+        <div id="sideAvatarBadge" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-extrabold text-white text-sm shadow-lg shadow-indigo-500/20 group-hover:scale-105 shrink-0 transition-transform">
+          👤
+        </div>
+        <div class="overflow-hidden sidebar-label">
+          <h1 id="sideUserName" class="font-bold text-sm text-white leading-tight truncate">User Account</h1>
+          <p id="sideUserEmail" class="text-xs text-slate-400 truncate">user@example.com</p>
+        </div>
+      </div>
+
+      <!-- Nav Links -->
+      <nav class="space-y-2">
+        <button id="navOverview" onclick="switchTab('overview')" class="w-full flex items-center gap-3.5 px-4 py-2.5 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">❖</span> <span class="sidebar-label truncate">Digital Twin</span>
+        </button>
+
+        <button id="navPillars" onclick="switchTab('pillars')" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">🏛️</span> <span class="sidebar-label truncate">5 Pillars</span>
+        </button>
+
+        <button onclick="openLogModal()" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">📊</span> <span class="sidebar-label truncate">Telemetry Log</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Sidebar Anthropometric & Stability Status Widgets -->
+    <div class="space-y-3">
+      <!-- 1. Sidebar BMI Calculator Widget -->
+      <div onclick="openBmiModal()" class="bg-[#181F32] hover:bg-[#1f283f] border border-cyan-500/30 rounded-2xl p-3 text-center cursor-pointer transition group sidebar-label" title="Click to edit Height & Weight">
+        <div class="flex items-center justify-between text-[11px] text-cyan-300 font-semibold mb-1">
+          <span class="flex items-center gap-1"><span>📐</span> BMI Metric</span>
+          <span class="text-[10px] text-slate-400 group-hover:text-cyan-300 underline">Edit</span>
+        </div>
+        <div class="flex items-center justify-center gap-2">
+          <span id="sideBmiScore" class="text-base font-extrabold text-white">22.1</span>
+          <span id="sideBmiCategory" class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/30 truncate max-w-[110px]">Normal</span>
+        </div>
+      </div>
+
+      <!-- 2. Stability Risk Index Widget -->
+      <div class="bg-[#181F32] border border-slate-800 rounded-2xl p-3.5 text-center sidebar-label">
+        <div class="flex items-center justify-center gap-2 text-xs text-slate-400 mb-1.5" id="syncStatusBadge">
+          <span class="w-2 h-2 rounded-full bg-slate-500"></span> Uncalibrated
+        </div>
+        <div class="relative w-14 h-14 mx-auto flex items-center justify-center rounded-full border-2 border-indigo-500/30 border-t-indigo-500 mb-1">
+          <span id="scoreDisplay" class="text-base font-bold text-slate-400">--</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Stability Index</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN CONTENT (SCROLL CONTAINER) ================= -->
+  <main class="flex-1 px-8 py-6 overflow-y-auto h-full flex flex-col justify-between">
+
+    <!-- ================= SECTION 1: DIGITAL TWIN OVERVIEW ================= -->
+    <div id="overviewSection" class="w-full space-y-5">
+      <header class="flex justify-between items-center">
         <div>
-            <h1 class="text-2xl font-bold text-white tracking-wide">The 5 PMOS Management Pillars</h1>
-            <p class="text-slate-400 text-sm">Diet, Exercise, Sleep, Medicine & Mental Wealth Interventions</p>
+          <h2 class="text-2xl font-bold text-white">Digital Twin Overview</h2>
+          <p class="text-xs text-slate-400 mt-0.5" id="userGreeting">Real-time biological state & telemetry status</p>
         </div>
-        <div class="flex space-x-3">
-            <button onclick="resetDayRollover()" class="bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-500/40 text-indigo-300 text-xs px-3.5 py-2 rounded-xl font-medium transition">
-                🔄 Reset / Next Day
+        
+        <div class="flex items-center gap-2.5">
+          <!-- Navbar BMI Quick Trigger -->
+          <button onclick="openBmiModal()" id="navBmiBtn" class="px-3.5 py-2 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-500/40 text-cyan-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow-sm">
+            <span>📐</span> <span id="navBmiDisplay">BMI: 22.1</span>
+          </button>
+          <button onclick="openIntakeModal()" class="px-3.5 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+            <span>📋</span> Intake
+          </button>
+          <button onclick="openLogModal()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium rounded-xl transition">
+            + Quick Log
+          </button>
+        </div>
+      </header>
+
+      <!-- Calibrated Phenotype Display Banner -->
+      <div class="bg-[#111625] border border-purple-500/30 rounded-2xl p-5 flex justify-between items-center shadow-lg">
+        <div>
+          <p class="text-xs font-semibold text-purple-400 uppercase tracking-wider">Calibrated Biological Profile</p>
+          <h3 id="dashPhenotypeDisplay" class="text-lg font-bold text-white mt-1">
+            Loading calibrated profile...
+          </h3>
+        </div>
+        <span id="dashPhenotypeBadge" class="bg-purple-900/40 text-purple-300 border border-purple-500/40 text-xs px-3.5 py-1.5 rounded-full font-medium">
+          Calibrating...
+        </span>
+      </div>
+
+      <!-- Overview Visuals & Stats -->
+      <div class="grid grid-cols-12 gap-5 items-start">
+        
+        <!-- Left Card: Interactive Biological Twin (5 cols) -->
+        <div class="col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 flex flex-col justify-between min-h-[380px]">
+          <h3 class="text-sm font-semibold text-slate-300">Interactive Biological Twin</h3>
+          
+          <div class="my-auto flex flex-col items-center justify-center space-y-6 py-4">
+            <div class="w-14 h-14 rounded-full bg-indigo-500/20 border-2 border-indigo-500 flex items-center justify-center text-xs font-bold text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.3)]">Brain</div>
+            <div class="w-12 h-12 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]">Metabolic</div>
+            <div class="w-14 h-14 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-xs font-bold text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.3)]">Recovery</div>
+          </div>
+
+          <div class="flex justify-center gap-4 text-xs text-slate-400 pt-4 border-t border-slate-800/80">
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Optimal</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Mild Stress</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span> High Risk</span>
+          </div>
+        </div>
+
+        <!-- Right Side Container: Telemetry Metrics & AI Guidance (7 cols) -->
+        <div class="col-span-7 space-y-5">
+          
+          <!-- Telemetry Card -->
+          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="font-semibold text-sm text-slate-200">System Telemetry & Stress</h4>
+              <span class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Active Telemetry</span>
+            </div>
+
+            <!-- 3 Metrics Grid -->
+            <div class="grid grid-cols-3 gap-4 text-xs">
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800/80">
+                <p class="text-slate-500 text-xs mb-1">Stress Level</p>
+                <p id="stressVal" class="text-base font-bold text-slate-300">-- / 10</p>
+              </div>
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800/80">
+                <p class="text-slate-500 text-xs mb-1">Sleep Duration</p>
+                <p id="sleepVal" class="text-base font-bold text-slate-300">-- hrs</p>
+              </div>
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800/80">
+                <p class="text-slate-500 text-xs mb-1">Exercise</p>
+                <p id="exerciseVal" class="text-base font-bold text-slate-300">-- mins</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Twin Dynamic Recommendation Card -->
+          <div class="p-5 rounded-2xl bg-[#111625] border border-slate-800 shadow-xl">
+            <div class="flex items-center gap-2 text-sm font-semibold text-indigo-400 mb-2">
+              <span>⚡</span> AI Twin Dynamic Recommendation
+            </div>
+            <p id="recommendationText" class="text-xs text-slate-300 leading-relaxed">
+              Optimal state parameters maintained. Digital Twin operating in nominal biological range. Calibrated nutrition and low cortisol load sustained.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= SECTION 2: 5 PMOS PILLARS ================= -->
+    <div id="pillarsSection" class="hidden w-full space-y-4">
+      
+      <!-- Top Navigation Tabs (Full Width, No Horizontal Scroll) -->
+      <div class="flex items-center gap-2.5 flex-wrap">
+        <button id="tabPillarDiet" onclick="switchPillarTab('diet')" class="bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm">
+          🥑 Diet & Nutrition
+        </button>
+        <button id="tabPillarExercise" onclick="switchPillarTab('exercise')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
+          🏋️ Exercise & Movement
+        </button>
+        <button id="tabPillarSleep" onclick="switchPillarTab('sleep')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
+          🛌 Sleep & Recovery
+        </button>
+        <button class="bg-[#111625] border border-slate-800 text-slate-500 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 opacity-50 cursor-not-allowed">
+          💊 Medicine (Pending)
+        </button>
+        <button class="bg-[#111625] border border-slate-800 text-slate-500 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 opacity-50 cursor-not-allowed">
+          🧠 Stress Reset (Pending)
+        </button>
+      </div>
+
+      <!-- 1. DIET TAB CONTAINER -->
+      <div id="pillarDietContainer" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+
+        <!-- LEFT COLUMN: Scanner & Calorie Splitter (5 cols) -->
+        <div class="lg:col-span-5 space-y-4 flex flex-col justify-between">
+          
+          <!-- Scanner Card -->
+          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl">
+            <div class="flex justify-between items-center mb-2.5">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>📷</span> Smart Scanner & Meal Logging
+              </h3>
+              <span id="scanStatusBadge" class="text-[10px] text-slate-400 font-medium">Ready</span>
+            </div>
+
+            <!-- Drag & Drop Zone -->
+            <div id="dropZone" 
+                 onclick="document.getElementById('mealFileInput').click()" 
+                 class="border border-dashed border-slate-700 hover:border-indigo-500 bg-[#0B0F19]/60 rounded-xl p-3 text-center cursor-pointer transition flex items-center justify-center min-h-[64px] mb-3">
+              
+              <div id="uploadPlaceholder" class="flex items-center gap-2 text-slate-400 text-xs">
+                <span class="text-indigo-400 text-base">☁️</span>
+                <span>Click or drag meal photo to estimate macros</span>
+              </div>
+
+              <div id="previewContainer" class="hidden items-center gap-3">
+                <img id="imagePreview" src="" alt="Preview" class="h-9 w-9 rounded-lg object-cover border border-slate-700">
+                <p class="text-xs text-indigo-300 font-medium truncate max-w-[200px]" id="fileNameDisplay"></p>
+              </div>
+
+              <input type="file" id="mealFileInput" accept="image/*" class="hidden" onchange="handleFileSelect(this.files)">
+            </div>
+
+            <!-- Input + Meal Slot Selector -->
+            <div class="space-y-2 mb-3">
+              <div class="grid grid-cols-12 gap-2">
+                <div class="col-span-7">
+                  <input type="text" id="mealNameInput" value="Fresh Fruit Bowl" placeholder="Meal Item Name" class="bg-[#0B0F19] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="col-span-5">
+                  <select id="mealSlotSelect" class="bg-[#0B0F19] border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-indigo-300 font-semibold w-full focus:outline-none focus:border-indigo-500">
+                    <option value="Breakfast">🍳 Breakfast</option>
+                    <option value="Lunch" selected>🥗 Lunch</option>
+                    <option value="Dinner">🍲 Dinner</option>
+                    <option value="Snack">🥜 Snack</option>
+                  </select>
+                </div>
+              </div>
+
+              <button onclick="scanMealWithML()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/20">
+                <span>⚡</span> Scan & Evaluate Meal
+              </button>
+            </div>
+
+            <!-- Macro Preview Box -->
+            <div id="mlScanResult" class="bg-[#0B0F19] border border-slate-800 rounded-xl p-3 mb-3">
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-bold text-white text-xs truncate max-w-[180px]" id="resMealName">Fresh Fruit Bowl</span>
+                <span class="bg-emerald-900/50 text-emerald-400 border border-emerald-600/50 text-[10px] px-2.5 py-0.5 rounded-full font-medium" id="resPhenotypeTag">
+                  Optimal Choice
+                </span>
+              </div>
+
+              <div class="grid grid-cols-4 gap-2 text-center">
+                <div class="bg-[#111625] p-1.5 rounded-lg border border-slate-800">
+                  <p class="text-slate-400 text-[9px]">KCAL</p>
+                  <p class="text-indigo-400 font-bold text-xs" id="resCalories">520</p>
+                </div>
+                <div class="bg-[#111625] p-1.5 rounded-lg border border-slate-800">
+                  <p class="text-slate-400 text-[9px]">PROT</p>
+                  <p class="text-emerald-400 font-bold text-xs" id="resProtein">36g</p>
+                </div>
+                <div class="bg-[#111625] p-1.5 rounded-lg border border-slate-800">
+                  <p class="text-slate-400 text-[9px]">CARB</p>
+                  <p class="text-amber-400 font-bold text-xs" id="resCarbs">42g</p>
+                </div>
+                <div class="bg-[#111625] p-1.5 rounded-lg border border-slate-800">
+                  <p class="text-slate-400 text-[9px]">FAT</p>
+                  <p class="text-cyan-400 font-bold text-xs" id="resFats">28g</p>
+                </div>
+              </div>
+            </div>
+
+            <button onclick="addMealToLog()" id="addLogBtn" class="w-full bg-emerald-600/20 border border-emerald-500/40 hover:bg-emerald-600/30 text-emerald-300 font-semibold text-xs py-2.5 rounded-xl transition">
+              + Log Selected Meal Time
             </button>
-            <button onclick="openIntakeModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-medium">📋 Intake Quiz</button>
-            <button onclick="openLogModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-medium">⚡ Quick Log</button>
+          </div>
+
+          <!-- Dynamic 4-Slot Calorie Splitter (With Embedded Reset Day) -->
+          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl">
+            <div class="flex justify-between items-center mb-2.5">
+              <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                <span>⚖️</span> Calorie Splitter
+              </h3>
+              <div class="flex items-center gap-2">
+                <button onclick="resetDayRollover()" class="bg-indigo-950 hover:bg-indigo-900/80 border border-indigo-500/40 text-indigo-300 text-[10px] px-2.5 py-1 rounded-lg font-medium transition flex items-center gap-1">
+                  <span>🔄</span> Reset Day
+                </button>
+                <span id="dayStatusBadge" class="bg-indigo-950 text-indigo-400 border border-indigo-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-semibold">
+                  In Progress
+                </span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 text-center mb-3">
+              <div class="bg-[#0B0F19] p-2 rounded-xl border border-slate-800">
+                <p class="text-slate-400 text-[10px]">Target</p>
+                <p class="text-xs font-bold text-white"><span id="valTDEE">1,939</span> kcal</p>
+              </div>
+              <div class="bg-[#0B0F19] p-2 rounded-xl border border-slate-800">
+                <p class="text-slate-400 text-[10px]">Logged</p>
+                <p class="text-xs font-bold text-emerald-400"><span id="valLogged">0</span> kcal</p>
+              </div>
+              <div class="bg-[#0B0F19] p-2 rounded-xl border border-slate-800">
+                <p class="text-slate-400 text-[10px]">Remaining</p>
+                <p class="text-xs font-bold text-indigo-400"><span id="valRemaining">1,939</span> kcal</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-xs" id="allowanceSlotsContainer">
+              <div id="slotRow_Breakfast" class="flex justify-between items-center bg-[#0B0F19] px-3 py-2 rounded-xl border border-slate-800">
+                <span class="text-slate-300">🍳 Breakfast</span>
+                <span class="font-bold text-rose-400" id="valBreakfastSplit">485 kcal</span>
+              </div>
+              <div id="slotRow_Lunch" class="flex justify-between items-center bg-[#0B0F19] px-3 py-2 rounded-xl border border-slate-800">
+                <span class="text-slate-300">🥗 Lunch</span>
+                <span class="font-bold text-rose-400" id="valLunchSplit">679 kcal</span>
+              </div>
+              <div id="slotRow_Dinner" class="flex justify-between items-center bg-[#0B0F19] px-3 py-2 rounded-xl border border-slate-800">
+                <span class="text-slate-300">🍲 Dinner</span>
+                <span class="font-bold text-rose-400" id="valDinnerSplit">582 kcal</span>
+              </div>
+              <div id="slotRow_Snack" class="flex justify-between items-center bg-[#0B0F19] px-3 py-2 rounded-xl border border-slate-800">
+                <span class="text-slate-300">🥜 Snack</span>
+                <span class="font-bold text-rose-400" id="valSnackSplit">193 kcal</span>
+              </div>
+            </div>
+
+            <div id="dayCompletedBanner" class="hidden mt-2 p-2 bg-emerald-950/40 border border-emerald-500/40 rounded-xl text-center">
+              <p class="text-xs font-bold text-emerald-300">🎉 All 4 Daily Meals Logged!</p>
+              <button onclick="resetDayRollover()" class="mt-1 text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded-lg font-semibold transition">
+                Begin Next Day →
+              </button>
+            </div>
+          </div>
+
         </div>
-    </div>
 
-    <!-- Main Banner -->
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6">
-        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            <span>🏛️</span> The 5 Pillars of PMOS Management
-        </h2>
-        <p class="text-slate-400 text-sm mt-1">Comprehensive daily interventions to regulate insulin resistance, lower androgens, and stabilize cycle health.</p>
-    </div>
-
-    <!-- Pillar Navigation Tabs -->
-    <div class="flex space-x-3 mb-6 overflow-x-auto pb-2">
-        <button class="bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-5 py-2.5 rounded-xl text-sm flex items-center gap-2">
-            🥑 1. Diet & Nutrition
-        </button>
-        <button class="bg-slate-900 border border-slate-800 text-slate-400 px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 opacity-60 cursor-not-allowed">
-            🏋️ 2. Exercise & Movement
-        </button>
-        <button class="bg-slate-900 border border-slate-800 text-slate-400 px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 opacity-60 cursor-not-allowed">
-            🛌 3. Sleep Architecture
-        </button>
-        <button class="bg-slate-900 border border-slate-800 text-slate-400 px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 opacity-60 cursor-not-allowed">
-            💊 4. Medicine & Supplements
-        </button>
-        <button class="bg-slate-900 border border-slate-800 text-slate-400 px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 opacity-60 cursor-not-allowed">
-            🧠 5. Mental Wealth & Stress
-        </button>
-    </div>
-
-    <!-- 2x2 Grid Layout for Diet & Nutrition -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        <!-- CARD 1: Smart Meal Photo Scanner with Time Slot Selector -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+        <!-- RIGHT COLUMN: 4 Phenotype Recommendations (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col justify-between">
+          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl h-full flex flex-col justify-between">
             <div>
-                <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                    📷 Smart Meal Calorie & Macro Scanner
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <span>🍽️</span> 4-Meal Calibrated Recommendations
                 </h3>
-                <p class="text-slate-400 text-xs mt-1">Upload a meal photo or select from recommended meals, choose your meal time, and log to deduct and rebalance your allowance.</p>
+                <span id="recomPhenoBadge" class="bg-purple-900/40 text-purple-300 border border-purple-500/40 text-[10px] px-2.5 py-1 rounded-full font-medium">
+                  Active Phenotype Plan
+                </span>
+              </div>
 
-                <!-- Interactive Drag & Drop Box -->
-                <div id="dropZone" 
-                     onclick="document.getElementById('mealFileInput').click()" 
-                     class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 rounded-2xl p-6 text-center my-4 cursor-pointer transition relative flex flex-col items-center justify-center min-h-[150px]">
-                    
-                    <div id="uploadPlaceholder" class="flex flex-col items-center">
-                        <div class="text-indigo-400 text-3xl mb-2">☁️</div>
-                        <p class="text-sm font-semibold text-slate-300">Drag & drop meal photo here or <span class="text-indigo-400 underline">Browse Image</span></p>
-                        <p class="text-[10px] text-slate-500 mt-1">Supports JPG, PNG, WEBP</p>
-                    </div>
+              <div class="bg-purple-950/30 border border-purple-600/30 rounded-xl p-3 mb-3">
+                <p class="text-xs text-purple-300 font-semibold" id="recommendationTitle">
+                  <span>💡</span> Calibrated Daily Matrix:
+                </p>
+                <p class="text-xs text-purple-200/80 leading-relaxed mt-0.5" id="recommendationBody">
+                  Loading tailored biological nutritional guidance...
+                </p>
+              </div>
 
-                    <div id="previewContainer" class="hidden flex-col items-center">
-                        <img id="imagePreview" src="" alt="Meal Preview" class="max-h-28 rounded-lg border border-slate-700 object-cover mb-2">
-                        <p class="text-xs text-indigo-300 font-medium" id="fileNameDisplay"></p>
-                    </div>
-
-                    <input type="file" id="mealFileInput" accept="image/*" class="hidden" onchange="handleFileSelect(this.files)">
-                </div>
-
-                <!-- Input + Meal Time Dropdown + Scan Button -->
-                <div class="space-y-2 mb-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
-                        <div class="sm:col-span-8">
-                            <input type="text" id="mealNameInput" value="Fresh Fruit Bowl" placeholder="Meal Description / Item Name" class="bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white w-full focus:outline-none focus:border-indigo-500">
-                        </div>
-                        <div class="sm:col-span-4">
-                            <select id="mealSlotSelect" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-indigo-300 font-semibold w-full focus:outline-none focus:border-indigo-500">
-                                <option value="Breakfast">🍳 Breakfast</option>
-                                <option value="Lunch" selected>🥗 Lunch</option>
-                                <option value="Dinner">🍲 Dinner</option>
-                                <option value="Snack">🥜 Snack</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <button onclick="scanMealWithML()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs py-2.5 rounded-xl transition">
-                        ⚡ Scan & Estimate Macros
-                    </button>
-                </div>
-
-                <!-- Macro Output Preview -->
-                <div id="mlScanResult" class="bg-slate-950 border border-slate-800 rounded-xl p-4">
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="font-bold text-white text-base" id="resMealName">Fresh Fruit Bowl</span>
-                        <span class="bg-emerald-900/50 text-emerald-400 border border-emerald-600/50 text-xs px-3 py-1 rounded-full font-medium" id="resPhenotypeTag">
-                            Optimal Choice
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-4 gap-2 text-center mb-3">
-                        <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                            <p class="text-slate-400 text-[10px] uppercase">Calories</p>
-                            <p class="text-indigo-400 font-bold text-sm" id="resCalories">520 kcal</p>
-                        </div>
-                        <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                            <p class="text-slate-400 text-[10px] uppercase">Protein</p>
-                            <p class="text-emerald-400 font-bold text-sm" id="resProtein">36g</p>
-                        </div>
-                        <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                            <p class="text-slate-400 text-[10px] uppercase">Net Carbs</p>
-                            <p class="text-amber-400 font-bold text-sm" id="resCarbs">42g</p>
-                        </div>
-                        <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                            <p class="text-slate-400 text-[10px] uppercase">Healthy Fats</p>
-                            <p class="text-cyan-400 font-bold text-sm" id="resFats">28g</p>
-                        </div>
-                    </div>
-
-                    <p class="text-[11px] text-slate-400 leading-relaxed" id="mlDescriptionText">
-                        <b>Nutrition Status:</b> Optimal balance for energy without post-prandial insulin surges.
-                    </p>
-                </div>
+              <!-- 4 Meal Cards Grid -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="recipeContainer"></div>
             </div>
 
-            <button onclick="addMealToLog()" id="addLogBtn" class="w-full bg-emerald-600/20 border border-emerald-500/40 hover:bg-emerald-600/30 text-emerald-300 font-semibold text-xs py-3 rounded-xl mt-4 transition">
-                + Log Selected Meal Time & Rebalance Split
-            </button>
+            <div class="mt-4 p-3 bg-[#0B0F19] rounded-xl border border-slate-800/80 text-xs text-slate-400 flex items-center justify-between">
+              <span>Need to change clinical diagnosis or symptoms?</span>
+              <button onclick="openIntakeModal()" class="text-indigo-400 hover:text-indigo-300 underline font-medium">
+                Retake Assessment
+              </button>
+            </div>
+          </div>
         </div>
 
-        <!-- CARD 2: Daily Calorie & Dynamic 4-Slot Splitter -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+      </div>
+
+      <!-- 2. EXERCISE TAB CONTAINER (WITH INTEGRATED BMI ENGINE) -->
+      <div id="pillarExerciseContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        <!-- Left: Prescribed Workout Card (7 cols) -->
+        <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <span class="px-3 py-1 bg-indigo-950 text-indigo-400 border border-indigo-500/30 text-xs font-semibold rounded-full" id="exCategory">
+                Hormone-Safe Routine
+              </span>
+              <span class="text-xs text-slate-400" id="exIntensity">Low Impact</span>
+            </div>
+            
+            <h3 class="text-lg font-bold text-white mb-2" id="exTitle">Low-Cortisol Somatic Flow & Incline Walk</h3>
+            <p class="text-xs text-slate-300 leading-relaxed mb-4" id="exGuidance">
+              Adaptive workout calculated based on your daily stress telemetry and body weight profile.
+            </p>
+
+            <div class="grid grid-cols-3 gap-3 mb-4">
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800 text-center">
+                <p class="text-[10px] text-slate-500 uppercase">Target Duration</p>
+                <p class="text-sm font-bold text-indigo-400" id="exDuration">25 mins</p>
+              </div>
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800 text-center">
+                <p class="text-[10px] text-slate-500 uppercase">Est. Burn</p>
+                <p class="text-sm font-bold text-emerald-400" id="exCalories">120 kcal</p>
+              </div>
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800 text-center">
+                <p class="text-[10px] text-slate-500 uppercase">BMI Alignment</p>
+                <p class="text-xs font-bold text-cyan-400 truncate" id="exBmiTag">BMI 22.1 (Normal)</p>
+              </div>
+            </div>
+
+            <div class="p-3 bg-purple-950/20 border border-purple-500/30 rounded-xl text-xs text-purple-200">
+              <span class="font-bold text-purple-300">💡 Clinical Logic:</span> <span id="exBenefits">Reduces insulin resistance without triggering adrenal cortisol elevation.</span>
+            </div>
+          </div>
+
+          <button onclick="markExerciseCompleted()" id="exCompleteBtn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2">
+            <span>✓</span> Mark Today's Movement as Completed
+          </button>
+        </div>
+
+        <!-- Right: Movement Telemetry & Consistency Status (5 cols) -->
+        <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <h4 class="text-sm font-bold text-white">Movement Telemetry Status</h4>
+              <button onclick="openBmiModal()" class="text-cyan-400 hover:text-cyan-300 text-xs font-medium underline">
+                Edit Height/Weight
+              </button>
+            </div>
+
+            <div class="space-y-2.5 text-xs">
+              <div class="flex justify-between items-center bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
+                <span class="text-slate-400">Target Training Heart Zone</span>
+                <span class="text-white font-semibold">Zone-2 (110–135 bpm)</span>
+              </div>
+              <div class="flex justify-between items-center bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
+                <span class="text-slate-400">Weekly Target Volume</span>
+                <span class="text-indigo-400 font-semibold">150 mins / week</span>
+              </div>
+              <div class="flex justify-between items-center bg-[#0B0F19] px-3 py-2 rounded-lg border border-indigo-500/30">
+                <span class="text-white">Today's Prescribed Plan</span>
+                <span class="text-amber-400 font-semibold" id="exTodayStatus">Pending Log</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 bg-[#0B0F19] rounded-xl border border-slate-800 text-[11px] text-slate-400 text-center">
+            Adjust height & weight anytime via the <span class="text-cyan-300 font-semibold">BMI button</span> in the top navbar or sidebar.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 3. SLEEP TAB CONTAINER -->
+      <div id="pillarSleepContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-sm font-bold text-white">Circadian Optimization & Recovery</h3>
+            <span class="px-3 py-1 bg-purple-950 text-purple-300 border border-purple-500/30 text-xs font-semibold rounded-full">
+              Follicular Restoration
+            </span>
+          </div>
+          <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
+              <p class="text-[10px] text-slate-500 uppercase">Target Sleep</p>
+              <p class="text-base font-bold text-indigo-400" id="sleepTargetVal">8.0 hrs</p>
+            </div>
+            <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
+              <p class="text-[10px] text-slate-500 uppercase">Last Duration</p>
+              <p class="text-base font-bold text-white" id="sleepLastVal">6.0 hrs</p>
+            </div>
+            <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
+              <p class="text-[10px] text-slate-500 uppercase">Sleep Debt</p>
+              <p class="text-base font-bold text-rose-400" id="sleepDebtVal">+2.0 hrs</p>
+            </div>
+          </div>
+          <div class="bg-[#0B0F19] p-4 rounded-xl border border-slate-800 space-y-2">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-400">Target Bedtime:</span>
+              <span class="text-white font-bold" id="sleepBedtime">10:30 PM</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-400">Ideal Wake Alarm:</span>
+              <span class="text-white font-bold" id="sleepWaketime">06:30 AM</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-400">Sleep Hygiene Protocol:</span>
+              <span class="text-emerald-400 font-semibold">Magnesium Glycinate + Dim Lighting</span>
+            </div>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed" id="sleepCircadianAdvice">
+            Melatonin secretion is crucial for ovarian follicle maturation. Dim blue light 60 mins before bedtime.
+          </p>
+        </div>
+
+        <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <h4 class="text-sm font-bold text-white mb-3">Log Sleep Window</h4>
+          <form id="sleepLogForm" onsubmit="submitSleepWindow(event)" class="space-y-3 text-xs">
             <div>
-                <div class="flex justify-between items-center">
-                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                        ⚖️ Daily Calorie & Balance Splitter
-                    </h3>
-                    <span id="dayStatusBadge" class="bg-indigo-950 text-indigo-400 border border-indigo-500/30 text-[10px] px-2.5 py-1 rounded-full font-semibold">
-                        In Progress
-                    </span>
-                </div>
-                <p class="text-slate-400 text-xs mt-1">Calculates daily target and automatically divides the remaining calorie balance across your unlogged meal times.</p>
-
-                <!-- Macro Targets -->
-                <div class="grid grid-cols-3 gap-3 my-4">
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                        <p class="text-slate-400 text-xs">Daily Target</p>
-                        <p class="text-xl font-bold text-white mt-1"><span id="valTDEE">1,939</span> <span class="text-xs font-normal text-slate-400">kcal</span></p>
-                        <span class="inline-block mt-2 text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">Maintenance</span>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                        <p class="text-slate-400 text-xs">Logged Today</p>
-                        <p class="text-xl font-bold text-emerald-400 mt-1"><span id="valLogged">0</span> <span class="text-xs font-normal text-slate-400">kcal</span></p>
-                        <p class="text-[10px] text-slate-400 mt-2" id="valMealCount">0 / 4 Meals</p>
-                    </div>
-                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                        <p class="text-slate-400 text-xs">Remaining Balance</p>
-                        <p class="text-xl font-bold text-indigo-400 mt-1"><span id="valRemaining">1,939</span> <span class="text-xs font-normal text-slate-400">kcal</span></p>
-                        <p class="text-[10px] text-slate-400 mt-2">To Distribute</p>
-                    </div>
-                </div>
-
-                <!-- Dynamic Remaining Slots List -->
-                <div class="space-y-2.5" id="allowanceSlotsContainer">
-                    <p class="text-xs font-semibold text-slate-400 mb-1">Dynamic Remaining Meal Allowances:</p>
-
-                    <div id="slotRow_Breakfast" class="flex justify-between items-center bg-slate-950 px-4 py-2.5 rounded-xl border border-slate-800 transition">
-                        <span class="text-xs text-slate-300 flex items-center gap-2"><span>🍳</span> Breakfast Allowance</span>
-                        <span class="text-xs font-bold text-rose-400" id="valBreakfastSplit">485 kcal</span>
-                    </div>
-
-                    <div id="slotRow_Lunch" class="flex justify-between items-center bg-slate-950 px-4 py-2.5 rounded-xl border border-slate-800 transition">
-                        <span class="text-xs text-slate-300 flex items-center gap-2"><span>🥗</span> Lunch Allowance</span>
-                        <span class="text-xs font-bold text-rose-400" id="valLunchSplit">679 kcal</span>
-                    </div>
-
-                    <div id="slotRow_Dinner" class="flex justify-between items-center bg-slate-950 px-4 py-2.5 rounded-xl border border-slate-800 transition">
-                        <span class="text-xs text-slate-300 flex items-center gap-2"><span>🍲</span> Dinner Allowance</span>
-                        <span class="text-xs font-bold text-rose-400" id="valDinnerSplit">582 kcal</span>
-                    </div>
-
-                    <div id="slotRow_Snack" class="flex justify-between items-center bg-slate-950 px-4 py-2.5 rounded-xl border border-slate-800 transition">
-                        <span class="text-xs text-slate-300 flex items-center gap-2"><span>🥜</span> Evening Snack Allowance</span>
-                        <span class="text-xs font-bold text-rose-400" id="valSnackSplit">193 kcal</span>
-                    </div>
-                </div>
+              <label class="block text-slate-400 mb-1">Bedtime (Lights Out)</label>
+              <input type="time" id="sleepInputBed" value="23:00" class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
             </div>
-
-            <!-- Day Completion Notification Banner -->
-            <div id="dayCompletedBanner" class="hidden mt-4 p-3 bg-emerald-950/40 border border-emerald-500/40 rounded-xl text-center">
-                <p class="text-xs font-bold text-emerald-300">🎉 All 4 Daily Meals Logged!</p>
-                <p class="text-[10px] text-slate-300 mt-0.5">Your biological digital twin has recorded all daily nutrition telemetry.</p>
-                <button onclick="resetDayRollover()" class="mt-2 text-[10px] bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-lg font-semibold transition">
-                    Begin Next Day & Refresh 4 Meals →
-                </button>
+            <div>
+              <label class="block text-slate-400 mb-1">Wake Time</label>
+              <input type="time" id="sleepInputWake" value="07:00" class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
             </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Sleep Quality</label>
+              <select id="sleepInputQuality" class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
+                <option value="Restful">✨ Restful / Deep</option>
+                <option value="Interrupted">⚠️ Woke up multiple times</option>
+                <option value="Fatigued">🥱 Woke up groggy / unrested</option>
+              </select>
+            </div>
+            <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition mt-2">
+              Sync Sleep Telemetry
+            </button>
+          </form>
         </div>
-
-        <!-- CARD 3: Post-Prandial Glucose Spike Simulator -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-            <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                📈 Post-Prandial Glucose Spike Simulator
-            </h3>
-            <p class="text-slate-400 text-xs mt-1">Simulate how meal glycemic index & protein-fiber pairing affects your insulin response curve.</p>
-
-            <div class="mt-4 space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Meal Type</label>
-                    <select id="simMealSelect" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none">
-                        <option>PMOS Balanced (Quinoa, Wild Salmon, Avocado, Broccoli)</option>
-                        <option>High Glycemic Refined Carbs (White Rice, Sugary Sauce)</option>
-                    </select>
-                </div>
-
-                <div class="flex items-center space-x-2">
-                    <input type="checkbox" id="simBufferCheck" checked onchange="runGlucoseSimulation()" class="w-4 h-4 rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0">
-                    <label for="simBufferCheck" class="text-xs text-slate-300">Add starter salad / ACV buffer (Lowers Glucose Peak)</label>
-                </div>
-
-                <button onclick="runGlucoseSimulation()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs px-5 py-2.5 rounded-xl transition">
-                    Simulate Glucose Spike
-                </button>
-            </div>
-
-            <div class="mt-4 bg-slate-950 rounded-xl p-4 border border-slate-800">
-                <canvas id="glucoseCanvas" height="150"></canvas>
-            </div>
-        </div>
-
-        <!-- CARD 4: 4 Phenotype-Calibrated Daily Suggestions (Breakfast, Lunch, Dinner, Snack) -->
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-            <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                🍽️ 4-Meal Phenotype Daily Recommendations
-            </h3>
-            <p class="text-slate-400 text-xs mt-1">Calibrated nutrition plan for your specific PMOS biological profile. Select any meal to log directly:</p>
-
-            <div class="bg-purple-950/30 border border-purple-600/30 rounded-xl p-3 my-3">
-                <p class="text-xs text-purple-300 font-semibold flex items-center gap-1.5" id="recommendationTitle">
-                    <span>💡</span> Calibrated Daily Matrix:
-                </p>
-                <p class="text-[11px] text-purple-200/80 mt-1 leading-relaxed" id="recommendationBody">
-                    Loading tailored biological nutritional guidance...
-                </p>
-            </div>
-
-            <!-- Dynamic 4 Meal Slots List -->
-            <div class="space-y-2" id="recipeContainer">
-                <!-- Populated dynamically via loadPhenotypeDietSuggestions() -->
-            </div>
-        </div>
+      </div>
 
     </div>
-</div>
 
-<script>
-  // Global Macro State
+    <!-- ================= SECTION 3: USER PROFILE ================= -->
+    <div id="profileSection" class="hidden w-full space-y-5">
+      <header class="flex justify-between items-center">
+        <div>
+          <h2 class="text-2xl font-bold text-white">Profile & Twin Specifications</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Manage account credentials and baseline biological parameters</p>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-3.5 mb-6">
+              <div id="profAvatarBadge" class="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-xl text-indigo-300 font-extrabold shadow-lg">
+                👤
+              </div>
+              <div class="overflow-hidden">
+                <h3 id="profFullName" class="text-lg font-bold text-white truncate">User Account</h3>
+                <p id="profEmail" class="text-xs text-slate-400 truncate">user@example.com</p>
+              </div>
+            </div>
+
+            <div class="space-y-2.5 text-xs border-t border-slate-800 pt-4">
+              <div class="flex justify-between py-0.5">
+                <span class="text-slate-400">User ID</span>
+                <span id="profUserId" class="font-semibold text-white">1</span>
+              </div>
+              <div class="flex justify-between py-0.5">
+                <span class="text-slate-400">Account Status</span>
+                <span class="text-emerald-400 font-medium">● Active & Synced</span>
+              </div>
+              <div class="flex justify-between py-0.5">
+                <span class="text-slate-400">Target TDEE</span>
+                <span class="font-semibold text-indigo-400">1,939 kcal</span>
+              </div>
+              <div class="flex justify-between py-0.5">
+                <span class="text-slate-400">Date of Birth</span>
+                <span id="profDobDisplay" class="font-semibold text-slate-200">Not set</span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="logout()" class="w-full mt-6 py-2.5 bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-2">
+            <span>🚪</span> Sign Out
+          </button>
+        </div>
+
+        <div class="lg:col-span-2 space-y-5">
+          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-sm font-bold text-white">Calibrated Biological Profile</h3>
+              <button onclick="openIntakeModal()" class="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+                <span>🔄</span> Recalibrate
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-purple-500/30">
+                <p class="text-slate-400 text-[10px] uppercase font-medium">Active Phenotype</p>
+                <p id="profPhenotype" class="text-xs font-bold text-purple-300 mt-1 leading-tight">Pending</p>
+              </div>
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
+                <p class="text-slate-400 text-[10px] uppercase font-medium">Glycemic Status</p>
+                <p class="text-xs font-bold text-emerald-400 mt-1">Sensitive</p>
+              </div>
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
+                <p class="text-slate-400 text-[10px] uppercase font-medium">Adrenal Load</p>
+                <p class="text-xs font-bold text-amber-400 mt-1">Moderate</p>
+              </div>
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
+                <p class="text-slate-400 text-[10px] uppercase font-medium">Cycle Status</p>
+                <p class="text-xs font-bold text-cyan-400 mt-1">Monitored</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <h3 class="text-sm font-bold text-white mb-4">Edit Details & Security</h3>
+            
+            <div id="profileUpdateAlert" class="hidden mb-3 p-2.5 rounded-xl text-xs text-center font-medium"></div>
+
+            <form id="profileUpdateForm" onsubmit="updateUserProfile(event)" class="space-y-3.5 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">Full Name</label>
+                  <input type="text" id="editFullName" required class="w-full px-3.5 py-2 bg-[#0B0F19] border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">Date of Birth</label>
+                  <input type="date" id="editDob" class="w-full px-3.5 py-2 bg-[#0B0F19] border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">New Password</label>
+                  <input type="password" id="editNewPassword" placeholder="••••••••" class="w-full px-3.5 py-2 bg-[#0B0F19] border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-300 mb-1">Confirm Password</label>
+                  <input type="password" id="editConfirmPassword" placeholder="••••••••" class="w-full px-3.5 py-2 bg-[#0B0F19] border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+                </div>
+              </div>
+
+              <div class="flex justify-end pt-1">
+                <button type="submit" id="saveProfileBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ================= GLOBAL BMI & ANTHROPOMETRY MODAL ================= -->
+  <div id="bmiModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div class="bg-[#111625] border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">📐</span>
+          <h3 class="text-base font-bold text-white">Anthropometry & BMI</h3>
+        </div>
+        <button onclick="closeBmiModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <form id="globalBmiForm" onsubmit="submitBmiUpdate(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Height (cm)</label>
+          <input type="number" id="inputHeight" step="0.5" value="162" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Weight (kg)</label>
+          <input type="number" id="inputWeight" step="0.1" value="58" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-500">
+        </div>
+
+        <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+          <div>
+            <p class="text-[10px] text-slate-400">Current Category</p>
+            <p id="modalBmiCategory" class="text-xs font-bold text-cyan-300">Normal (Lean PMOS)</p>
+          </div>
+          <div class="text-right">
+            <p class="text-[10px] text-slate-400">Score</p>
+            <p id="modalBmiScore" class="text-sm font-bold text-white">22.1</p>
+          </div>
+        </div>
+
+        <div class="pt-2 flex gap-3">
+          <button type="button" onclick="closeBmiModal()" class="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl">Cancel</button>
+          <button type="submit" id="saveBmiBtn" class="w-1/2 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-xl shadow-md shadow-cyan-600/20">Sync BMI</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= QUICK LOG MODAL ================= -->
+  <div id="logModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div class="bg-[#111625] border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-base font-bold text-white">Update Twin Biometrics</h3>
+        <button onclick="closeLogModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <form id="healthLogForm" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Stress Level (0 - 10)</label>
+          <input type="number" id="stressInput" min="0" max="10" step="1" value="4" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Sleep Duration (Hours)</label>
+          <input type="number" id="sleepInput" min="0" max="24" step="0.5" value="7.5" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Exercise (Minutes)</label>
+          <input type="number" id="exerciseInput" min="0" max="300" value="30" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Diet Quality Score (1 - 10)</label>
+          <input type="number" id="dietInput" min="1" max="10" value="8" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Medication Taken (1 for Yes, 0 for No)</label>
+          <input type="number" id="medicationInput" min="0" max="1" value="1" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="pt-2 flex gap-3">
+          <button type="button" onclick="closeLogModal()" class="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl">Cancel</button>
+          <button type="submit" id="submitLogBtn" class="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="intakeContainer"></div>
+
+  <!-- ================= SCRIPTS ================= -->
+  <script>
+  let targetTDEE = 1939;
   let currentScannedCalories = 520;
   let currentScannedProtein = 36;
   let currentScannedCarbs = 42;
   let currentScannedFats = 28;
+  let currentScannedClassification = "Optimal Choice";
+  let isSidebarCollapsed = false;
 
-  // Setup Drag and Drop listeners
-  document.addEventListener("DOMContentLoaded", function() {
+  // ================= SIDEBAR TOGGLE HANDLER =================
+  function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("sidebarToggleBtn");
+    const labels = document.querySelectorAll(".sidebar-label");
+
+    isSidebarCollapsed = !isSidebarCollapsed;
+
+    if (isSidebarCollapsed) {
+      sidebar.classList.remove("w-64");
+      sidebar.classList.add("w-20", "items-center");
+      labels.forEach(el => el.classList.add("hidden"));
+      toggleBtn.innerText = "▶";
+    } else {
+      sidebar.classList.remove("w-20", "items-center");
+      sidebar.classList.add("w-64");
+      labels.forEach(el => el.classList.remove("hidden"));
+      toggleBtn.innerText = "◀";
+    }
+  }
+
+  // ================= LOGOUT HANDLER =================
+  function logout() {
+    localStorage.removeItem("user_token");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("full_name");
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("user_dob");
+    localStorage.removeItem("user_phenotype");
+    window.location.href = "login.html";
+  }
+
+  // ================= DYNAMIC DIGITAL TWIN STATE UPDATER =================
+  function applyLiveTwinState(stress, sleep, exercise, stabilityScore) {
+    const stressNum = parseFloat(stress) || 0;
+    const sleepNum = parseFloat(sleep) || 0;
+    const exerciseNum = parseInt(exercise) || 0;
+
+    // 1. Update Telemetry Metric Displays
+    if (document.getElementById("stressVal")) document.getElementById("stressVal").innerText = `${stressNum} / 10`;
+    if (document.getElementById("sleepVal")) document.getElementById("sleepVal").innerText = `${sleepNum} hrs`;
+    if (document.getElementById("exerciseVal")) document.getElementById("exerciseVal").innerText = `${exerciseNum} mins`;
+    if (document.getElementById("scoreDisplay")) document.getElementById("scoreDisplay").innerText = stabilityScore;
+
+    // 2. Dynamic Node State Coloring
+    const allNodes = document.querySelectorAll("#overviewSection .rounded-full");
+    const recoveryNode = document.querySelector("#overviewSection .bg-rose-500\\/20") || allNodes[2];
+    if (recoveryNode) {
+      if (stressNum >= 8 || (sleepNum > 0 && sleepNum < 6.5)) {
+        recoveryNode.className = "w-14 h-14 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-xs font-bold text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.6)] animate-pulse";
+      } else {
+        recoveryNode.className = "w-14 h-14 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]";
+      }
+    }
+
+    // 3. Dynamic Clinical AI Guidance Box
+    const recEl = document.getElementById("recommendationText");
+    if (recEl) {
+      if (stressNum >= 7 || (sleepNum > 0 && sleepNum < 6.5)) {
+        recEl.innerHTML = `<span class="text-rose-400 font-semibold">⚠️ Adrenal & Recovery Strain Detected:</span> High sympathetic tone (${stressNum}/10 stress, ${sleepNum}h sleep). Cortisol spikes suppress progesterone and elevate androgens. Shift today's activity to 15-minute low-impact walking, vagus nerve breathing, and magnesium-dense nutrition.`;
+      } else {
+        recEl.innerText = "Optimal state parameters maintained. Digital Twin operating in nominal biological range. Calibrated nutrition and low cortisol load sustained.";
+      }
+    }
+  }
+
+  // Set empty/uninitialized telemetry display for new or unlogged accounts
+  function setEmptyTelemetryUI() {
+    if (document.getElementById("stressVal")) document.getElementById("stressVal").innerText = "-- / 10";
+    if (document.getElementById("sleepVal")) document.getElementById("sleepVal").innerText = "-- hrs";
+    if (document.getElementById("exerciseVal")) document.getElementById("exerciseVal").innerText = "-- mins";
+    if (document.getElementById("scoreDisplay")) document.getElementById("scoreDisplay").innerText = "--";
+    if (document.getElementById("syncStatusBadge")) {
+      document.getElementById("syncStatusBadge").innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> Action Required`;
+    }
+    if (document.getElementById("recommendationText")) {
+      document.getElementById("recommendationText").innerHTML = `
+        <span class="text-indigo-400 font-semibold">Welcome to your Digital Twin:</span> 
+        Please complete your <strong>Intake Assessment</strong> to calibrate your clinical phenotype and submit your first <strong>Quick Log</strong>.`;
+    }
+  }
+
+  // ================= MODAL CONTROLLERS =================
+  window.openIntakeModal = () => { 
+    const m = document.getElementById('intakeModal'); 
+    if (m) { 
+      m.classList.remove('hidden'); 
+      m.style.display = 'flex'; 
+    }
+  };
+  window.closeIntakeModal = () => { 
+    const m = document.getElementById('intakeModal'); 
+    if (m) { 
+      m.classList.add('hidden'); 
+      m.style.display = 'none'; 
+    }
+  };
+  window.openLogModal = () => { 
+    const m = document.getElementById('logModal'); 
+    if (m) { 
+      m.classList.remove('hidden'); 
+      m.style.display = 'flex'; 
+    }
+  };
+  window.closeLogModal = () => { 
+    const m = document.getElementById('logModal'); 
+    if (m) { 
+      m.classList.add('hidden'); 
+      m.style.display = 'none'; 
+    }
+  };
+  window.openBmiModal = () => { 
+    const m = document.getElementById('bmiModal'); 
+    if (m) { 
+      m.classList.remove('hidden'); 
+      m.style.display = 'flex'; 
+    }
+  };
+  window.closeBmiModal = () => { 
+    const m = document.getElementById('bmiModal'); 
+    if (m) { 
+      m.classList.add('hidden'); 
+      m.style.display = 'none'; 
+    }
+  };
+
+  // ================= INITIAL LOAD LIFECYCLE =================
+  document.addEventListener("DOMContentLoaded", async function() {
+    refreshUserDisplay();
+
+    // 1. Inject Intake HTML modal into DOM first
+    try {
+      const res = await fetch("intake.html");
+      if (res.ok) {
+        document.getElementById("intakeContainer").innerHTML = await res.text();
+      }
+    } catch (err) {
+      console.error("Intake loader error:", err);
+    }
+
+    // 2. Fetch User Profile and trigger intake flow if new
+    await fetchUserProfileAndPhenotype();
+
+    // 3. Load Diet & Exercise summaries
+    fetchDietSummary();
+    loadPhenotypeDietSuggestions();
+    loadExerciseRecommendation();
+
+    // 4. Initialize Drag & Drop Handlers for Food Scanner
     const dropZone = document.getElementById('dropZone');
     if (dropZone) {
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, preventDefaults, false);
-        document.body.addEventListener(eventName, preventDefaults, false);
+        dropZone.addEventListener(eventName, e => { 
+          e.preventDefault(); 
+          e.stopPropagation(); 
+        }, false);
       });
-
-      ['dragenter', 'dragover'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => dropZone.classList.add('border-indigo-500', 'bg-indigo-950/20'), false);
-      });
-
-      ['dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => dropZone.classList.remove('border-indigo-500', 'bg-indigo-950/20'), false);
-      });
-
       dropZone.addEventListener('drop', (e) => {
-        const dt = e.dataTransfer;
-        handleFileSelect(dt.files);
+        handleFileSelect(e.dataTransfer.files);
       }, false);
     }
-
-    fetchDietSummary();
-    loadPhenotypeDietSuggestions();
   });
 
-  function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
+  // Check if user has completed assessment; if not, open Intake Modal automatically
+  async function fetchUserProfileAndPhenotype() {
+    const userId = localStorage.getItem("user_id") || "1";
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/user-profile/${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        
+        // Populate BMI inputs and badges across dashboard & sidebar
+        if (data.height_cm && document.getElementById("inputHeight")) {
+          document.getElementById("inputHeight").value = data.height_cm;
+        }
+        if (data.weight_kg && document.getElementById("inputWeight")) {
+          document.getElementById("inputWeight").value = data.weight_kg;
+        }
+        if (data.bmi) {
+          if (document.getElementById("navBmiDisplay")) document.getElementById("navBmiDisplay").innerText = `BMI: ${data.bmi}`;
+          if (document.getElementById("sideBmiScore")) document.getElementById("sideBmiScore").innerText = `${data.bmi}`;
+          if (document.getElementById("modalBmiScore")) document.getElementById("modalBmiScore").innerText = `${data.bmi}`;
+        }
+        if (data.bmi_category) {
+          if (document.getElementById("sideBmiCategory")) document.getElementById("sideBmiCategory").innerText = data.bmi_category.split(' ')[0];
+          if (document.getElementById("modalBmiCategory")) document.getElementById("modalBmiCategory").innerText = data.bmi_category;
+        }
+
+        // If user has a valid calibrated phenotype in DB
+        if (data.assigned_phenotype && 
+            data.assigned_phenotype !== "None" && 
+            !data.assigned_phenotype.toLowerCase().includes("pending")) {
+          
+          localStorage.setItem("user_phenotype", data.assigned_phenotype);
+          applyPhenotypeUI(data.assigned_phenotype, true);
+          
+          // Fetch their latest real telemetry log
+          await fetchLatestTelemetry(userId);
+        } else {
+          // NEW USER FLOW: Force Intake Modal Open
+          applyPhenotypeUI("Pending Assessment — Please complete clinical intake", false);
+          setEmptyTelemetryUI();
+          setTimeout(() => {
+            openIntakeModal();
+          }, 400);
+        }
+      } else {
+        applyPhenotypeUI("Pending Assessment — Please complete clinical intake", false);
+        setEmptyTelemetryUI();
+      }
+    } catch (err) {
+      console.error("Profile fetch error:", err);
+      setEmptyTelemetryUI();
+    }
   }
 
-  // Handle File Selection and Live Preview
+  // Fetch real latest telemetry from backend
+  async function fetchLatestTelemetry(userId) {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+      if (res.ok) {
+        const log = await res.json();
+        if (log && log.has_logged) {
+          applyLiveTwinState(log.stress_level, log.sleep_hours, log.exercise_mins, log.stability_score);
+          if (document.getElementById("syncStatusBadge")) {
+            document.getElementById("syncStatusBadge").innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Synced`;
+          }
+        } else {
+          setEmptyTelemetryUI();
+        }
+      }
+    } catch (err) {
+      console.error("Telemetry fetch error:", err);
+    }
+  }
+
+  function applyPhenotypeUI(phenotypeName, isCalibrated) {
+    if (document.getElementById("dashPhenotypeDisplay")) document.getElementById("dashPhenotypeDisplay").innerText = phenotypeName;
+    if (document.getElementById("profPhenotype")) document.getElementById("profPhenotype").innerText = phenotypeName;
+    if (document.getElementById("dashPhenotypeBadge")) {
+      if (isCalibrated) {
+        document.getElementById("dashPhenotypeBadge").innerText = "Live Calibrated";
+        document.getElementById("dashPhenotypeBadge").className = "bg-emerald-900/40 text-emerald-300 border border-emerald-500/40 text-xs px-3.5 py-1.5 rounded-full font-medium";
+      } else {
+        document.getElementById("dashPhenotypeBadge").innerText = "Uncalibrated";
+        document.getElementById("dashPhenotypeBadge").className = "bg-purple-900/40 text-purple-300 border border-purple-500/40 text-xs px-3.5 py-1.5 rounded-full font-medium";
+      }
+    }
+  }
+
+  function refreshUserDisplay() {
+    const fullName = localStorage.getItem("full_name") || "User";
+    const email = localStorage.getItem("user_email") || "user@example.com";
+    const userId = localStorage.getItem("user_id") || "1";
+    const dob = localStorage.getItem("user_dob") || "Not set";
+
+    const initials = fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "U";
+
+    if (document.getElementById("sideAvatarBadge")) document.getElementById("sideAvatarBadge").innerText = initials;
+    if (document.getElementById("profAvatarBadge")) document.getElementById("profAvatarBadge").innerText = initials;
+    if (document.getElementById("sideUserName")) document.getElementById("sideUserName").innerText = fullName;
+    if (document.getElementById("sideUserEmail")) document.getElementById("sideUserEmail").innerText = email;
+    if (document.getElementById("userGreeting")) document.getElementById("userGreeting").innerText = `Welcome back, ${fullName}! Real-time biological telemetry status`;
+    if (document.getElementById("profFullName")) document.getElementById("profFullName").innerText = fullName;
+    if (document.getElementById("profEmail")) document.getElementById("profEmail").innerText = email;
+    if (document.getElementById("profUserId")) document.getElementById("profUserId").innerText = userId;
+    if (document.getElementById("profDobDisplay")) document.getElementById("profDobDisplay").innerText = dob;
+
+    if (document.getElementById("editFullName")) document.getElementById("editFullName").value = fullName;
+    if (document.getElementById("editDob") && dob !== "Not set") document.getElementById("editDob").value = dob;
+  }
+
+  function updateUserProfile(event) {
+    event.preventDefault();
+    const alertBox = document.getElementById("profileUpdateAlert");
+    const newName = document.getElementById("editFullName").value.trim();
+    const newDob = document.getElementById("editDob").value;
+    const newPass = document.getElementById("editNewPassword").value;
+    const confirmPass = document.getElementById("editConfirmPassword").value;
+
+    if (newPass && newPass !== confirmPass) {
+      alertBox.textContent = "Passwords do not match!";
+      alertBox.className = "mb-3 p-2.5 rounded-xl text-xs text-center font-medium bg-rose-500/10 text-rose-400 border border-rose-500/30";
+      return;
+    }
+
+    if (newName) localStorage.setItem("full_name", newName);
+    if (newDob) localStorage.setItem("user_dob", newDob);
+
+    alertBox.textContent = "Profile updated successfully!";
+    alertBox.className = "mb-3 p-2.5 rounded-xl text-xs text-center font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
+
+    document.getElementById("editNewPassword").value = "";
+    document.getElementById("editConfirmPassword").value = "";
+
+    refreshUserDisplay();
+    setTimeout(() => alertBox.classList.add("hidden"), 3000);
+  }
+
+  function switchTab(tabName) {
+    const overviewSec = document.getElementById("overviewSection");
+    const pillarsSec = document.getElementById("pillarsSection");
+    const profileSec = document.getElementById("profileSection");
+    const navOverview = document.getElementById("navOverview");
+    const navPillars = document.getElementById("navPillars");
+
+    overviewSec.classList.add("hidden");
+    pillarsSec.classList.add("hidden");
+    profileSec.classList.add("hidden");
+
+    const activeClass = "w-full flex items-center gap-3.5 px-4 py-2.5 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-xl text-sm font-medium transition text-left";
+    const inactiveClass = "w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left";
+
+    navOverview.className = inactiveClass;
+    navPillars.className = inactiveClass;
+
+    if (tabName === "pillars") {
+      pillarsSec.classList.remove("hidden");
+      navPillars.className = activeClass;
+      switchPillarTab('diet');
+    } else if (tabName === "profile") {
+      profileSec.classList.remove("hidden");
+    } else {
+      overviewSec.classList.remove("hidden");
+      navOverview.className = activeClass;
+    }
+  }
+
+  // ================= INTAKE SUBMISSION HANDLER =================
+  window.submitIntakeForm = async function(event) {
+    if (event) event.preventDefault();
+    const userId = localStorage.getItem('user_id') || '1';
+
+    const payload = {
+      user_id: parseInt(userId),
+      symp_periods: document.getElementById('symp_periods')?.checked || false,
+      symp_hair: document.getElementById('symp_hair')?.checked || false,
+      symp_thinning: document.getElementById('symp_thinning')?.checked || false,
+      symp_acne: document.getElementById('symp_acne')?.checked || false,
+      symp_stress: document.getElementById('symp_stress')?.checked || false,
+      symp_weight: document.getElementById('symp_weight')?.checked || false,
+      usg_result: document.getElementById('usgInput')?.value || 'normal',
+      prior_diagnosis: document.getElementById('diagInput')?.value || 'none'
+    };
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/submit-intake', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (response.ok) {
+        localStorage.setItem("user_phenotype", data.assigned_phenotype);
+        applyPhenotypeUI(data.assigned_phenotype, true);
+        
+        setTimeout(() => {
+          window.closeIntakeModal();
+          loadPhenotypeDietSuggestions();
+          
+          // Open Quick Log modal for their initial biometric baseline
+          openLogModal();
+        }, 600);
+      }
+    } catch (err) {
+      console.error("Intake submission error:", err);
+    }
+  };
+
+  // ================= TELEMETRY FORM SUBMIT =================
+  document.getElementById("healthLogForm")?.addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const userId = localStorage.getItem("user_id") || "1";
+    const submitBtn = document.getElementById("submitLogBtn");
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Saving...";
+    }
+
+    const payload = {
+      user_id: parseInt(userId),
+      stress_level: parseInt(document.getElementById("stressInput").value),
+      sleep_hours: parseFloat(document.getElementById("sleepInput").value),
+      exercise_mins: parseInt(document.getElementById("exerciseInput").value),
+      diet_score: parseInt(document.getElementById("dietInput").value),
+      medication_status: parseInt(document.getElementById("medicationInput").value)
+    };
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/submit-health-log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        applyLiveTwinState(payload.stress_level, payload.sleep_hours, payload.exercise_mins, data.stability_score);
+        if (document.getElementById("syncStatusBadge")) {
+          document.getElementById("syncStatusBadge").innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Synced`;
+        }
+        closeLogModal();
+      } else {
+        alert("Error saving log: " + (data.detail || "Unable to save metrics."));
+      }
+    } catch (err) {
+      console.error("Telemetry submit error:", err);
+      alert("Unable to reach backend server at http://127.0.0.1:8000. Ensure Uvicorn is active.");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit";
+      }
+    }
+  });
+
+  // ================= PILLAR 1: DIET & ML SCANNER =================
   function handleFileSelect(files) {
     if (files && files[0]) {
       const file = files[0];
-      
       document.getElementById('mealNameInput').value = file.name;
       document.getElementById('fileNameDisplay').innerText = file.name;
 
@@ -311,107 +1168,69 @@
         document.getElementById('previewContainer').classList.add('flex');
       };
       reader.readAsDataURL(file);
+
+      scanMealWithML();
     }
   }
 
-  // 1. Scan Meal with ML Endpoint
   async function scanMealWithML() {
-    const mealFileName = document.getElementById("mealNameInput").value || "Fresh Fruit Bowl";
+    const mealFileName = document.getElementById("mealNameInput").value || "Custom Meal";
     const userId = localStorage.getItem("user_id") || "1";
-    
+    const statusBadge = document.getElementById("scanStatusBadge");
+
+    if (statusBadge) statusBadge.innerText = "Evaluating...";
+
     try {
       const response = await fetch("http://127.0.0.1:8000/api/scan-meal-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          user_id: parseInt(userId),
-          image_filename: mealFileName 
-        })
+        body: JSON.stringify({ user_id: parseInt(userId), image_filename: mealFileName, meal_name: mealFileName })
       });
-      
       const data = await response.json();
       if (response.ok) {
-        document.getElementById("resMealName").innerText = data.scanned_image;
-        document.getElementById("resCalories").innerText = `${data.extracted_macros.calories} kcal`;
+        document.getElementById("resMealName").innerText = data.meal_name;
+        document.getElementById("resCalories").innerText = `${data.extracted_macros.calories}`;
         document.getElementById("resProtein").innerText = `${data.extracted_macros.protein}g`;
         document.getElementById("resCarbs").innerText = `${data.extracted_macros.carbs}g`;
         document.getElementById("resFats").innerText = `${data.extracted_macros.fats}g`;
-        document.getElementById("resPhenotypeTag").innerText = "Optimal Choice";
-        
+
         currentScannedCalories = data.extracted_macros.calories;
         currentScannedProtein = data.extracted_macros.protein;
         currentScannedCarbs = data.extracted_macros.carbs;
         currentScannedFats = data.extracted_macros.fats;
-      }
-    } catch (err) {
-      console.log("Offline mode... using default meal estimation.");
-      document.getElementById("resMealName").innerText = mealFileName;
-      currentScannedCalories = 520;
-    }
-  }
+        currentScannedClassification = data.classification;
 
-  // 2. Fetch & Render Diet Telemetry + Calorie Split
-  async function fetchDietSummary() {
-    const userId = localStorage.getItem("user_id") || "1";
-    try {
-      const res = await fetch(`http://127.0.0.1:8000/api/diet-summary/${userId}`);
-      const data = await res.json();
+        // Update Tag & Color Dynamically
+        const tag = document.getElementById("resPhenotypeTag");
+        tag.innerText = data.classification;
 
-      if (res.ok) {
-        document.getElementById("valTDEE").innerText = Math.round(data.daily_target);
-        document.getElementById("valLogged").innerText = data.logged_today;
-        document.getElementById("valRemaining").innerText = Math.round(data.remaining_balance);
-        document.getElementById("valMealCount").innerText = `${data.meals_count} / 4 Meals`;
-
-        const slots = ["Breakfast", "Lunch", "Dinner", "Snack"];
-        slots.forEach(slot => {
-          const row = document.getElementById(`slotRow_${slot}`);
-          const splitValEl = document.getElementById(`val${slot}Split`);
-          
-          if (data.logged_slots && data.logged_slots.includes(slot)) {
-            if (row) {
-              row.classList.add("opacity-40", "bg-slate-900/60");
-              row.classList.remove("border-slate-800");
-            }
-            if (splitValEl) splitValEl.innerText = "✓ Logged";
-          } else {
-            if (row) {
-              row.classList.remove("opacity-40", "bg-slate-900/60");
-              row.classList.add("border-slate-800");
-            }
-            if (splitValEl) splitValEl.innerText = `${data.allowance_split[slot] || 0} kcal`;
-          }
-        });
-
-        // Day Status Badge & Banner updates
-        const badge = document.getElementById("dayStatusBadge");
-        const banner = document.getElementById("dayCompletedBanner");
-        const addBtn = document.getElementById("addLogBtn");
-
-        if (data.day_completed) {
-          badge.innerText = "Day Complete";
-          badge.className = "bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-[10px] px-2.5 py-1 rounded-full font-semibold";
-          banner.classList.remove("hidden");
-          addBtn.disabled = true;
-          addBtn.classList.add("opacity-50", "cursor-not-allowed");
+        if (data.classification === "High Glycemic Spike Risk") {
+          tag.className = "bg-rose-900/50 text-rose-400 border border-rose-600/50 text-[10px] px-2.5 py-0.5 rounded-full font-semibold animate-pulse";
+        } else if (data.classification === "Insulin Resistant Safe") {
+          tag.className = "bg-amber-900/50 text-amber-300 border border-amber-600/50 text-[10px] px-2.5 py-0.5 rounded-full font-medium";
         } else {
-          badge.innerText = `${data.unlogged_slots ? data.unlogged_slots.length : 4} Slots Remaining`;
-          badge.className = "bg-indigo-950 text-indigo-400 border border-indigo-500/30 text-[10px] px-2.5 py-1 rounded-full font-semibold";
-          banner.classList.add("hidden");
-          addBtn.disabled = false;
-          addBtn.classList.remove("opacity-50", "cursor-not-allowed");
+          tag.className = "bg-emerald-900/50 text-emerald-400 border border-emerald-600/50 text-[10px] px-2.5 py-0.5 rounded-full font-medium";
         }
+
+        if (statusBadge) statusBadge.innerText = "Scanned ✓";
       }
     } catch (err) {
-      console.error("Failed to load diet summary:", err);
+      console.error(err);
+      if (statusBadge) statusBadge.innerText = "Error";
     }
   }
 
-  // 3. Log Meal with Selected Time Slot
   async function addMealToLog() {
     const userId = localStorage.getItem("user_id") || "1";
-    const mealName = document.getElementById("mealNameInput")?.value || "Logged Meal";
-    const mealSlot = document.getElementById("mealSlotSelect")?.value || "Lunch";
+    const mealName = document.getElementById("resMealName")?.innerText || "Logged Meal";
+    const mealSlot = document.getElementById("mealSlotSelect")?.value || "Dinner";
+
+    // Check for calorie overflow
+    const remainingKcal = parseInt(document.getElementById("valRemaining")?.innerText) || 0;
+    if (currentScannedCalories > remainingKcal && remainingKcal > 0) {
+      const proceed = confirm(`⚠️ Calorie Warning:\nThis meal (${currentScannedCalories} kcal) exceeds your remaining daily budget (${remainingKcal} kcal) by ${currentScannedCalories - remainingKcal} kcal.\n\nDo you still want to log it?`);
+      if (!proceed) return;
+    }
 
     const payload = {
       user_id: parseInt(userId),
@@ -421,7 +1240,7 @@
       protein: currentScannedProtein,
       carbs: currentScannedCarbs,
       fats: currentScannedFats,
-      glycemic_risk: "Optimal Choice"
+      glycemic_risk: currentScannedClassification
     };
 
     try {
@@ -430,60 +1249,109 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-
       if (res.ok) {
-        alert(`Logged ${mealSlot}: "${mealName}" (${payload.calories} kcal). Remaining daily allowances rebalanced!`);
         await fetchDietSummary();
         await loadPhenotypeDietSuggestions();
       }
     } catch (err) {
-      console.error("Error logging meal:", err);
+      console.error(err);
     }
   }
 
-  // 4. Load 4 Phenotype-Specific Suggestions
+  async function fetchDietSummary() {
+    const userId = localStorage.getItem("user_id") || "1";
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/diet-summary/${userId}`);
+      const data = await res.json();
+      if (res.ok) {
+        document.getElementById("valTDEE").innerText = Math.round(data.daily_target);
+        document.getElementById("valLogged").innerText = data.logged_today;
+        document.getElementById("valRemaining").innerText = Math.round(data.remaining_balance);
+
+        const slots = ["Breakfast", "Lunch", "Dinner", "Snack"];
+        slots.forEach(slot => {
+          const row = document.getElementById(`slotRow_${slot}`);
+          const splitValEl = document.getElementById(`val${slot}Split`);
+          if (data.logged_slots && data.logged_slots.includes(slot)) {
+            if (row) row.classList.add("opacity-40", "bg-slate-900/60");
+            if (splitValEl) splitValEl.innerText = "✓ Logged";
+          } else {
+            if (row) row.classList.remove("opacity-40", "bg-slate-900/60");
+            if (splitValEl) splitValEl.innerText = `${data.allowance_split[slot] || 0} kcal`;
+          }
+        });
+
+        const badge = document.getElementById("dayStatusBadge");
+        const banner = document.getElementById("dayCompletedBanner");
+        const addBtn = document.getElementById("addLogBtn");
+
+        if (data.day_completed) {
+          badge.innerText = "Day Complete";
+          badge.className = "bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-xs px-3 py-1 rounded-full font-semibold";
+          banner.classList.remove("hidden");
+          addBtn.disabled = true;
+          addBtn.classList.add("opacity-50", "cursor-not-allowed");
+        } else {
+          badge.innerText = `${data.unlogged_slots ? data.unlogged_slots.length : 4} Left`;
+          badge.className = "bg-indigo-950 text-indigo-400 border border-indigo-500/30 text-xs px-3 py-1 rounded-full font-semibold";
+          banner.classList.add("hidden");
+          addBtn.disabled = false;
+          addBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   async function loadPhenotypeDietSuggestions() {
     const userId = localStorage.getItem("user_id") || "1";
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/diet-recommendations/${userId}`);
       const data = await res.json();
-
       if (res.ok) {
         document.getElementById("recommendationTitle").innerHTML = `<span>💡</span> ${data.guidance_title}`;
         document.getElementById("recommendationBody").innerText = data.guidance_body;
+        if (data.assigned_phenotype && document.getElementById("recomPhenoBadge")) {
+          document.getElementById("recomPhenoBadge").innerText = data.assigned_phenotype;
+        }
 
         const container = document.getElementById("recipeContainer");
         const slotIcons = { "Breakfast": "🍳", "Lunch": "🥗", "Dinner": "🍲", "Snack": "🥜" };
 
         container.innerHTML = data.recipes.map(r => `
-          <div class="bg-slate-950 p-3 rounded-xl border ${r.is_logged ? 'border-slate-800/40 opacity-40' : 'border-slate-800 hover:border-indigo-500/40'} flex justify-between items-center transition">
+          <div class="bg-[#0B0F19] p-3.5 rounded-xl border ${r.is_logged ? 'border-slate-800/40 opacity-40' : 'border-slate-800 hover:border-indigo-500/40'} flex flex-col justify-between transition min-h-[125px]">
             <div>
-              <div class="flex items-center gap-2 mb-0.5">
+              <div class="flex items-center justify-between mb-1.5">
                 <span class="text-[10px] font-bold px-2 py-0.5 bg-indigo-950 text-indigo-300 rounded-md border border-indigo-500/30">
                   ${slotIcons[r.meal_slot] || '🍽️'} ${r.meal_slot}
                 </span>
-                <p class="text-xs font-bold text-white">${r.name}</p>
+                <span class="text-xs font-bold text-indigo-400">${r.kcal} kcal</span>
               </div>
-              <p class="text-[10px] text-slate-400">${r.kcal} kcal | ${r.protein}g Protein | ${r.fats}g Fats | GI ${r.gi} (${r.desc})</p>
+              <p class="text-xs font-bold text-white leading-snug line-clamp-1">${r.name}</p>
+              <p class="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">${r.desc}</p>
             </div>
-            ${r.is_logged ? 
-              `<span class="text-emerald-400 font-bold text-xs px-3 py-1">✓ Logged</span>` :
-              `<button onclick="selectSuggestedRecipe('${r.meal_slot}', '${r.name}', ${r.kcal}, ${r.protein}, ${r.carbs}, ${r.fats})" class="bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-xs px-3 py-1.5 rounded-lg transition font-medium">+ Select</button>`
-            }
+            
+            <div class="mt-3 flex items-center justify-between pt-2 border-t border-slate-800/60">
+              <span class="text-[10px] text-slate-400 font-medium">${r.protein}g P · ${r.fats}g F · GI ${r.gi}</span>
+              ${r.is_logged ? 
+                `<span class="text-emerald-400 font-bold text-xs">✓ Logged</span>` :
+                `<button onclick="selectSuggestedRecipe('${r.meal_slot}', '${r.name}', ${r.kcal}, ${r.protein}, ${r.carbs}, ${r.fats})" class="bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-xs px-2.5 py-1 rounded-lg transition font-medium">+ Select</button>`
+              }
+            </div>
           </div>
         `).join("");
       }
     } catch (err) {
-      console.error("Failed to load phenotype suggestions:", err);
+      console.error(err);
     }
   }
 
-  // 5. Select a Suggested Recipe to Populate Scanner Inputs
   function selectSuggestedRecipe(slot, name, kcal, protein, carbs, fats) {
     document.getElementById("mealNameInput").value = name;
     document.getElementById("mealSlotSelect").value = slot;
     document.getElementById("resMealName").innerText = name;
-    document.getElementById("resCalories").innerText = `${kcal} kcal`;
+    document.getElementById("resCalories").innerText = `${kcal}`;
     document.getElementById("resProtein").innerText = `${protein}g`;
     document.getElementById("resCarbs").innerText = `${carbs}g`;
     document.getElementById("resFats").innerText = `${fats}g`;
@@ -493,63 +1361,232 @@
     currentScannedCarbs = carbs;
     currentScannedFats = fats;
 
-    alert(`Selected ${slot}: "${name}". Click "+ Log Selected Meal Time" to confirm.`);
+    addMealToLog();
   }
 
-  // 6. Reset Day Rollover
   async function resetDayRollover() {
     const userId = localStorage.getItem("user_id") || "1";
-    if (confirm("Begin next day? This will reset logged meals and restore all 4 meal slot allowances.")) {
+    if (confirm("Reset day & refresh all 4 meal allowances?")) {
       try {
         const res = await fetch(`http://127.0.0.1:8000/api/reset-day/${userId}`, { method: "POST" });
         if (res.ok) {
-          alert("Rolled over to new day! All 4 meal slots refreshed.");
           await fetchDietSummary();
           await loadPhenotypeDietSuggestions();
         }
       } catch (err) {
-        console.error("Reset error:", err);
+        console.error(err);
       }
     }
   }
 
-  // 7. Glucose Simulation Chart
-  function runGlucoseSimulation() {
-    const canvas = document.getElementById('glucoseCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    
-    canvas.width = canvas.parentElement.clientWidth - 32;
-    canvas.height = 130;
+  // ================= 5 PILLARS TAB SWITCHING =================
+  function switchPillarTab(pillarName) {
+    const dietContainer = document.getElementById("pillarDietContainer");
+    const exContainer = document.getElementById("pillarExerciseContainer");
+    const sleepContainer = document.getElementById("pillarSleepContainer");
 
-    const hasBuffer = document.getElementById('simBufferCheck')?.checked ?? true;
-    const peakHeight = hasBuffer ? 50 : 15;
+    const tabDiet = document.getElementById("tabPillarDiet");
+    const tabEx = document.getElementById("tabPillarExercise");
+    const tabSleep = document.getElementById("tabPillarSleep");
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const activeStyle = "bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm";
+    const inactiveStyle = "bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition";
 
-    ctx.strokeStyle = '#1e293b';
-    ctx.lineWidth = 1;
-    for (let y = 20; y < canvas.height; y += 30) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
+    if (dietContainer) dietContainer.classList.add("hidden");
+    if (exContainer) exContainer.classList.add("hidden");
+    if (sleepContainer) sleepContainer.classList.add("hidden");
+
+    if (tabDiet) tabDiet.className = inactiveStyle;
+    if (tabEx) tabEx.className = inactiveStyle;
+    if (tabSleep) tabSleep.className = inactiveStyle;
+
+    if (pillarName === "exercise" && exContainer) {
+      exContainer.classList.remove("hidden");
+      exContainer.classList.add("grid");
+      if (tabEx) tabEx.className = activeStyle;
+      loadExerciseRecommendation();
+    } else if (pillarName === "sleep" && sleepContainer) {
+      sleepContainer.classList.remove("hidden");
+      sleepContainer.classList.add("grid");
+      if (tabSleep) tabSleep.className = activeStyle;
+      loadSleepRecommendation();
+    } else if (dietContainer) {
+      dietContainer.classList.remove("hidden");
+      if (tabDiet) tabDiet.className = activeStyle;
+      fetchDietSummary();
+      loadPhenotypeDietSuggestions();
     }
-
-    ctx.beginPath();
-    ctx.strokeStyle = '#22d3ee';
-    ctx.lineWidth = 3;
-
-    ctx.moveTo(10, 110);
-    ctx.bezierCurveTo(canvas.width * 0.3, peakHeight, canvas.width * 0.6, peakHeight + 10, canvas.width - 10, 100);
-    ctx.stroke();
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '10px sans-serif';
-    ctx.fillText('0m (Fasted)', 10, 125);
-    ctx.fillText('60m (Peak)', canvas.width * 0.3, 125);
-    ctx.fillText('180m', canvas.width - 35, 125);
   }
 
-  window.onload = runGlucoseSimulation;
-</script>
+  // ================= PILLAR 2: EXERCISE & BMI =================
+  async function loadExerciseRecommendation() {
+    const userId = localStorage.getItem("user_id") || "1";
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/exercise-recommendation/${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        const w = data.workout;
+        
+        document.getElementById("exTitle").innerText = w.title;
+        document.getElementById("exCategory").innerText = w.category;
+        document.getElementById("exIntensity").innerText = w.intensity;
+        document.getElementById("exDuration").innerText = `${w.duration} mins`;
+        document.getElementById("exCalories").innerText = `${w.target_kcal} kcal`;
+        document.getElementById("exGuidance").innerText = w.guidance;
+        document.getElementById("exBenefits").innerText = w.benefits;
+        
+        if (document.getElementById("exBmiTag")) {
+          document.getElementById("exBmiTag").innerText = `BMI ${data.bmi} (${data.bmi_category.split(' ')[0]})`;
+        }
+        if (document.getElementById("navBmiDisplay")) {
+          document.getElementById("navBmiDisplay").innerText = `BMI: ${data.bmi}`;
+        }
+        if (document.getElementById("sideBmiScore")) {
+          document.getElementById("sideBmiScore").innerText = `${data.bmi}`;
+        }
+        if (document.getElementById("sideBmiCategory")) {
+          document.getElementById("sideBmiCategory").innerText = data.bmi_category.split(' ')[0];
+        }
+        if (document.getElementById("modalBmiScore")) {
+          document.getElementById("modalBmiScore").innerText = `${data.bmi}`;
+        }
+        if (document.getElementById("modalBmiCategory")) {
+          document.getElementById("modalBmiCategory").innerText = `${data.bmi_category}`;
+        }
+      }
+    } catch (err) {
+      console.error("Exercise fetch error:", err);
+    }
+  }
+
+  async function submitBmiUpdate(event) {
+    event.preventDefault();
+    const userId = localStorage.getItem("user_id") || "1";
+    const height = parseFloat(document.getElementById("inputHeight").value);
+    const weight = parseFloat(document.getElementById("inputWeight").value);
+    const saveBtn = document.getElementById("saveBmiBtn");
+
+    if (saveBtn) saveBtn.innerText = "Syncing...";
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/update-bmi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: parseInt(userId),
+          height_cm: height,
+          weight_kg: weight
+        })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        
+        // Update Displays across Navbar, Sidebar & Modal
+        if (document.getElementById("navBmiDisplay")) {
+          document.getElementById("navBmiDisplay").innerText = `BMI: ${data.bmi}`;
+        }
+        if (document.getElementById("sideBmiScore")) {
+          document.getElementById("sideBmiScore").innerText = `${data.bmi}`;
+        }
+        if (document.getElementById("sideBmiCategory")) {
+          document.getElementById("sideBmiCategory").innerText = data.bmi_category.split(' ')[0];
+        }
+        if (document.getElementById("modalBmiScore")) {
+          document.getElementById("modalBmiScore").innerText = `${data.bmi}`;
+        }
+        if (document.getElementById("modalBmiCategory")) {
+          document.getElementById("modalBmiCategory").innerText = `${data.bmi_category}`;
+        }
+        
+        // Refresh workout plan with new BMI calibration
+        await loadExerciseRecommendation();
+        closeBmiModal();
+      }
+    } catch (err) {
+      console.error("BMI update error:", err);
+    } finally {
+      if (saveBtn) saveBtn.innerText = "Sync BMI";
+    }
+  }
+
+  async function markExerciseCompleted() {
+    const userId = localStorage.getItem("user_id") || "1";
+    const btn = document.getElementById("exCompleteBtn");
+    const statusLabel = document.getElementById("exTodayStatus");
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/complete-exercise", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: parseInt(userId),
+          exercise_name: document.getElementById("exTitle").innerText,
+          duration_mins: 25,
+          calories_burned: 120
+        })
+      });
+
+      if (res.ok) {
+        btn.innerHTML = `<span>✓</span> Routine Completed for Today!`;
+        btn.className = "w-full py-3 bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-xs font-bold rounded-xl cursor-not-allowed";
+        btn.disabled = true;
+        if (statusLabel) {
+          statusLabel.innerText = "✓ Completed";
+          statusLabel.className = "text-emerald-400 font-bold";
+        }
+      }
+    } catch (err) {
+      console.error("Exercise completion error:", err);
+    }
+  }
+
+  // ================= PILLAR 3: SLEEP =================
+  async function loadSleepRecommendation() {
+    const userId = localStorage.getItem("user_id") || "1";
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/sleep-recommendation/${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById("sleepTargetVal").innerText = `${data.target_hours} hrs`;
+        document.getElementById("sleepLastVal").innerText = `${data.last_logged_sleep} hrs`;
+        document.getElementById("sleepDebtVal").innerText = data.sleep_debt > 0 ? `+${data.sleep_debt} hrs` : "0 hrs";
+        document.getElementById("sleepBedtime").innerText = data.ideal_bedtime;
+        document.getElementById("sleepWaketime").innerText = data.ideal_waketime;
+        document.getElementById("sleepCircadianAdvice").innerText = data.circadian_advice;
+      }
+    } catch (err) {
+      console.error("Sleep fetch error:", err);
+    }
+  }
+
+  async function submitSleepWindow(event) {
+    event.preventDefault();
+    const userId = localStorage.getItem("user_id") || "1";
+    const bed = document.getElementById("sleepInputBed").value;
+    const wake = document.getElementById("sleepInputWake").value;
+    const quality = document.getElementById("sleepInputQuality").value;
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/log-sleep-schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: parseInt(userId),
+          sleep_hours: 8.0,
+          bed_time: bed,
+          wake_time: wake,
+          sleep_quality: quality
+        })
+      });
+      if (res.ok) {
+        alert("Sleep schedule synced with Digital Twin circadian telemetry!");
+        loadSleepRecommendation();
+      }
+    } catch (err) {
+      console.error("Sleep submit error:", err);
+    }
+  }
+  </script>
+</body>
+</html>

@@ -50,15 +50,30 @@
       </nav>
     </div>
 
-    <!-- Stability Risk Index Widget -->
-    <div class="bg-[#181F32] border border-slate-800 rounded-2xl p-4 text-center sidebar-label">
-      <div class="flex items-center justify-center gap-2 text-xs text-emerald-400 mb-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Synced
+    <!-- Sidebar Anthropometric & Stability Status Widgets -->
+    <div class="space-y-3">
+      <!-- 1. Sidebar BMI Calculator Widget -->
+      <div onclick="openBmiModal()" class="bg-[#181F32] hover:bg-[#1f283f] border border-cyan-500/30 rounded-2xl p-3 text-center cursor-pointer transition group sidebar-label" title="Click to edit Height & Weight">
+        <div class="flex items-center justify-between text-[11px] text-cyan-300 font-semibold mb-1">
+          <span class="flex items-center gap-1"><span>📐</span> BMI Metric</span>
+          <span class="text-[10px] text-slate-400 group-hover:text-cyan-300 underline">Edit</span>
+        </div>
+        <div class="flex items-center justify-center gap-2">
+          <span id="sideBmiScore" class="text-base font-extrabold text-white">22.1</span>
+          <span id="sideBmiCategory" class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/30 truncate max-w-[110px]">Normal</span>
+        </div>
       </div>
-      <div class="relative w-16 h-16 mx-auto flex items-center justify-center rounded-full border-2 border-indigo-500/30 border-t-indigo-500 mb-1.5">
-        <span id="scoreDisplay" class="text-lg font-bold text-white">67</span>
+
+      <!-- 2. Stability Risk Index Widget -->
+      <div class="bg-[#181F32] border border-slate-800 rounded-2xl p-3.5 text-center sidebar-label">
+        <div class="flex items-center justify-center gap-2 text-xs text-slate-400 mb-1.5" id="syncStatusBadge">
+          <span class="w-2 h-2 rounded-full bg-slate-500"></span> Uncalibrated
+        </div>
+        <div class="relative w-14 h-14 mx-auto flex items-center justify-center rounded-full border-2 border-indigo-500/30 border-t-indigo-500 mb-1">
+          <span id="scoreDisplay" class="text-base font-bold text-slate-400">--</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Stability Index</p>
       </div>
-      <p class="text-xs text-slate-400">Stability Index</p>
     </div>
   </aside>
 
@@ -73,11 +88,15 @@
           <p class="text-xs text-slate-400 mt-0.5" id="userGreeting">Real-time biological state & telemetry status</p>
         </div>
         
-        <div class="flex items-center gap-3">
-          <button onclick="openIntakeModal()" class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded-xl transition flex items-center gap-2">
-            <span>📋</span> Intake Assessment
+        <div class="flex items-center gap-2.5">
+          <!-- Navbar BMI Quick Trigger -->
+          <button onclick="openBmiModal()" id="navBmiBtn" class="px-3.5 py-2 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-500/40 text-cyan-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow-sm">
+            <span>📐</span> <span id="navBmiDisplay">BMI: 22.1</span>
           </button>
-          <button onclick="openLogModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium rounded-xl transition">
+          <button onclick="openIntakeModal()" class="px-3.5 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+            <span>📋</span> Intake
+          </button>
+          <button onclick="openLogModal()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium rounded-xl transition">
             + Quick Log
           </button>
         </div>
@@ -97,7 +116,9 @@
       </div>
 
       <!-- Overview Visuals & Stats -->
-      <div class="grid grid-cols-12 gap-5">
+      <div class="grid grid-cols-12 gap-5 items-start">
+        
+        <!-- Left Card: Interactive Biological Twin (5 cols) -->
         <div class="col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 flex flex-col justify-between min-h-[380px]">
           <h3 class="text-sm font-semibold text-slate-300">Interactive Biological Twin</h3>
           
@@ -114,37 +135,43 @@
           </div>
         </div>
 
+        <!-- Right Side Container: Telemetry Metrics & AI Guidance (7 cols) -->
         <div class="col-span-7 space-y-5">
-          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6">
+          
+          <!-- Telemetry Card -->
+          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl">
             <div class="flex justify-between items-center mb-4">
               <h4 class="font-semibold text-sm text-slate-200">System Telemetry & Stress</h4>
-              <span class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Mild Fluctuation</span>
+              <span class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Active Telemetry</span>
             </div>
+
+            <!-- 3 Metrics Grid -->
             <div class="grid grid-cols-3 gap-4 text-xs">
               <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800/80">
                 <p class="text-slate-500 text-xs mb-1">Stress Level</p>
-                <p id="stressVal" class="text-base font-bold text-white">4 / 10</p>
+                <p id="stressVal" class="text-base font-bold text-slate-300">-- / 10</p>
               </div>
               <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800/80">
                 <p class="text-slate-500 text-xs mb-1">Sleep Duration</p>
-                <p id="sleepVal" class="text-base font-bold text-white">7.5 hrs</p>
+                <p id="sleepVal" class="text-base font-bold text-slate-300">-- hrs</p>
               </div>
               <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800/80">
                 <p class="text-slate-500 text-xs mb-1">Exercise</p>
-                <p id="exerciseVal" class="text-base font-bold text-white">45 mins</p>
+                <p id="exerciseVal" class="text-base font-bold text-slate-300">-- mins</p>
               </div>
             </div>
           </div>
 
           <!-- AI Twin Dynamic Recommendation Card -->
-          <div class="mt-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-            <div class="flex items-center gap-2 text-sm font-semibold text-indigo-400 mb-1">
-              <span>⚡ AI Twin Dynamic Recommendation</span>
+          <div class="p-5 rounded-2xl bg-[#111625] border border-slate-800 shadow-xl">
+            <div class="flex items-center gap-2 text-sm font-semibold text-indigo-400 mb-2">
+              <span>⚡</span> AI Twin Dynamic Recommendation
             </div>
             <p id="recommendationText" class="text-xs text-slate-300 leading-relaxed">
               Optimal state parameters maintained. Digital Twin operating in nominal biological range. Calibrated nutrition and low cortisol load sustained.
             </p>
           </div>
+
         </div>
       </div>
     </div>
@@ -152,34 +179,23 @@
     <!-- ================= SECTION 2: 5 PMOS PILLARS ================= -->
     <div id="pillarsSection" class="hidden w-full space-y-4">
       
-      <!-- Top Navigation Tabs + Header Controls -->
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2.5 overflow-x-auto">
-          <button id="tabPillarDiet" onclick="switchPillarTab('diet')" class="bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-4 py-2 rounded-xl text-xs flex items-center gap-2 whitespace-nowrap shadow-sm">
-            🥑 Diet & Nutrition
-          </button>
-          <button id="tabPillarExercise" onclick="switchPillarTab('exercise')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2 rounded-xl text-xs flex items-center gap-2 whitespace-nowrap transition">
-            🏋️ Exercise & Movement
-          </button>
-          <button id="tabPillarSleep" onclick="switchPillarTab('sleep')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2 rounded-xl text-xs flex items-center gap-2 whitespace-nowrap transition">
-            🛌 Sleep & Recovery
-          </button>
-          <button class="bg-[#111625] border border-slate-800 text-slate-500 px-4 py-2 rounded-xl text-xs flex items-center gap-2 opacity-50 cursor-not-allowed whitespace-nowrap">
-            💊 Medicine (Pending)
-          </button>
-          <button class="bg-[#111625] border border-slate-800 text-slate-500 px-4 py-2 rounded-xl text-xs flex items-center gap-2 opacity-50 cursor-not-allowed whitespace-nowrap">
-            🧠 Stress Reset (Pending)
-          </button>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <button onclick="resetDayRollover()" class="bg-indigo-950 hover:bg-indigo-900/80 border border-indigo-500/40 text-indigo-300 text-xs px-3.5 py-2 rounded-xl font-medium transition flex items-center gap-1.5">
-            <span>🔄</span> Reset Day
-          </button>
-          <button onclick="openIntakeModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-2 rounded-xl text-xs text-slate-300 font-medium">
-            📋 Intake Quiz
-          </button>
-        </div>
+      <!-- Top Navigation Tabs -->
+      <div class="flex items-center gap-2.5 flex-wrap">
+        <button id="tabPillarDiet" onclick="switchPillarTab('diet')" class="bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm">
+          🥑 Diet & Nutrition
+        </button>
+        <button id="tabPillarExercise" onclick="switchPillarTab('exercise')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
+          🏋️ Exercise & Movement
+        </button>
+        <button id="tabPillarSleep" onclick="switchPillarTab('sleep')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
+          🛌 Sleep & Recovery
+        </button>
+        <button class="bg-[#111625] border border-slate-800 text-slate-500 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 opacity-50 cursor-not-allowed">
+          💊 Medicine (Pending)
+        </button>
+        <button class="bg-[#111625] border border-slate-800 text-slate-500 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 opacity-50 cursor-not-allowed">
+          🧠 Stress Reset (Pending)
+        </button>
       </div>
 
       <!-- 1. DIET TAB CONTAINER -->
@@ -276,9 +292,14 @@
               <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
                 <span>⚖️</span> Calorie Splitter
               </h3>
-              <span id="dayStatusBadge" class="bg-indigo-950 text-indigo-400 border border-indigo-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-semibold">
-                In Progress
-              </span>
+              <div class="flex items-center gap-2">
+                <button onclick="resetDayRollover()" class="bg-indigo-950 hover:bg-indigo-900/80 border border-indigo-500/40 text-indigo-300 text-[10px] px-2.5 py-1 rounded-lg font-medium transition flex items-center gap-1">
+                  <span>🔄</span> Reset Day
+                </button>
+                <span id="dayStatusBadge" class="bg-indigo-950 text-indigo-400 border border-indigo-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-semibold">
+                  In Progress
+                </span>
+              </div>
             </div>
 
             <div class="grid grid-cols-3 gap-2 text-center mb-3">
@@ -347,10 +368,8 @@
                 </p>
               </div>
 
-              <!-- 4 Meal Cards Grid (2x2 layout filling space evenly) -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="recipeContainer">
-                <!-- Populated dynamically via loadPhenotypeDietSuggestions() -->
-              </div>
+              <!-- 4 Meal Cards Grid -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="recipeContainer"></div>
             </div>
 
             <div class="mt-4 p-3 bg-[#0B0F19] rounded-xl border border-slate-800/80 text-xs text-slate-400 flex items-center justify-between">
@@ -364,74 +383,108 @@
 
       </div>
 
-      <!-- 2. EXERCISE TAB CONTAINER -->
-      <div id="pillarExerciseContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5">
-        <!-- Left Column: Today's Exercise Card -->
-        <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+      <!-- 2. EXERCISE TAB CONTAINER (EASY DAILY ROTATION PLAN) -->
+      <div id="pillarExerciseContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        
+        <!-- Left: Today's Assigned Exercise Plan (7 cols) -->
+        <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-5">
           <div>
+            <!-- Header with Day and Type -->
             <div class="flex justify-between items-center mb-3">
-              <span class="px-3 py-1 bg-indigo-950 text-indigo-400 border border-indigo-500/30 text-xs font-semibold rounded-full" id="exCategory">
-                Hormone-Safe Routine
+              <span class="px-3 py-1 bg-indigo-950 text-indigo-300 border border-indigo-500/30 text-xs font-semibold rounded-full flex items-center gap-1.5" id="exDayBadge">
+                📅 Today's Plan
               </span>
-              <span class="text-xs text-slate-400" id="exIntensity">Low Impact</span>
+              <span class="text-xs font-medium text-emerald-400" id="exStatusLabel">Ready to start</span>
             </div>
-            
-            <h3 class="text-lg font-bold text-white mb-2" id="exTitle">Low-Cortisol Somatic Flow & Incline Walk</h3>
-            <p class="text-xs text-slate-300 leading-relaxed mb-4" id="exGuidance">
-              Adaptive workout calculated based on your daily stress telemetry and body weight profile.
-            </p>
 
-            <div class="grid grid-cols-3 gap-3 mb-4">
-              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800 text-center">
-                <p class="text-[10px] text-slate-500 uppercase">Target Duration</p>
-                <p class="text-sm font-bold text-indigo-400" id="exDuration">25 mins</p>
-              </div>
-              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800 text-center">
-                <p class="text-[10px] text-slate-500 uppercase">Est. Burn</p>
-                <p class="text-sm font-bold text-emerald-400" id="exCalories">120 kcal</p>
-              </div>
-              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800 text-center">
-                <p class="text-[10px] text-slate-500 uppercase">Metabolic Impact</p>
-                <p class="text-sm font-bold text-cyan-400">Cortisol Reset</p>
+            <div class="flex items-center gap-3 mb-2">
+              <span class="text-3xl p-2.5 bg-[#0B0F19] rounded-2xl border border-slate-800" id="exMainIcon">🦵</span>
+              <div>
+                <h3 class="text-lg font-bold text-white" id="exPlanTitle">Legs & Lower Body Workout</h3>
+                <p class="text-xs text-slate-400" id="exHealthTip">Builds leg muscle to naturally balance blood sugar.</p>
               </div>
             </div>
 
-            <div class="p-3 bg-purple-950/20 border border-purple-500/30 rounded-xl text-xs text-purple-200">
-              <span class="font-bold text-purple-300">💡 Clinical Logic:</span> <span id="exBenefits">Reduces insulin resistance without triggering adrenal cortisol elevation.</span>
+            <!-- Simple Routine List Box -->
+            <div class="bg-[#0B0F19] p-4 rounded-xl border border-slate-800 my-4">
+              <p class="text-[11px] uppercase tracking-wider text-slate-400 font-bold mb-1.5">What to do today:</p>
+              <p class="text-xs font-semibold text-indigo-300 leading-relaxed" id="exRoutineList">
+                Bodyweight Squats (3 sets of 12) · Glute Bridges (3 sets of 15) · Walking Lunges (3 sets of 10)
+              </p>
+            </div>
+
+            <!-- 3 Key Metric Cards -->
+            <div class="grid grid-cols-3 gap-3 text-center">
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
+                <p class="text-[10px] text-slate-500 uppercase font-semibold">Target Time</p>
+                <p class="text-base font-bold text-white mt-0.5" id="exTargetDuration">25 mins</p>
+              </div>
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
+                <p class="text-[10px] text-slate-500 uppercase font-semibold">Target Burn</p>
+                <p class="text-base font-bold text-amber-400 mt-0.5" id="exTargetBurn">180 kcal</p>
+              </div>
+              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
+                <p class="text-[10px] text-slate-500 uppercase font-semibold">Matched Meal</p>
+                <p class="text-xs font-bold text-cyan-400 mt-1 truncate" id="exMatchedMeal">Last Meal</p>
+              </div>
             </div>
           </div>
 
-          <button onclick="markExerciseCompleted()" id="exCompleteBtn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20">
-            <span>✓</span> Mark Today's Movement as Completed
+          <!-- Completion Action -->
+          <button onclick="markTodayExerciseDone()" id="btnCompleteExercise" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20">
+            <span>✓</span> Mark Workout as Done for Today
           </button>
         </div>
 
-        <!-- Right Column: Exercise Habit Log Status -->
-        <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+        <!-- Right: 7-Day Weekly Workout Routine Schedule (5 cols) -->
+        <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
           <div>
-            <h4 class="text-sm font-bold text-white mb-3">Weekly Consistency Tracker</h4>
-            <div class="space-y-3 text-xs">
-              <div class="flex justify-between items-center bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
-                <span class="text-slate-300">Mon: Resistance Flow</span>
-                <span class="text-emerald-400 font-bold">✓ Completed (30m)</span>
+            <h4 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
+              <span>🗓️</span> Weekly Exercise Schedule
+            </h4>
+            <p class="text-xs text-slate-400 mb-4">Different simple workouts rotating every day</p>
+
+            <div class="space-y-2 text-xs" id="weeklyScheduleList">
+              <div class="flex justify-between items-center bg-[#0B0F19] px-3.5 py-2.5 rounded-xl border border-slate-800">
+                <span class="text-slate-300">Mon: Legs & Glutes</span>
+                <span class="text-indigo-400 font-semibold">25 mins</span>
               </div>
-              <div class="flex justify-between items-center bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
-                <span class="text-slate-300">Tue: Zone-2 Cardio Walk</span>
-                <span class="text-emerald-400 font-bold">✓ Completed (25m)</span>
+              <div class="flex justify-between items-center bg-[#0B0F19] px-3.5 py-2.5 rounded-xl border border-slate-800">
+                <span class="text-slate-300">Tue: Brisk Walking / Cardio</span>
+                <span class="text-indigo-400 font-semibold">30 mins</span>
               </div>
-              <div class="flex justify-between items-center bg-[#0B0F19] p-3 rounded-xl border border-indigo-500/30">
-                <span class="text-white font-medium">Today's Prescribed Plan</span>
-                <span class="text-amber-400 font-semibold" id="exTodayStatus">Pending Log</span>
+              <div class="flex justify-between items-center bg-[#0B0F19] px-3.5 py-2.5 rounded-xl border border-slate-800">
+                <span class="text-slate-300">Wed: Upper Body & Back</span>
+                <span class="text-indigo-400 font-semibold">25 mins</span>
+              </div>
+              <div class="flex justify-between items-center bg-[#0B0F19] px-3.5 py-2.5 rounded-xl border border-slate-800">
+                <span class="text-slate-300">Thu: Core & Belly Tone</span>
+                <span class="text-indigo-400 font-semibold">20 mins</span>
+              </div>
+              <div class="flex justify-between items-center bg-[#0B0F19] px-3.5 py-2.5 rounded-xl border border-slate-800">
+                <span class="text-slate-300">Fri: Full Body Light Toning</span>
+                <span class="text-indigo-400 font-semibold">30 mins</span>
+              </div>
+              <div class="flex justify-between items-center bg-[#0B0F19] px-3.5 py-2.5 rounded-xl border border-slate-800">
+                <span class="text-slate-300">Sat: Fun Cardio / Dance</span>
+                <span class="text-indigo-400 font-semibold">30 mins</span>
+              </div>
+              <div class="flex justify-between items-center bg-[#0B0F19] px-3.5 py-2.5 rounded-xl border border-slate-800">
+                <span class="text-slate-300">Sun: Rest & Stretch</span>
+                <span class="text-emerald-400 font-semibold">15 mins</span>
               </div>
             </div>
           </div>
-          <p class="text-[11px] text-slate-500 text-center mt-4">Logging movement automatically feeds into your Digital Twin stability rating.</p>
+
+          <div class="p-3 bg-[#0B0F19] rounded-xl border border-slate-800 text-[11px] text-slate-400 text-center">
+            Completing workouts automatically syncs with your <span class="text-indigo-300 font-bold">Stability Index</span>.
+          </div>
         </div>
+
       </div>
 
       <!-- 3. SLEEP TAB CONTAINER -->
       <div id="pillarSleepContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5">
-        <!-- Left Column: Sleep Recommendation -->
         <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
           <div class="flex justify-between items-center">
             <h3 class="text-sm font-bold text-white">Circadian Optimization & Recovery</h3>
@@ -439,7 +492,6 @@
               Follicular Restoration
             </span>
           </div>
-
           <div class="grid grid-cols-3 gap-3 text-center">
             <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
               <p class="text-[10px] text-slate-500 uppercase">Target Sleep</p>
@@ -454,7 +506,6 @@
               <p class="text-base font-bold text-rose-400" id="sleepDebtVal">+2.0 hrs</p>
             </div>
           </div>
-
           <div class="bg-[#0B0F19] p-4 rounded-xl border border-slate-800 space-y-2">
             <div class="flex justify-between text-xs">
               <span class="text-slate-400">Target Bedtime:</span>
@@ -469,13 +520,11 @@
               <span class="text-emerald-400 font-semibold">Magnesium Glycinate + Dim Lighting</span>
             </div>
           </div>
-
           <p class="text-xs text-slate-300 leading-relaxed" id="sleepCircadianAdvice">
             Melatonin secretion is crucial for ovarian follicle maturation. Dim blue light 60 mins before bedtime.
           </p>
         </div>
 
-        <!-- Right Column: Quick Sleep Log Form -->
         <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl">
           <h4 class="text-sm font-bold text-white mb-3">Log Sleep Window</h4>
           <form id="sleepLogForm" onsubmit="submitSleepWindow(event)" class="space-y-3 text-xs">
@@ -621,6 +670,46 @@
 
   </main>
 
+  <!-- ================= GLOBAL BMI & ANTHROPOMETRY MODAL ================= -->
+  <div id="bmiModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div class="bg-[#111625] border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">📐</span>
+          <h3 class="text-base font-bold text-white">Anthropometry & BMI</h3>
+        </div>
+        <button onclick="closeBmiModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <form id="globalBmiForm" onsubmit="submitBmiUpdate(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Height (cm)</label>
+          <input type="number" id="inputHeight" step="0.5" value="162" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-500">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Weight (kg)</label>
+          <input type="number" id="inputWeight" step="0.1" value="58" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-500">
+        </div>
+
+        <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+          <div>
+            <p class="text-[10px] text-slate-400">Current Category</p>
+            <p id="modalBmiCategory" class="text-xs font-bold text-cyan-300">Normal (Lean PMOS)</p>
+          </div>
+          <div class="text-right">
+            <p class="text-[10px] text-slate-400">Score</p>
+            <p id="modalBmiScore" class="text-sm font-bold text-white">22.1</p>
+          </div>
+        </div>
+
+        <div class="pt-2 flex gap-3">
+          <button type="button" onclick="closeBmiModal()" class="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl">Cancel</button>
+          <button type="submit" id="saveBmiBtn" class="w-1/2 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-xl shadow-md shadow-cyan-600/20">Sync BMI</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ================= QUICK LOG MODAL ================= -->
   <div id="logModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
     <div class="bg-[#111625] border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
@@ -668,9 +757,13 @@
   let currentScannedProtein = 36;
   let currentScannedCarbs = 42;
   let currentScannedFats = 28;
+  let currentScannedClassification = "Optimal Choice";
+  let currentTargetDuration = 25;
+  let currentTargetBurn = 180;
+  let currentWorkoutTitle = "Daily Workout";
   let isSidebarCollapsed = false;
 
-  // SIDEBAR TOGGLE HANDLER
+  // ================= SIDEBAR TOGGLE HANDLER =================
   function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("sidebarToggleBtn");
@@ -691,7 +784,7 @@
     }
   }
 
-  // Logout Handler
+  // ================= LOGOUT HANDLER =================
   function logout() {
     localStorage.removeItem("user_token");
     localStorage.removeItem("user_id");
@@ -702,11 +795,11 @@
     window.location.href = "login.html";
   }
 
-  // Dynamic Live Twin State & AI Recommendation updater
+  // ================= DYNAMIC DIGITAL TWIN STATE UPDATER =================
   function applyLiveTwinState(stress, sleep, exercise, stabilityScore) {
-    const stressNum = parseFloat(stress) || 4;
-    const sleepNum = parseFloat(sleep) || 7.5;
-    const exerciseNum = parseInt(exercise) || 30;
+    const stressNum = parseFloat(stress) || 0;
+    const sleepNum = parseFloat(sleep) || 0;
+    const exerciseNum = parseInt(exercise) || 0;
 
     // 1. Update Telemetry Metric Displays
     if (document.getElementById("stressVal")) document.getElementById("stressVal").innerText = `${stressNum} / 10`;
@@ -718,7 +811,7 @@
     const allNodes = document.querySelectorAll("#overviewSection .rounded-full");
     const recoveryNode = document.querySelector("#overviewSection .bg-rose-500\\/20") || allNodes[2];
     if (recoveryNode) {
-      if (stressNum >= 8 || sleepNum < 6.5) {
+      if (stressNum >= 8 || (sleepNum > 0 && sleepNum < 6.5)) {
         recoveryNode.className = "w-14 h-14 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-xs font-bold text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.6)] animate-pulse";
       } else {
         recoveryNode.className = "w-14 h-14 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]";
@@ -728,7 +821,7 @@
     // 3. Dynamic Clinical AI Guidance Box
     const recEl = document.getElementById("recommendationText");
     if (recEl) {
-      if (stressNum >= 7 || sleepNum < 6.5) {
+      if (stressNum >= 7 || (sleepNum > 0 && sleepNum < 6.5)) {
         recEl.innerHTML = `<span class="text-rose-400 font-semibold">⚠️ Adrenal & Recovery Strain Detected:</span> High sympathetic tone (${stressNum}/10 stress, ${sleepNum}h sleep). Cortisol spikes suppress progesterone and elevate androgens. Shift today's activity to 15-minute low-impact walking, vagus nerve breathing, and magnesium-dense nutrition.`;
       } else {
         recEl.innerText = "Optimal state parameters maintained. Digital Twin operating in nominal biological range. Calibrated nutrition and low cortisol load sustained.";
@@ -736,26 +829,96 @@
     }
   }
 
-  // Initial Load
+  // Set empty/uninitialized telemetry display for new or unlogged accounts
+  function setEmptyTelemetryUI() {
+    if (document.getElementById("stressVal")) document.getElementById("stressVal").innerText = "-- / 10";
+    if (document.getElementById("sleepVal")) document.getElementById("sleepVal").innerText = "-- hrs";
+    if (document.getElementById("exerciseVal")) document.getElementById("exerciseVal").innerText = "-- mins";
+    if (document.getElementById("scoreDisplay")) document.getElementById("scoreDisplay").innerText = "--";
+    if (document.getElementById("syncStatusBadge")) {
+      document.getElementById("syncStatusBadge").innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> Action Required`;
+    }
+    if (document.getElementById("recommendationText")) {
+      document.getElementById("recommendationText").innerHTML = `
+        <span class="text-indigo-400 font-semibold">Welcome to your Digital Twin:</span> 
+        Please complete your <strong>Intake Assessment</strong> to calibrate your clinical phenotype and submit your first <strong>Quick Log</strong>.`;
+    }
+  }
+
+  // ================= MODAL CONTROLLERS =================
+  window.openIntakeModal = () => { 
+    const m = document.getElementById('intakeModal'); 
+    if (m) { 
+      m.classList.remove('hidden'); 
+      m.style.display = 'flex'; 
+    }
+  };
+  window.closeIntakeModal = () => { 
+    const m = document.getElementById('intakeModal'); 
+    if (m) { 
+      m.classList.add('hidden'); 
+      m.style.display = 'none'; 
+    }
+  };
+  window.openLogModal = () => { 
+    const m = document.getElementById('logModal'); 
+    if (m) { 
+      m.classList.remove('hidden'); 
+      m.style.display = 'flex'; 
+    }
+  };
+  window.closeLogModal = () => { 
+    const m = document.getElementById('logModal'); 
+    if (m) { 
+      m.classList.add('hidden'); 
+      m.style.display = 'none'; 
+    }
+  };
+  window.openBmiModal = () => { 
+    const m = document.getElementById('bmiModal'); 
+    if (m) { 
+      m.classList.remove('hidden'); 
+      m.style.display = 'flex'; 
+    }
+  };
+  window.closeBmiModal = () => { 
+    const m = document.getElementById('bmiModal'); 
+    if (m) { 
+      m.classList.add('hidden'); 
+      m.style.display = 'none'; 
+    }
+  };
+
+  // ================= INITIAL LOAD LIFECYCLE =================
   document.addEventListener("DOMContentLoaded", async function() {
     refreshUserDisplay();
-    await fetchUserProfileAndPhenotype();
-    fetchDietSummary();
-    loadPhenotypeDietSuggestions();
 
-    // Intake HTML Injection
+    // 1. Inject Intake HTML modal into DOM first
     try {
       const res = await fetch("intake.html");
-      if (res.ok) document.getElementById("intakeContainer").innerHTML = await res.text();
+      if (res.ok) {
+        document.getElementById("intakeContainer").innerHTML = await res.text();
+      }
     } catch (err) {
       console.error("Intake loader error:", err);
     }
 
-    // Drag & Drop Listeners
+    // 2. Fetch User Profile and trigger intake flow if new
+    await fetchUserProfileAndPhenotype();
+
+    // 3. Load Diet & Exercise summaries
+    fetchDietSummary();
+    loadPhenotypeDietSuggestions();
+    loadExerciseRecommendation();
+
+    // 4. Initialize Drag & Drop Handlers for Food Scanner
     const dropZone = document.getElementById('dropZone');
     if (dropZone) {
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+        dropZone.addEventListener(eventName, e => { 
+          e.preventDefault(); 
+          e.stopPropagation(); 
+        }, false);
       });
       dropZone.addEventListener('drop', (e) => {
         handleFileSelect(e.dataTransfer.files);
@@ -763,25 +926,76 @@
     }
   });
 
+  // Check if user has completed assessment; if not, open Intake Modal automatically
   async function fetchUserProfileAndPhenotype() {
     const userId = localStorage.getItem("user_id") || "1";
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/user-profile/${userId}`);
       if (res.ok) {
         const data = await res.json();
-        if (data.assigned_phenotype) {
+        
+        // Populate BMI inputs and badges across dashboard & sidebar
+        if (data.height_cm && document.getElementById("inputHeight")) {
+          document.getElementById("inputHeight").value = data.height_cm;
+        }
+        if (data.weight_kg && document.getElementById("inputWeight")) {
+          document.getElementById("inputWeight").value = data.weight_kg;
+        }
+        if (data.bmi) {
+          if (document.getElementById("navBmiDisplay")) document.getElementById("navBmiDisplay").innerText = `BMI: ${data.bmi}`;
+          if (document.getElementById("sideBmiScore")) document.getElementById("sideBmiScore").innerText = `${data.bmi}`;
+          if (document.getElementById("modalBmiScore")) document.getElementById("modalBmiScore").innerText = `${data.bmi}`;
+        }
+        if (data.bmi_category) {
+          if (document.getElementById("sideBmiCategory")) document.getElementById("sideBmiCategory").innerText = data.bmi_category.split(' ')[0];
+          if (document.getElementById("modalBmiCategory")) document.getElementById("modalBmiCategory").innerText = data.bmi_category;
+        }
+
+        // If user has a valid calibrated phenotype in DB
+        if (data.assigned_phenotype && 
+            data.assigned_phenotype !== "None" && 
+            !data.assigned_phenotype.toLowerCase().includes("pending")) {
+          
           localStorage.setItem("user_phenotype", data.assigned_phenotype);
           applyPhenotypeUI(data.assigned_phenotype, true);
+          
+          // Fetch their latest real telemetry log
+          await fetchLatestTelemetry(userId);
         } else {
-          applyPhenotypeUI("Pending Assessment — Click 'Intake Assessment' to calibrate", false);
+          // NEW USER FLOW: Force Intake Modal Open
+          applyPhenotypeUI("Pending Assessment — Please complete clinical intake", false);
+          setEmptyTelemetryUI();
+          setTimeout(() => {
+            openIntakeModal();
+          }, 400);
         }
       } else {
-        const cachedPheno = localStorage.getItem("user_phenotype");
-        if (cachedPheno) applyPhenotypeUI(cachedPheno, true);
+        applyPhenotypeUI("Pending Assessment — Please complete clinical intake", false);
+        setEmptyTelemetryUI();
       }
     } catch (err) {
-      const cachedPheno = localStorage.getItem("user_phenotype");
-      if (cachedPheno) applyPhenotypeUI(cachedPheno, true);
+      console.error("Profile fetch error:", err);
+      setEmptyTelemetryUI();
+    }
+  }
+
+  // Fetch real latest telemetry from backend
+  async function fetchLatestTelemetry(userId) {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+      if (res.ok) {
+        const log = await res.json();
+        if (log && log.has_logged) {
+          applyLiveTwinState(log.stress_level, log.sleep_hours, log.exercise_mins, log.stability_score);
+          if (document.getElementById("syncStatusBadge")) {
+            document.getElementById("syncStatusBadge").innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Synced`;
+          }
+        } else {
+          setEmptyTelemetryUI();
+        }
+      }
+    } catch (err) {
+      console.error("Telemetry fetch error:", err);
     }
   }
 
@@ -877,7 +1091,48 @@
     }
   }
 
-  // Unified Health Log Form Submit
+  // ================= INTAKE SUBMISSION HANDLER =================
+  window.submitIntakeForm = async function(event) {
+    if (event) event.preventDefault();
+    const userId = localStorage.getItem('user_id') || '1';
+
+    const payload = {
+      user_id: parseInt(userId),
+      symp_periods: document.getElementById('symp_periods')?.checked || false,
+      symp_hair: document.getElementById('symp_hair')?.checked || false,
+      symp_thinning: document.getElementById('symp_thinning')?.checked || false,
+      symp_acne: document.getElementById('symp_acne')?.checked || false,
+      symp_stress: document.getElementById('symp_stress')?.checked || false,
+      symp_weight: document.getElementById('symp_weight')?.checked || false,
+      usg_result: document.getElementById('usgInput')?.value || 'normal',
+      prior_diagnosis: document.getElementById('diagInput')?.value || 'none'
+    };
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/submit-intake', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (response.ok) {
+        localStorage.setItem("user_phenotype", data.assigned_phenotype);
+        applyPhenotypeUI(data.assigned_phenotype, true);
+        
+        setTimeout(() => {
+          window.closeIntakeModal();
+          loadPhenotypeDietSuggestions();
+          
+          // Open Quick Log modal for initial biometric baseline
+          openLogModal();
+        }, 600);
+      }
+    } catch (err) {
+      console.error("Intake submission error:", err);
+    }
+  };
+
+  // ================= TELEMETRY FORM SUBMIT =================
   document.getElementById("healthLogForm")?.addEventListener("submit", async function(e) {
     e.preventDefault();
     const userId = localStorage.getItem("user_id") || "1";
@@ -907,6 +1162,9 @@
       
       if (res.ok) {
         applyLiveTwinState(payload.stress_level, payload.sleep_hours, payload.exercise_mins, data.stability_score);
+        if (document.getElementById("syncStatusBadge")) {
+          document.getElementById("syncStatusBadge").innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Synced`;
+        }
         closeLogModal();
       } else {
         alert("Error saving log: " + (data.detail || "Unable to save metrics."));
@@ -922,6 +1180,7 @@
     }
   });
 
+  // ================= PILLAR 1: DIET & ML SCANNER =================
   function handleFileSelect(files) {
     if (files && files[0]) {
       const file = files[0];
@@ -941,90 +1200,6 @@
     }
   }
 
-  window.openIntakeModal = () => { const m = document.getElementById('intakeModal'); if(m) { m.classList.remove('hidden'); m.style.display = 'flex'; }};
-  window.closeIntakeModal = () => { const m = document.getElementById('intakeModal'); if(m) { m.classList.add('hidden'); m.style.display = 'none'; }};
-  window.openLogModal = () => { const m = document.getElementById('logModal'); if(m) { m.classList.remove('hidden'); m.style.display = 'flex'; }};
-  window.closeLogModal = () => { const m = document.getElementById('logModal'); if(m) { m.classList.add('hidden'); m.style.display = 'none'; }};
-
-  // Intake Form Submit
-  window.submitIntakeForm = async function(event) {
-    if (event) event.preventDefault();
-    const userId = localStorage.getItem('user_id') || '1';
-
-    const payload = {
-      user_id: parseInt(userId),
-      symp_periods: document.getElementById('symp_periods')?.checked || false,
-      symp_hair: document.getElementById('symp_hair')?.checked || false,
-      symp_thinning: document.getElementById('symp_thinning')?.checked || false,
-      symp_acne: document.getElementById('symp_acne')?.checked || false,
-      symp_stress: document.getElementById('symp_stress')?.checked || false,
-      symp_weight: document.getElementById('symp_weight')?.checked || false,
-      usg_result: document.getElementById('usgInput')?.value || 'normal',
-      prior_diagnosis: document.getElementById('diagInput')?.value || 'none'
-    };
-
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/submit-intake', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await response.json();
-      if (response.ok) {
-        localStorage.setItem("user_phenotype", data.assigned_phenotype);
-        applyPhenotypeUI(data.assigned_phenotype, true);
-        setTimeout(() => {
-          window.closeIntakeModal();
-          loadPhenotypeDietSuggestions();
-        }, 800);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // ================= 5 PILLARS MANAGEMENT =================
-
-  // Switch between 5-Pillar Tabs (Diet, Exercise, Sleep)
-  function switchPillarTab(pillarName) {
-    const dietContainer = document.getElementById("pillarDietContainer");
-    const exContainer = document.getElementById("pillarExerciseContainer");
-    const sleepContainer = document.getElementById("pillarSleepContainer");
-
-    const tabDiet = document.getElementById("tabPillarDiet");
-    const tabEx = document.getElementById("tabPillarExercise");
-    const tabSleep = document.getElementById("tabPillarSleep");
-
-    const activeStyle = "bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-4 py-2 rounded-xl text-xs flex items-center gap-2 whitespace-nowrap shadow-sm";
-    const inactiveStyle = "bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2 rounded-xl text-xs flex items-center gap-2 whitespace-nowrap transition";
-
-    dietContainer.classList.add("hidden");
-    exContainer.classList.add("hidden");
-    sleepContainer.classList.add("hidden");
-
-    tabDiet.className = inactiveStyle;
-    tabEx.className = inactiveStyle;
-    tabSleep.className = inactiveStyle;
-
-    if (pillarName === "exercise") {
-      exContainer.classList.remove("hidden");
-      exContainer.classList.add("grid");
-      tabEx.className = activeStyle;
-      loadExerciseRecommendation();
-    } else if (pillarName === "sleep") {
-      sleepContainer.classList.remove("hidden");
-      sleepContainer.classList.add("grid");
-      tabSleep.className = activeStyle;
-      loadSleepRecommendation();
-    } else {
-      dietContainer.classList.remove("hidden");
-      tabDiet.className = activeStyle;
-      fetchDietSummary();
-      loadPhenotypeDietSuggestions();
-    }
-  }
-
-  // DIET TELEMETRY FUNCTIONS
   async function scanMealWithML() {
     const mealFileName = document.getElementById("mealNameInput").value || "Custom Meal";
     const userId = localStorage.getItem("user_id") || "1";
@@ -1046,27 +1221,68 @@
         document.getElementById("resCarbs").innerText = `${data.extracted_macros.carbs}g`;
         document.getElementById("resFats").innerText = `${data.extracted_macros.fats}g`;
 
+        currentScannedCalories = data.extracted_macros.calories;
+        currentScannedProtein = data.extracted_macros.protein;
+        currentScannedCarbs = data.extracted_macros.carbs;
+        currentScannedFats = data.extracted_macros.fats;
+        currentScannedClassification = data.classification;
+
+        // Update Tag & Color Dynamically
         const tag = document.getElementById("resPhenotypeTag");
         tag.innerText = data.classification;
 
         if (data.classification === "High Glycemic Spike Risk") {
-          tag.className = "bg-rose-900/50 text-rose-400 border border-rose-600/50 text-[10px] px-2.5 py-0.5 rounded-full font-medium";
+          tag.className = "bg-rose-900/50 text-rose-400 border border-rose-600/50 text-[10px] px-2.5 py-0.5 rounded-full font-semibold animate-pulse";
         } else if (data.classification === "Insulin Resistant Safe") {
           tag.className = "bg-amber-900/50 text-amber-300 border border-amber-600/50 text-[10px] px-2.5 py-0.5 rounded-full font-medium";
         } else {
           tag.className = "bg-emerald-900/50 text-emerald-400 border border-emerald-600/50 text-[10px] px-2.5 py-0.5 rounded-full font-medium";
         }
 
-        currentScannedCalories = data.extracted_macros.calories;
-        currentScannedProtein = data.extracted_macros.protein;
-        currentScannedCarbs = data.extracted_macros.carbs;
-        currentScannedFats = data.extracted_macros.fats;
-
         if (statusBadge) statusBadge.innerText = "Scanned ✓";
       }
     } catch (err) {
       console.error(err);
       if (statusBadge) statusBadge.innerText = "Error";
+    }
+  }
+
+  async function addMealToLog() {
+    const userId = localStorage.getItem("user_id") || "1";
+    const mealName = document.getElementById("resMealName")?.innerText || "Logged Meal";
+    const mealSlot = document.getElementById("mealSlotSelect")?.value || "Dinner";
+
+    // Check for calorie overflow
+    const remainingKcal = parseInt(document.getElementById("valRemaining")?.innerText) || 0;
+    if (currentScannedCalories > remainingKcal && remainingKcal > 0) {
+      const proceed = confirm(`⚠️ Calorie Warning:\nThis meal (${currentScannedCalories} kcal) exceeds your remaining daily budget (${remainingKcal} kcal) by ${currentScannedCalories - remainingKcal} kcal.\n\nDo you still want to log it?`);
+      if (!proceed) return;
+    }
+
+    const payload = {
+      user_id: parseInt(userId),
+      meal_name: mealName,
+      meal_type: mealSlot,
+      calories: currentScannedCalories,
+      protein: currentScannedProtein,
+      carbs: currentScannedCarbs,
+      fats: currentScannedFats,
+      glycemic_risk: currentScannedClassification
+    };
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/log-meal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        await fetchDietSummary();
+        await loadPhenotypeDietSuggestions();
+        await loadExerciseRecommendation();
+      }
+    } catch (err) {
+      console.error(err);
     }
   }
 
@@ -1110,37 +1326,6 @@
           addBtn.disabled = false;
           addBtn.classList.remove("opacity-50", "cursor-not-allowed");
         }
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  async function addMealToLog() {
-    const userId = localStorage.getItem("user_id") || "1";
-    const mealName = document.getElementById("mealNameInput")?.value || "Logged Meal";
-    const mealSlot = document.getElementById("mealSlotSelect")?.value || "Lunch";
-
-    const payload = {
-      user_id: parseInt(userId),
-      meal_name: mealName,
-      meal_type: mealSlot,
-      calories: currentScannedCalories,
-      protein: currentScannedProtein,
-      carbs: currentScannedCarbs,
-      fats: currentScannedFats,
-      glycemic_risk: "Optimal Choice"
-    };
-
-    try {
-      const res = await fetch("http://127.0.0.1:8000/api/log-meal", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        await fetchDietSummary();
-        await loadPhenotypeDietSuggestions();
       }
     } catch (err) {
       console.error(err);
@@ -1215,6 +1400,7 @@
         if (res.ok) {
           await fetchDietSummary();
           await loadPhenotypeDietSuggestions();
+          await loadExerciseRecommendation();
         }
       } catch (err) {
         console.error(err);
@@ -1222,31 +1408,121 @@
     }
   }
 
-  // EXERCISE FUNCTIONS
+  // ================= 5 PILLARS TAB SWITCHING =================
+  function switchPillarTab(pillarName) {
+    const dietContainer = document.getElementById("pillarDietContainer");
+    const exContainer = document.getElementById("pillarExerciseContainer");
+    const sleepContainer = document.getElementById("pillarSleepContainer");
+
+    const tabDiet = document.getElementById("tabPillarDiet");
+    const tabEx = document.getElementById("tabPillarExercise");
+    const tabSleep = document.getElementById("tabPillarSleep");
+
+    const activeStyle = "bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm";
+    const inactiveStyle = "bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition";
+
+    if (dietContainer) dietContainer.classList.add("hidden");
+    if (exContainer) exContainer.classList.add("hidden");
+    if (sleepContainer) sleepContainer.classList.add("hidden");
+
+    if (tabDiet) tabDiet.className = inactiveStyle;
+    if (tabEx) tabEx.className = inactiveStyle;
+    if (tabSleep) tabSleep.className = inactiveStyle;
+
+    if (pillarName === "exercise" && exContainer) {
+      exContainer.classList.remove("hidden");
+      exContainer.classList.add("grid");
+      if (tabEx) tabEx.className = activeStyle;
+      loadExerciseRecommendation();
+    } else if (pillarName === "sleep" && sleepContainer) {
+      sleepContainer.classList.remove("hidden");
+      sleepContainer.classList.add("grid");
+      if (tabSleep) tabSleep.className = activeStyle;
+      loadSleepRecommendation();
+    } else if (dietContainer) {
+      dietContainer.classList.remove("hidden");
+      if (tabDiet) tabDiet.className = activeStyle;
+      fetchDietSummary();
+      loadPhenotypeDietSuggestions();
+    }
+  }
+
+  // ================= PILLAR 2: DAILY ROTATING EXERCISE =================
   async function loadExerciseRecommendation() {
     const userId = localStorage.getItem("user_id") || "1";
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/exercise-recommendation/${userId}`);
       if (res.ok) {
         const data = await res.json();
-        const w = data.workout;
-        document.getElementById("exTitle").innerText = w.title;
-        document.getElementById("exCategory").innerText = w.category;
-        document.getElementById("exIntensity").innerText = w.intensity;
-        document.getElementById("exDuration").innerText = `${w.duration} mins`;
-        document.getElementById("exCalories").innerText = `${w.target_kcal} kcal`;
-        document.getElementById("exGuidance").innerText = w.guidance;
-        document.getElementById("exBenefits").innerText = w.benefits;
+
+        currentWorkoutTitle = `${data.day}: ${data.workout_type}`;
+        currentTargetDuration = data.duration_mins;
+        currentTargetBurn = data.target_burn_kcal;
+
+        if (document.getElementById("exDayBadge")) {
+          document.getElementById("exDayBadge").innerText = `📅 ${data.day}'s Plan`;
+        }
+        if (document.getElementById("exMainIcon")) {
+          document.getElementById("exMainIcon").innerText = data.icon;
+        }
+        if (document.getElementById("exPlanTitle")) {
+          document.getElementById("exPlanTitle").innerText = data.workout_type;
+        }
+        if (document.getElementById("exHealthTip")) {
+          document.getElementById("exHealthTip").innerText = data.health_tip;
+        }
+        if (document.getElementById("exRoutineList")) {
+          document.getElementById("exRoutineList").innerText = data.exercises;
+        }
+        if (document.getElementById("exTargetDuration")) {
+          document.getElementById("exTargetDuration").innerText = `${data.duration_mins} mins`;
+        }
+        if (document.getElementById("exTargetBurn")) {
+          document.getElementById("exTargetBurn").innerText = `${data.target_burn_kcal} kcal`;
+        }
+        if (document.getElementById("exMatchedMeal")) {
+          document.getElementById("exMatchedMeal").innerText = `${data.last_meal_name} (${data.last_meal_kcal} kcal)`;
+        }
+
+        const btn = document.getElementById("btnCompleteExercise");
+        const status = document.getElementById("exStatusLabel");
+
+        if (data.is_completed_today) {
+          if (btn) {
+            btn.innerHTML = "<span>✓</span> Workout Completed Today!";
+            btn.className = "w-full py-3.5 bg-emerald-950 text-emerald-300 border border-emerald-500/40 font-bold text-xs rounded-xl cursor-not-allowed";
+            btn.disabled = true;
+          }
+          if (status) {
+            status.innerText = "✓ Completed";
+            status.className = "text-xs font-bold text-emerald-400";
+          }
+        } else {
+          if (btn) {
+            btn.innerHTML = "<span>✓</span> Mark Workout as Done for Today";
+            btn.className = "w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20";
+            btn.disabled = false;
+          }
+          if (status) {
+            status.innerText = "Ready to start";
+            status.className = "text-xs font-medium text-emerald-400";
+          }
+        }
       }
     } catch (err) {
-      console.error("Exercise fetch error:", err);
+      console.error("Exercise recommendation error:", err);
     }
   }
 
-  async function markExerciseCompleted() {
+  async function markTodayExerciseDone() {
     const userId = localStorage.getItem("user_id") || "1";
-    const btn = document.getElementById("exCompleteBtn");
-    const statusLabel = document.getElementById("exTodayStatus");
+    const btn = document.getElementById("btnCompleteExercise");
+    const status = document.getElementById("exStatusLabel");
+
+    if (btn) {
+      btn.innerText = "Saving...";
+      btn.disabled = true;
+    }
 
     try {
       const res = await fetch("http://127.0.0.1:8000/api/complete-exercise", {
@@ -1254,27 +1530,74 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_id: parseInt(userId),
-          exercise_name: document.getElementById("exTitle").innerText,
-          duration_mins: 25,
-          calories_burned: 120
+          exercise_name: currentWorkoutTitle,
+          duration_mins: currentTargetDuration,
+          calories_burned: currentTargetBurn
         })
       });
 
       if (res.ok) {
-        btn.innerHTML = `<span>✓</span> Routine Completed for Today!`;
-        btn.className = "w-full py-3 bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-xs font-bold rounded-xl cursor-not-allowed";
-        btn.disabled = true;
-        if (statusLabel) {
-          statusLabel.innerText = "✓ Completed";
-          statusLabel.className = "text-emerald-400 font-bold";
+        alert(`🎉 Great job! Completed ${currentWorkoutTitle} (${currentTargetDuration} mins, ~${currentTargetBurn} kcal burned).`);
+        if (btn) {
+          btn.innerHTML = "<span>✓</span> Workout Completed Today!";
+          btn.className = "w-full py-3.5 bg-emerald-950 text-emerald-300 border border-emerald-500/40 font-bold text-xs rounded-xl cursor-not-allowed";
+          btn.disabled = true;
+        }
+        if (status) {
+          status.innerText = "✓ Completed";
+          status.className = "text-xs font-bold text-emerald-400";
         }
       }
     } catch (err) {
       console.error("Exercise completion error:", err);
+      if (btn) {
+        btn.innerText = "Mark Workout as Done for Today";
+        btn.disabled = false;
+      }
     }
   }
 
-  // SLEEP FUNCTIONS
+  // ================= BMI SYNCHRONIZATION =================
+  async function submitBmiUpdate(event) {
+    event.preventDefault();
+    const userId = localStorage.getItem("user_id") || "1";
+    const height = parseFloat(document.getElementById("inputHeight").value);
+    const weight = parseFloat(document.getElementById("inputWeight").value);
+    const saveBtn = document.getElementById("saveBmiBtn");
+
+    if (saveBtn) saveBtn.innerText = "Syncing...";
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/update-bmi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: parseInt(userId),
+          height_cm: height,
+          weight_kg: weight
+        })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        
+        if (document.getElementById("navBmiDisplay")) document.getElementById("navBmiDisplay").innerText = `BMI: ${data.bmi}`;
+        if (document.getElementById("sideBmiScore")) document.getElementById("sideBmiScore").innerText = `${data.bmi}`;
+        if (document.getElementById("sideBmiCategory")) document.getElementById("sideBmiCategory").innerText = data.bmi_category.split(' ')[0];
+        if (document.getElementById("modalBmiScore")) document.getElementById("modalBmiScore").innerText = `${data.bmi}`;
+        if (document.getElementById("modalBmiCategory")) document.getElementById("modalBmiCategory").innerText = `${data.bmi_category}`;
+        
+        await loadExerciseRecommendation();
+        closeBmiModal();
+      }
+    } catch (err) {
+      console.error("BMI update error:", err);
+    } finally {
+      if (saveBtn) saveBtn.innerText = "Sync BMI";
+    }
+  }
+
+  // ================= PILLAR 3: SLEEP =================
   async function loadSleepRecommendation() {
     const userId = localStorage.getItem("user_id") || "1";
     try {

@@ -1,26 +1,24 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, date
+from typing import Optional
+from pydantic import BaseModel
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import KNeighborsClassifier
 
-import models, schemas
+import models
+import schemas
 from database import engine, Base, get_db
+from models import ExerciseLog, SleepLog, HealthLog, User, IntakeAssessment, MealLog
 
-from pydantic import BaseModel
-from typing import Optional
-
-
-from models import ExerciseLog, SleepLog, HealthLog, User
-
-# Initialize Database Tables
+# Ensure database tables are created
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Digital Twin PMOS API")
 
-# Enable CORS
+# Enable CORS for frontend clients
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,9 +27,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ================= MODEL INITIALIZATION =================
+
+# ================= PYDANTIC SCHEMAS =================
+class BmiUpdateRequest(BaseModel):
+    user_id: int
+    height_cm: float
+    weight_kg: float
+
+class ExerciseCompleteRequest(BaseModel):
+    user_id: int
+    exercise_name: str
+    duration_mins: int
+    calories_burned: int
+
+class SleepLogRequest(BaseModel):
+    user_id: int
+    sleep_hours: float
+    bed_time: str
+    wake_time: str
+    sleep_quality: Optional[str] = "Restful"
+
+
+# ================= ML MODEL INITIALIZATION =================
 X_train = np.array([
-    [520, 36, 42, 28],  # Underweight Lean Optimal
+    [520, 36, 42, 28],  # Underweight / Lean Optimal
     [250, 10, 55, 5],   # High Glycemic Spike Risk
     [450, 32, 15, 30],  # Insulin Resistant Safe
     [180, 5, 35, 2]     # Unbalanced Spike Risk
@@ -40,6 +59,7 @@ y_train = np.array([2, 0, 1, 0])
 
 meal_knn_model = KNeighborsClassifier(n_neighbors=1)
 meal_knn_model.fit(X_train, y_train)
+
 
 # ================= 4-MEAL PHENOTYPE RECIPE DATABASE =================
 RECIPES_DF = pd.DataFrame([
@@ -75,9 +95,11 @@ BASE_WEIGHTS = {
     "Snack": 0.10
 }
 
+
 @app.get("/")
 def read_root():
     return {"status": "Backend running successfully", "docs": "http://127.0.0.1:8000/docs"}
+
 
 # ================= AUTHENTICATION ENDPOINTS =================
 @app.post("/api/signup")
@@ -96,6 +118,7 @@ def signup(data: schemas.SignupSchema, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return {"status": "success", "message": "User registered successfully", "user_id": new_user.id, "full_name": new_user.full_name}
 
+
 @app.post("/api/login")
 def login(credentials: schemas.LoginSchema, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == credentials.email).first()
@@ -103,34 +126,112 @@ def login(credentials: schemas.LoginSchema, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Invalid credentials")
     return {"access_token": "sample_token_xyz", "user_id": user.id, "full_name": user.full_name}
 
-# ================= USER PROFILE & PHENOTYPE QUERY =================
+
+# ================= USER PROFILE & TELEMETRY =================
 @app.get("/api/user-profile/{user_id}")
 def get_user_profile(user_id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    latest_assessment = db.query(models.IntakeAssessment).filter(
-        models.IntakeAssessment.user_id == user_id
-    ).order_by(models.IntakeAssessment.id.desc()).first()
+    latest_assessment = (
+        db.query(models.IntakeAssessment)
+        .filter(models.IntakeAssessment.user_id == user_id)
+        .order_by(models.IntakeAssessment.id.desc())
+        .first()
+    )
 
     return {
         "user_id": user.id,
         "full_name": user.full_name,
         "email": user.email,
+        "dob": user.dob,
+        "height_cm": getattr(user, "height_cm", 162.0),
+        "weight_kg": getattr(user, "weight_kg", 58.0),
+        "bmi": getattr(user, "bmi", 22.1),
+        "bmi_category": getattr(user, "bmi_category", "Normal (Lean PMOS)"),
         "assigned_phenotype": latest_assessment.assigned_phenotype if latest_assessment else None,
         "is_calibrated": latest_assessment is not None
     }
 
-# ================= INTAKE & PHENOTYPE EVALUATION =================
+
+@app.get("/api/latest-telemetry/{user_id}")
+def get_latest_telemetry(user_id: int, db: Session = Depends(get_db)):
+    latest = (
+        db.query(HealthLog)
+        .filter(HealthLog.user_id == user_id)
+        .order_by(HealthLog.id.desc())
+        .first()
+    )
+    if latest:
+        return {
+            "has_logged": True,
+            "stress_level": latest.stress_level,
+            "sleep_hours": latest.sleep_hours,
+            "exercise_mins": latest.exercise_mins,
+            "stability_score": int(latest.risk_score) if latest.risk_score else 67
+        }
+    else:
+        return {
+            "has_logged": False
+        }
+
+
+# ================= ANTHROPOMETRY / BMI ENDPOINT =================
+@app.post("/api/update-bmi")
+def update_user_bmi(data: BmiUpdateRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == data.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    height_m = data.height_cm / 100.0
+    bmi_val = round(data.weight_kg / (height_m ** 2), 1)
+    
+    if bmi_val < 18.5:
+        category = "Underweight (Lean PMOS)"
+    elif 18.5 <= bmi_val < 24.9:
+        category = "Normal (Lean / Metabolic Sensitive)"
+    elif 25.0 <= bmi_val < 29.9:
+        category = "Overweight (Insulin Resistant Risk)"
+    else:
+        category = "Obese (High Metabolic Strain)"
+        
+    user.height_cm = data.height_cm
+    user.weight_kg = data.weight_kg
+    user.bmi = bmi_val
+    user.bmi_category = category
+    
+    db.commit()
+    db.refresh(user)
+    
+    return {
+        "status": "success",
+        "bmi": bmi_val,
+        "bmi_category": category,
+        "height_cm": data.height_cm,
+        "weight_kg": data.weight_kg
+    }
+
+
+# ================= INTAKE & ROTTERDAM PHENOTYPE EVALUATION =================
 def classify_phenotype(data: schemas.IntakeSchema) -> str:
-    if data.symp_periods and (data.symp_hair or data.symp_acne):
-        return "Phenotype B: Ovulatory-Hyperandrogenic PMOS"
-    elif data.usg_result == "cysts" and data.symp_periods:
+    has_hyperandrogenism = data.symp_hair or data.symp_thinning or data.symp_acne
+    has_ovulatory_dysfunction = data.symp_periods
+    has_pcom_ultrasound = str(data.usg_result).lower() in ["cysts", "polycystic", "pco"]
+
+    if has_hyperandrogenism and has_ovulatory_dysfunction and has_pcom_ultrasound:
         return "Phenotype A: Classic PMOS"
+    elif has_hyperandrogenism and has_ovulatory_dysfunction and not has_pcom_ultrasound:
+        return "Phenotype B: Ovulatory-Hyperandrogenic PMOS"
+    elif has_hyperandrogenism and not has_ovulatory_dysfunction and has_pcom_ultrasound:
+        return "Phenotype C: Metabolic-Adrenal PMOS"
+    elif not has_hyperandrogenism and has_ovulatory_dysfunction and has_pcom_ultrasound:
+        return "Phenotype D: Normo-Androgenic PMOS"
     elif data.symp_weight or data.symp_stress:
         return "Phenotype C: Metabolic-Adrenal PMOS"
-    return "Phenotype D: Normo-Androgenic PMOS"
+    
+    return "Phenotype B: Ovulatory-Hyperandrogenic PMOS"
+
 
 @app.post("/api/submit-intake")
 def submit_intake(data: schemas.IntakeSchema, db: Session = Depends(get_db)):
@@ -157,7 +258,8 @@ def submit_intake(data: schemas.IntakeSchema, db: Session = Depends(get_db)):
 
     return {"status": "success", "assigned_phenotype": assigned_pheno, "assessment_id": assessment_id}
 
-# ================= DAILY HEALTH TELEMETRY (QUICK LOG) =================
+
+# ================= DAILY HEALTH TELEMETRY =================
 @app.post("/api/submit-health-log")
 def submit_health_log(data: schemas.HealthLogSchema, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == data.user_id).first()
@@ -187,7 +289,8 @@ def submit_health_log(data: schemas.HealthLogSchema, db: Session = Depends(get_d
         "log_id": new_log.id
     }
 
-# ================= DIET & DYNAMIC SLOT CALORIE SPLIT =================
+
+# ================= PILLAR 1: DIET & DYNAMIC CALORIE SPLIT =================
 @app.post("/api/log-meal")
 def log_meal(data: schemas.MealLogCreate, db: Session = Depends(get_db)):
     new_meal = models.MealLog(
@@ -205,9 +308,11 @@ def log_meal(data: schemas.MealLogCreate, db: Session = Depends(get_db)):
     db.refresh(new_meal)
     return get_diet_summary_logic(data.user_id, db)
 
+
 @app.get("/api/diet-summary/{user_id}")
 def get_diet_summary(user_id: int, db: Session = Depends(get_db)):
     return get_diet_summary_logic(user_id, db)
+
 
 def get_diet_summary_logic(user_id: int, db: Session):
     user_meals = db.query(models.MealLog).filter(models.MealLog.user_id == user_id).all()
@@ -254,18 +359,22 @@ def get_diet_summary_logic(user_id: int, db: Session):
         ]
     }
 
+
 @app.post("/api/reset-day/{user_id}")
 def reset_day(user_id: int, db: Session = Depends(get_db)):
     db.query(models.MealLog).filter(models.MealLog.user_id == user_id).delete()
     db.commit()
     return {"status": "success", "message": "Rolled over to new day!"}
 
-# ================= 4-MEAL PHENOTYPE SUGGESTIONS =================
+
 @app.get("/api/diet-recommendations/{user_id}")
 def get_diet_recommendations(user_id: int, db: Session = Depends(get_db)):
-    assessment = db.query(models.IntakeAssessment).filter(
-        models.IntakeAssessment.user_id == user_id
-    ).order_by(models.IntakeAssessment.id.desc()).first()
+    assessment = (
+        db.query(models.IntakeAssessment)
+        .filter(models.IntakeAssessment.user_id == user_id)
+        .order_by(models.IntakeAssessment.id.desc())
+        .first()
+    )
 
     assigned_phenotype = assessment.assigned_phenotype if assessment else "Phenotype A: Classic PMOS"
 
@@ -302,196 +411,122 @@ def get_diet_recommendations(user_id: int, db: Session = Depends(get_db)):
         "recipes": recipes_list
     }
 
-# ================= DYNAMIC ML SCANNER & MACRO ESTIMATOR =================
+
 @app.post("/api/scan-meal-image")
-def scan_meal_image(data: schemas.FlexibleScanRequest):
-    meal_raw = (data.image_filename or data.meal_name or "Custom Meal").lower()
-    
-    if any(w in meal_raw for w in ["fast", "burger", "pizza", "fries", "junk", "nuggets", "fried", "sausage", "hotdog"]):
-        meal_name = "Fast Food Meal (High Glycemic)"
-        macros = {"calories": 780, "protein": 22, "carbs": 85, "fats": 38}
-    elif any(w in meal_raw for w in ["salad", "greens", "spinach", "kale", "broccoli", "avocado"]):
-        meal_name = "Fresh Green Avocado Salad"
-        macros = {"calories": 320, "protein": 14, "carbs": 18, "fats": 22}
-    elif any(w in meal_raw for w in ["salmon", "fish", "tuna", "tahini", "quinoa", "shrimp"]):
-        meal_name = "Wild Salmon & Tahini Bowl"
-        macros = {"calories": 560, "protein": 38, "carbs": 24, "fats": 36}
-    elif any(w in meal_raw for w in ["chicken", "turkey", "egg", "steak", "beef"]):
-        meal_name = "Grilled Protein & Vegetables"
-        macros = {"calories": 450, "protein": 42, "carbs": 16, "fats": 24}
-    elif any(w in meal_raw for w in ["rice", "white rice", "pasta", "noodles", "sugar", "cake", "sweet", "donut"]):
-        meal_name = "Refined Carbohydrate Meal"
-        macros = {"calories": 620, "protein": 12, "carbs": 95, "fats": 20}
-    elif any(w in meal_raw for w in ["fruit", "berry", "apple", "banana", "smoothie"]):
-        meal_name = "Fresh Fruit & Chia Bowl"
-        macros = {"calories": 380, "protein": 12, "carbs": 58, "fats": 10}
-    else:
-        meal_name = (data.image_filename or data.meal_name or "Mixed Plate").split(".")[0].capitalize()
-        macros = {"calories": 480, "protein": 28, "carbs": 38, "fats": 24}
+def scan_meal_image(payload: dict):
+    image_filename = payload.get("image_filename", "").lower()
+    meal_name = payload.get("meal_name", "").lower()
 
-    extracted_features = np.array([[macros["calories"], macros["protein"], macros["carbs"], macros["fats"]]])
-    pred_class = meal_knn_model.predict(extracted_features)[0]
-    
-    class_labels = {
-        0: "High Glycemic Spike Risk",
-        1: "Insulin Resistant Safe",
-        2: "Optimal Choice"
-    }
-    classification_result = class_labels.get(pred_class, "Optimal Choice")
-
-    return {
-        "status": "success",
-        "scanned_image": data.image_filename or meal_name,
-        "meal_name": meal_name,
-        "scikit_classification": classification_result,
-        "classification": classification_result,
-        "extracted_macros": macros
-    }
-
-
-
-# Pydantic Schemas
-class ExerciseCompleteRequest(BaseModel):
-    user_id: int
-    exercise_name: str
-    duration_mins: int
-    calories_burned: int
-
-class SleepLogRequest(BaseModel):
-    user_id: int
-    sleep_hours: float
-    bed_time: str
-    wake_time: str
-    sleep_quality: Optional[str] = "Restful"
-
-# -------------------------------------------------------------
-# PILLAR 2: EXERCISE ENDPOINT
-# -------------------------------------------------------------
-@app.get("/api/exercise-recommendation/{user_id}")
-def get_exercise_recommendation(user_id: int):
-    # Fetch last known stress level and phenotype from DB or set defaults
-    stress_level = 7  # Dynamic fallback
-    phenotype = "Phenotype B: Ovulatory-Hyperandrogenic PMOS"
-    
-    # Clinical Adaptation Rule: High stress -> low cortisol workout
-    if stress_level >= 7:
-        workout = {
-            "title": "Low-Cortisol Somatic Flow & Incline Walk",
-            "category": "Adrenal & Hormone Safe",
-            "intensity": "Low Impact (Cortisol Conscious)",
-            "duration": 25,
-            "target_kcal": 120,
-            "benefits": "Reduces sympathetic nervous tension without elevating adrenal androgens or cortisol.",
-            "guidance": "High stress/low recovery detected. Avoid HIIT today; focus on nasal breathing and steady-state pacing."
+    if any(k in image_filename or k in meal_name for k in ["fast", "burger", "pizza", "fries", "noodle", "fried", "sugar", "cake", "crisp"]):
+        extracted_macros = {
+            "calories": 780,
+            "protein": 22,
+            "carbs": 85,
+            "fats": 38,
+            "gi": 75
         }
+        classification = "High Glycemic Spike Risk"
+        display_name = "Fast Food Meal (High Glycemic)"
     else:
-        workout = {
-            "title": "Full Body Resistance & Hypertrophy Circuit",
-            "category": "Insulin-Sensitizing Strength",
-            "intensity": "Moderate - High",
-            "duration": 40,
-            "target_kcal": 240,
-            "benefits": "Increases GLUT4 glucose transporters in skeletal muscle to combat insulin resistance.",
-            "guidance": "Nominal biological recovery status. Perform compound lifts (squats, glute bridges, overhead press)."
+        extracted_macros = {
+            "calories": 520,
+            "protein": 36,
+            "carbs": 42,
+            "fats": 28,
+            "gi": 35
         }
-        
-    return {
-        "user_id": user_id,
-        "phenotype": phenotype,
-        "workout": workout
-    }
+        classification = "Optimal Choice"
+        display_name = payload.get("meal_name", "Balanced Whole Meal")
 
-@app.post("/api/complete-exercise")
-def complete_exercise(data: ExerciseCompleteRequest):
-    # Save completion into health logs/telemetry in DB
     return {
         "status": "success",
-        "message": f"Completed {data.exercise_name} ({data.duration_mins} mins, ~{data.calories_burned} kcal burned)."
-    }
-
-# -------------------------------------------------------------
-# PILLAR 3: SLEEP ENDPOINT
-# -------------------------------------------------------------
-@app.get("/api/sleep-recommendation/{user_id}")
-def get_sleep_recommendation(user_id: int):
-    target_hours = 8.0
-    last_logged_sleep = 6.0
-    sleep_debt = round(target_hours - last_logged_sleep, 1)
-    
-    return {
-        "target_hours": target_hours,
-        "last_logged_sleep": last_logged_sleep,
-        "sleep_debt": sleep_debt,
-        "ideal_bedtime": "10:30 PM",
-        "ideal_waketime": "06:30 AM",
-        "circadian_advice": "Melatonin secretion is crucial for ovarian follicle maturation. Dim blue light 60 mins before 10:30 PM."
-    }
-
-@app.post("/api/log-sleep-schedule")
-def log_sleep_schedule(data: SleepLogRequest):
-    return {
-        "status": "success",
-        "message": f"Logged {data.sleep_hours} hrs of sleep ({data.bed_time} to {data.wake_time})."
+        "meal_name": display_name,
+        "extracted_macros": extracted_macros,
+        "classification": classification
     }
 
 
-
-# Ensure tables are registered
-Base.metadata.create_all(bind=engine)
-
-# Pydantic Request Schemas
-class ExerciseCompleteRequest(BaseModel):
-    user_id: int
-    exercise_name: str
-    duration_mins: int
-    calories_burned: int
-
-class SleepLogRequest(BaseModel):
-    user_id: int
-    sleep_hours: float
-    bed_time: str
-    wake_time: str
-    sleep_quality: Optional[str] = "Restful"
-
-
-# ============================================================
-# PILLAR 2: EXERCISE & MOVEMENT API ENDPOINTS
-# ============================================================
-
+# ================= PILLAR 2: DAILY ROTATING EXERCISE & BMI =================
 @app.get("/api/exercise-recommendation/{user_id}")
 def get_exercise_recommendation(user_id: int, db: Session = Depends(get_db)):
-    # 1. Fetch latest telemetry stress level
-    latest_telemetry = (
-        db.query(HealthLog)
-        .filter(HealthLog.user_id == user_id)
-        .order_by(HealthLog.id.desc())
+    user = db.query(User).filter(User.id == user_id).first()
+    bmi = user.bmi if user and user.bmi else 22.1
+    
+    # 1. Fetch latest meal calories to calibrate target burn
+    last_meal = (
+        db.query(MealLog)
+        .filter(MealLog.user_id == user_id)
+        .order_by(MealLog.id.desc())
         .first()
     )
-    stress_level = latest_telemetry.stress_level if latest_telemetry else 4
+    meal_kcal = last_meal.calories if last_meal else 450
 
-    # 2. Adaptive Cortisol Logic
-    if stress_level >= 7:
-        workout = {
-            "title": "Low-Cortisol Somatic Flow & Incline Walk",
-            "category": "Adrenal & Hormone Safe",
-            "intensity": "Low Impact (Cortisol Conscious)",
-            "duration": 25,
-            "target_kcal": 120,
-            "benefits": "Reduces sympathetic nervous tension without elevating adrenal androgens or cortisol.",
-            "guidance": f"Elevated stress ({stress_level}/10) detected. High-intensity workouts suppressed to protect progesterone levels."
+    # 2. Daily Workout Rotation Map
+    day_name = datetime.now().strftime("%A")
+    
+    daily_routines = {
+        "Monday": {
+            "type": "Legs & Lower Body Workout",
+            "icon": "🦵",
+            "exercises": "Bodyweight Squats (3x12), Glute Bridges (3x15), Walking Lunges (3x10)",
+            "base_time": 25,
+            "tip": "Builds leg muscle to naturally balance blood sugar."
+        },
+        "Tuesday": {
+            "type": "Brisk Walk / Light Cardio",
+            "icon": "🏃",
+            "exercises": "Steady treadmill incline walk, brisk outdoor walk, or light cycling",
+            "base_time": 30,
+            "tip": "Burns stored calories without making you tired or stressed."
+        },
+        "Wednesday": {
+            "type": "Upper Body & Back Workout",
+            "icon": "💪",
+            "exercises": "Dumbbell/Bottle Rows (3x12), Wall Push-ups (3x10), Shoulder Press (3x12)",
+            "base_time": 25,
+            "tip": "Strengthens posture and boosts full-day metabolic rate."
+        },
+        "Thursday": {
+            "type": "Core & Belly Tone Focus",
+            "icon": "🧘",
+            "exercises": "Plank (3x30 sec), Bird-Dog (3x10), Gentle Ab Crunches (3x15)",
+            "base_time": 20,
+            "tip": "Tones core muscles without spiking stress hormones."
+        },
+        "Friday": {
+            "type": "Full Body Light Toning",
+            "icon": "⚡",
+            "exercises": "Step-ups (3x12), Low-Impact Marching (3x1 min), Wall sits (3x30s)",
+            "base_time": 30,
+            "tip": "Great full-body movement before the weekend."
+        },
+        "Saturday": {
+            "type": "Fun Cardio / Dance Workout",
+            "icon": "💃",
+            "exercises": "Zumba, dancing, light jogging, or cycling outdoors",
+            "base_time": 30,
+            "tip": "Improves heart health and releases mood-boosting endorphins."
+        },
+        "Sunday": {
+            "type": "Rest & Gentle Stretch",
+            "icon": "🌿",
+            "exercises": "Hamstring stretch, Child's pose, deep breathing walk",
+            "base_time": 15,
+            "tip": "Lets your muscles and hormone levels recover."
         }
-    else:
-        workout = {
-            "title": "Full Body Resistance & Hypertrophy Circuit",
-            "category": "Insulin-Sensitizing Strength",
-            "intensity": "Moderate - High",
-            "duration": 40,
-            "target_kcal": 240,
-            "benefits": "Increases skeletal GLUT4 glucose transporter expression to reverse peripheral insulin resistance.",
-            "guidance": "Nominal biological recovery state. Target compound lifts (squats, glute bridges, overhead press)."
-        }
+    }
 
-    # 3. Check if completed today
+    routine = daily_routines.get(day_name, daily_routines["Monday"])
+    
+    target_burn = int(meal_kcal * 0.45)
+    target_burn = max(120, min(350, target_burn))
+    
+    duration = routine["base_time"]
+    if bmi >= 25.0:
+        duration += 5
+    elif bmi < 19.0:
+        duration = max(15, duration - 5)
+
     completed_today = (
         db.query(ExerciseLog)
         .filter(ExerciseLog.user_id == user_id)
@@ -500,14 +535,21 @@ def get_exercise_recommendation(user_id: int, db: Session = Depends(get_db)):
     )
 
     return {
-        "user_id": user_id,
-        "workout": workout,
+        "day": day_name,
+        "workout_type": routine["type"],
+        "icon": routine["icon"],
+        "exercises": routine["exercises"],
+        "duration_mins": duration,
+        "target_burn_kcal": target_burn,
+        "last_meal_name": last_meal.meal_name if last_meal else "Regular Meal",
+        "last_meal_kcal": meal_kcal,
+        "health_tip": routine["tip"],
         "is_completed_today": bool(completed_today)
     }
 
+
 @app.post("/api/complete-exercise")
 def complete_exercise(data: ExerciseCompleteRequest, db: Session = Depends(get_db)):
-    # Create and persist record
     new_log = ExerciseLog(
         user_id=data.user_id,
         exercise_name=data.exercise_name,
@@ -525,15 +567,11 @@ def complete_exercise(data: ExerciseCompleteRequest, db: Session = Depends(get_d
     }
 
 
-# ============================================================
-# PILLAR 3: SLEEP & CIRCADIAN API ENDPOINTS
-# ============================================================
-
+# ================= PILLAR 3: SLEEP & CIRCADIAN ENDPOINTS =================
 @app.get("/api/sleep-recommendation/{user_id}")
 def get_sleep_recommendation(user_id: int, db: Session = Depends(get_db)):
     target_hours = 8.0
 
-    # Retrieve most recent sleep log
     last_log = (
         db.query(SleepLog)
         .filter(SleepLog.user_id == user_id)
@@ -553,9 +591,9 @@ def get_sleep_recommendation(user_id: int, db: Session = Depends(get_db)):
         "circadian_advice": "Melatonin secretion is crucial for ovarian follicle maturation. Dim blue light 60 minutes prior to target bedtime."
     }
 
+
 @app.post("/api/log-sleep-schedule")
 def log_sleep_schedule(data: SleepLogRequest, db: Session = Depends(get_db)):
-    # Create and persist record
     new_sleep = SleepLog(
         user_id=data.user_id,
         sleep_hours=data.sleep_hours,
