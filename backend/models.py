@@ -27,6 +27,7 @@ class User(Base):
     meal_logs = relationship("MealLog", back_populates="user", cascade="all, delete-orphan")
     exercise_logs = relationship("ExerciseLog", back_populates="user", cascade="all, delete-orphan")
     sleep_logs = relationship("SleepLog", back_populates="user", cascade="all, delete-orphan")
+    medications = relationship("MedicationLog", back_populates="user", cascade="all, delete-orphan")
 
 
 # ================= INTAKE ASSESSMENT TABLE =================
@@ -117,3 +118,20 @@ class SleepLog(Base):
     logged_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="sleep_logs")
+
+
+# ================= PILLAR 4: MEDICATION & SUPPLEMENT TABLE =================
+class MedicationLog(Base):
+    __tablename__ = "medication_logs"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+
+    med_name = Column(String(150), nullable=False)
+    dosage_frequency = Column(String(200), nullable=False)
+    clinical_purpose = Column(String(255), default="Therapeutic PMOS Support")
+    icon = Column(String(10), default="💊")
+    is_taken_today = Column(Boolean, default=False)
+    logged_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="medications")

@@ -610,3 +610,143 @@ def log_sleep_schedule(data: SleepLogRequest, db: Session = Depends(get_db)):
         "message": f"Logged {data.sleep_hours} hrs of sleep ({data.bed_time} to {data.wake_time}) successfully.",
         "log_id": new_sleep.id
     }
+
+# ================= PILLAR 4: MEDICATION & SUPPLEMENT API =================
+
+PMOS_MED_DICTIONARY = [
+    {
+        "name": "Metformin XR",
+        "default_dosage": "500mg | With Dinner",
+        "purpose": "Reduces Hepatic Gluconeogenesis & Enhances Insulin Sensitivity",
+        "icon": "💊"
+    },
+    {
+        "name": "Myo-Inositol & D-Chiro-Inositol (40:1 ratio)",
+        "default_dosage": "2000mg | Morning & Evening",
+        "purpose": "Restores Oocyte Quality & Insulin Receptor Binding",
+        "icon": "🧬"
+    },
+    {
+        "name": "Spironolactone",
+        "default_dosage": "50mg | Morning with Water",
+        "purpose": "Androgen Receptor Blocker for Hirsutism & Hormonal Acne",
+        "icon": "💊"
+    },
+    {
+        "name": "Berberine HCl",
+        "default_dosage": "500mg | 20 mins Before Meals",
+        "purpose": "AMPK Activator & Glycemic Volatility Buffer",
+        "icon": "🌿"
+    },
+    {
+        "name": "Zinc Picolinate + Saw Palmetto",
+        "default_dosage": "30mg | Midday",
+        "purpose": "5-Alpha Reductase & Anti-Androgen Support",
+        "icon": "🧴"
+    },
+    {
+        "name": "Vitamin D3 (5000 IU) + K2 (100mcg)",
+        "default_dosage": "Morning",
+        "purpose": "Follicular Maturation Support",
+        "icon": "☀️"
+    }
+]
+
+class AddMedicationRequest(BaseModel):
+    user_id: int
+    med_name: str
+    dosage_frequency: str
+    clinical_purpose: Optional[str] = "Prescribed PMOS Protocol"
+    icon: Optional[str] = "💊"
+
+@app.get("/api/medication-suggestions")
+def get_medication_suggestions(query: str = ""):
+    q = query.lower().strip()
+    if not q:
+        return []
+    matches = [m for m in PMOS_MED_DICTIONARY if q in m["name"].lower() or q in m["purpose"].lower()]
+    return matches[:5]
+
+@app.get("/api/user-medications/{user_id}")
+def get_user_medications(user_id: int, db: Session = Depends(get_db)):
+    meds = db.query(models.MedicationLog).filter(models.MedicationLog.user_id == user_id).all()
+    
+    # Auto-seed baseline PMOS stack for user if empty
+    if not meds:
+        seed_meds = [
+            models.MedicationLog(
+                user_id=user_id,
+                med_name="Myo-Inositol & D-Chiro-Inositol (40:1 ratio)",
+                dosage_frequency="2000mg | Morning & Evening",
+                clinical_purpose="Restores Oocyte Quality & Insulin Receptor Binding",
+                icon="🧬",
+                is_taken_today=True
+            ),
+            models.MedicationLog(
+                user_id=user_id,
+                med_name="Metformin XR",
+                dosage_frequency="500mg | With Dinner",
+                clinical_purpose="Reduces Hepatic Gluconeogenesis",
+                icon="💊",
+                is_taken_today=False
+            ),
+            models.MedicationLog(
+                user_id=user_id,
+                med_name="Zinc Picolinate + Saw Palmetto",
+                dosage_frequency="30mg | Midday",
+                clinical_purpose="5-Alpha Reductase & Anti-Androgen Support",
+                icon="🧴",
+                is_taken_today=True
+            ),
+            models.MedicationLog(
+                user_id=user_id,
+                med_name="Vitamin D3 (5000 IU) + K2 (100mcg)",
+                dosage_frequency="Morning",
+                clinical_purpose="Follicular Maturation Support",
+                icon="☀️",
+                is_taken_today=True
+            )
+        ]
+        db.add_all(seed_meds)
+        db.commit()
+        meds = db.query(models.MedicationLog).filter(models.MedicationLog.user_id == user_id).all()
+
+    return [
+        {
+            "id": m.id,
+            "name": m.med_name,
+            "dosage_frequency": m.dosage_frequency,
+            "clinical_purpose": m.clinical_purpose,
+            "icon": m.icon,
+            "is_taken_today": m.is_taken_today
+        }
+        for m in meds
+    ]
+
+@app.post("/api/add-medication")
+def add_user_medication(data: AddMedicationRequest, db: Session = Depends(get_db)):
+    matched = next((m for m in PMOS_MED_DICTIONARY if m["name"].lower() == data.med_name.lower()), None)
+    icon = matched["icon"] if matched else data.icon or "💊"
+    purpose = matched["purpose"] if matched else data.clinical_purpose or "Custom Therapeutic Support"
+
+    new_med = models.MedicationLog(
+        user_id=data.user_id,
+        med_name=data.med_name,
+        dosage_frequency=data.dosage_frequency,
+        clinical_purpose=purpose,
+        icon=icon,
+        is_taken_today=False
+    )
+    db.add(new_med)
+    db.commit()
+    db.refresh(new_med)
+    return {"status": "success", "message": "Medication added", "med_id": new_med.id}
+
+@app.post("/api/toggle-medication-dose/{med_id}")
+def toggle_medication_dose(med_id: int, db: Session = Depends(get_db)):
+    med = db.query(models.MedicationLog).filter(models.MedicationLog.id == med_id).first()
+    if not med:
+        raise HTTPException(status_code=404, detail="Medication not found")
+    med.is_taken_today = not med.is_taken_today
+    db.commit()
+    return {"status": "success", "is_taken_today": med.is_taken_today}
