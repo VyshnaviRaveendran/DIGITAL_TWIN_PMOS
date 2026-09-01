@@ -455,89 +455,85 @@
     </div>
 
     <!-- ================= 4. MEDICINE & SUPPLEMENTS TAB CONTAINER ================= -->
-    <div id="pillarMedsContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+   <div id="pillarMedsContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+  
+  <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+    <div>
+      <div class="flex justify-between items-start mb-1">
+        <div class="flex items-center gap-2">
+          <span class="text-base text-rose-400">💊</span>
+          <h3 class="text-base font-bold text-white">Prescriptions & Targeted Supplement Protocol</h3>
+        </div>
+        
+        <button onclick="resetMedicationsDay()" class="bg-indigo-950 hover:bg-indigo-900 border border-indigo-500/40 text-indigo-300 text-[10px] px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1 shadow-sm" title="Reset all doses for a new day">
+          <span>🔄</span> Reset Day
+        </button>
+      </div>
       
-      <!-- LEFT COLUMN: Prescriptions & Targeted Supplement Protocol (7 cols) -->
-      <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
-        <div>
-          <div class="flex items-center gap-2 mb-1">
-            <span class="text-base text-indigo-400">💊</span>
-            <h3 class="text-base font-bold text-white">Prescriptions & Targeted Supplement Protocol</h3>
-          </div>
-          <p class="text-xs text-slate-400 leading-relaxed mb-4">
-            Track evidence-backed PMOS therapeutics (Metformin, Myo-Inositol 40:1, Berberine, Zinc, Vit D3/K2).
-          </p>
+      <p class="text-xs text-slate-400 leading-relaxed mb-4">
+        Track evidence-backed PMOS therapeutics (Metformin, Myo-Inositol 40:1, Berberine, Zinc, Vit D3/K2).
+      </p>
 
-          <!-- Active Medication Cards List -->
-          <div class="space-y-3" id="medicationListContainer">
-            <!-- Injected Dynamically by JavaScript -->
-          </div>
+      <div class="space-y-3" id="medicationListContainer">
         </div>
-
-        <!-- Adherence Summary Badge -->
-        <div class="p-3 bg-[#0B0F19] rounded-xl border border-slate-800 flex items-center justify-between text-xs">
-          <span class="text-slate-400">Daily Protocol Adherence:</span>
-          <span class="font-bold text-emerald-400" id="medAdherenceRate">--% Protocol Compliance</span>
-        </div>
-      </div>
-
-      <!-- RIGHT COLUMN: Add Custom Medication / Upload Prescription (5 cols) -->
-      <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="text-sm font-bold text-white flex items-center gap-2">
-              <span>⊕</span> Add Custom Medication / Supplement
-            </h4>
-            <button onclick="document.getElementById('rxFileInput').click()" class="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium underline flex items-center gap-1">
-              <span>📷</span> Scan Rx
-            </button>
-            <input type="file" id="rxFileInput" accept="image/*" class="hidden" onchange="handleRxUpload(this.files)">
-          </div>
-
-          <form id="addMedForm" onsubmit="submitNewMedication(event)" class="space-y-3.5 text-xs relative">
-            <!-- Name Input with Real-time Autocomplete -->
-            <div class="relative">
-              <label class="block text-slate-400 font-medium mb-1">Name</label>
-              <input type="text" id="inputMedName" placeholder="e.g. Metformin or Myo-Inositol..." autocomplete="off" oninput="handleMedSearch(this.value)" required class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
-              
-              <!-- Dropdown Suggestions Box -->
-              <div id="medSuggestionsBox" class="hidden absolute left-0 right-0 top-full mt-1 bg-[#181F32] border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden max-h-56 overflow-y-auto">
-                <!-- Dynamically populated suggestions -->
-              </div>
-            </div>
-
-            <!-- Dosage & Frequency Input -->
-            <div>
-              <label class="block text-slate-400 font-medium mb-1">Dosage & Frequency</label>
-              <input type="text" id="inputMedDosage" placeholder="e.g. 500mg twice daily with meals" required class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
-            </div>
-
-            <!-- Clinical Timing Helper -->
-            <div>
-              <label class="block text-slate-400 font-medium mb-1">Timing Tag</label>
-              <select id="selectMedTiming" class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-indigo-300 font-semibold focus:outline-none focus:border-indigo-500">
-                <option value="Morning">☀️ Morning</option>
-                <option value="Morning & Evening">🌅 Morning & Evening</option>
-                <option value="With Dinner">🍲 With Dinner</option>
-                <option value="Midday">🥗 Midday with Food</option>
-                <option value="Before Sleep">🌙 Before Sleep</option>
-              </select>
-            </div>
-
-            <button type="submit" id="btnAddMedToProtocol" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition shadow-md shadow-indigo-600/20">
-              Add to Protocol
-            </button>
-          </form>
-        </div>
-
-        <!-- Info Box -->
-        <div class="p-3.5 bg-[#0B0F19] rounded-xl border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
-          💡 <strong class="text-slate-300">PMOS Tip:</strong> Inositols and insulin-sensitizers work synergistically with steady-state Zone 2 walking to accelerate androgen clearance.
-        </div>
-      </div>
-
     </div>
 
+    <div class="p-3 bg-[#0B0F19] rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+      <span class="text-slate-400">Daily Protocol Adherence:</span>
+      <span class="font-bold text-emerald-400" id="medAdherenceRate">0% Protocol Compliance</span>
+    </div>
+  </div>
+
+  <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+    <div>
+      <div class="flex items-center justify-between mb-3">
+        <h4 class="text-sm font-bold text-white flex items-center gap-2">
+          <span>⊕</span> Add Custom Medication / Supplement
+        </h4>
+        
+        <label for="rxFileInput" class="cursor-pointer text-[11px] text-indigo-400 hover:text-indigo-300 font-medium underline flex items-center gap-1">
+          <span>📷</span> Scan Rx
+        </label>
+        <input type="file" id="rxFileInput" accept="image/*,.pdf" class="hidden" onchange="handleRxUpload(this.files)">
+      </div>
+
+      <form id="addMedForm" onsubmit="submitNewMedication(event)" class="space-y-3.5 text-xs relative">
+        <div class="relative">
+          <label class="block text-slate-400 font-medium mb-1">Name</label>
+          <input type="text" id="inputMedName" placeholder="e.g. Metformin or Myo-Inositol..." autocomplete="off" oninput="handleMedSearch(this.value)" required class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
+          
+          <div id="medSuggestionsBox" class="hidden absolute left-0 right-0 top-full mt-1 bg-[#181F32] border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden max-h-56 overflow-y-auto">
+            </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 font-medium mb-1">Dosage & Frequency</label>
+          <input type="text" id="inputMedDosage" placeholder="e.g. 500mg twice daily with meals" required class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div>
+          <label class="block text-slate-400 font-medium mb-1">Timing Tag</label>
+          <select id="selectMedTiming" class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-indigo-300 font-semibold focus:outline-none focus:border-indigo-500">
+            <option value="Morning">☀️ Morning</option>
+            <option value="Morning & Evening">🌅 Morning & Evening</option>
+            <option value="With Dinner">🍲 With Dinner</option>
+            <option value="Midday">🥗 Midday with Food</option>
+            <option value="Before Sleep">🌙 Before Sleep</option>
+          </select>
+        </div>
+
+        <button type="submit" id="btnAddMedToProtocol" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition shadow-md shadow-indigo-600/20">
+          Add to Protocol
+        </button>
+      </form>
+    </div>
+
+    <div class="p-3.5 bg-[#0B0F19] rounded-xl border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
+      💡 <strong class="text-slate-300">PMOS Tip:</strong> Inositols and insulin-sensitizers work synergistically with steady-state Zone 2 walking to accelerate androgen clearance.
+    </div>
+  </div>
+
+</div>
     <!-- ================= 5. STRESS RESET (4-7-8 BREATHING) ================= -->
     <div id="pillarStressContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5">
       <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center text-center space-y-5">

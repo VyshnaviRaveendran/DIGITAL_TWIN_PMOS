@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from datetime import datetime, date
 from typing import Optional
 from pydantic import BaseModel
@@ -11,7 +12,7 @@ from sklearn.neighbors import KNeighborsClassifier
 import models
 import schemas
 from database import engine, Base, get_db
-from models import ExerciseLog, SleepLog, HealthLog, User, IntakeAssessment, MealLog
+from models import ExerciseLog, SleepLog, HealthLog, User, IntakeAssessment, MealLog, MedicationLog
 
 # Ensure database tables are created
 Base.metadata.create_all(bind=engine)
@@ -46,6 +47,13 @@ class SleepLogRequest(BaseModel):
     bed_time: str
     wake_time: str
     sleep_quality: Optional[str] = "Restful"
+
+class AddMedicationRequest(BaseModel):
+    user_id: int
+    med_name: str
+    dosage_frequency: str
+    clinical_purpose: Optional[str] = "Prescribed PMOS Protocol"
+    icon: Optional[str] = "💊"
 
 
 # ================= ML MODEL INITIALIZATION =================
@@ -94,6 +102,64 @@ BASE_WEIGHTS = {
     "Dinner": 0.30,
     "Snack": 0.10
 }
+
+# Clinically mapped PMOS therapeutics database
+PMOS_MED_DICTIONARY = [
+    {
+        "name": "Metformin XR",
+        "default_dosage": "500mg | With Dinner",
+        "purpose": "Reduces Hepatic Gluconeogenesis & Enhances Insulin Sensitivity",
+        "icon": "💊"
+    },
+    {
+        "name": "Myo-Inositol & D-Chiro-Inositol (40:1 ratio)",
+        "default_dosage": "2000mg | Morning & Evening",
+        "purpose": "Restores Oocyte Quality & Insulin Receptor Binding",
+        "icon": "🧬"
+    },
+    {
+        "name": "Spironolactone",
+        "default_dosage": "50mg | Morning with Water",
+        "purpose": "Androgen Receptor Blocker for Hirsutism & Hormonal Acne",
+        "icon": "💊"
+    },
+    {
+        "name": "Berberine HCl",
+        "default_dosage": "500mg | 20 mins Before Meals",
+        "purpose": "AMPK Activator & Glycemic Volatility Buffer",
+        "icon": "🌿"
+    },
+    {
+        "name": "Zinc Picolinate + Saw Palmetto",
+        "default_dosage": "30mg | Midday with Food",
+        "purpose": "5-Alpha Reductase & Anti-Androgen Follicle Support",
+        "icon": "🧴"
+    },
+    {
+        "name": "Vitamin D3 (5000 IU) + K2 (100mcg)",
+        "default_dosage": "Morning with Healthy Fat",
+        "purpose": "Steroidogenesis & Follicular Maturation Support",
+        "icon": "☀️"
+    },
+    {
+        "name": "Magnesium Glycinate",
+        "default_dosage": "300mg | 30 mins Before Sleep",
+        "purpose": "Lowers Nocturnal Cortisol & Supports GABA Receptor Calming",
+        "icon": "🌙"
+    },
+    {
+        "name": "N-Acetyl Cysteine (NAC)",
+        "default_dosage": "600mg | Twice Daily Before Food",
+        "purpose": "Glutathione Precursor for Ovarian Oxidative Stress Reduction",
+        "icon": "🧪"
+    },
+    {
+        "name": "Spearmint Tea Extract",
+        "default_dosage": "Twice Daily (Morning & Evening)",
+        "purpose": "Lowers Free Plasma Testosterone Levels",
+        "icon": "🍵"
+    }
+]
 
 
 @app.get("/")
@@ -611,53 +677,8 @@ def log_sleep_schedule(data: SleepLogRequest, db: Session = Depends(get_db)):
         "log_id": new_sleep.id
     }
 
+
 # ================= PILLAR 4: MEDICATION & SUPPLEMENT API =================
-
-PMOS_MED_DICTIONARY = [
-    {
-        "name": "Metformin XR",
-        "default_dosage": "500mg | With Dinner",
-        "purpose": "Reduces Hepatic Gluconeogenesis & Enhances Insulin Sensitivity",
-        "icon": "💊"
-    },
-    {
-        "name": "Myo-Inositol & D-Chiro-Inositol (40:1 ratio)",
-        "default_dosage": "2000mg | Morning & Evening",
-        "purpose": "Restores Oocyte Quality & Insulin Receptor Binding",
-        "icon": "🧬"
-    },
-    {
-        "name": "Spironolactone",
-        "default_dosage": "50mg | Morning with Water",
-        "purpose": "Androgen Receptor Blocker for Hirsutism & Hormonal Acne",
-        "icon": "💊"
-    },
-    {
-        "name": "Berberine HCl",
-        "default_dosage": "500mg | 20 mins Before Meals",
-        "purpose": "AMPK Activator & Glycemic Volatility Buffer",
-        "icon": "🌿"
-    },
-    {
-        "name": "Zinc Picolinate + Saw Palmetto",
-        "default_dosage": "30mg | Midday",
-        "purpose": "5-Alpha Reductase & Anti-Androgen Support",
-        "icon": "🧴"
-    },
-    {
-        "name": "Vitamin D3 (5000 IU) + K2 (100mcg)",
-        "default_dosage": "Morning",
-        "purpose": "Follicular Maturation Support",
-        "icon": "☀️"
-    }
-]
-
-class AddMedicationRequest(BaseModel):
-    user_id: int
-    med_name: str
-    dosage_frequency: str
-    clinical_purpose: Optional[str] = "Prescribed PMOS Protocol"
-    icon: Optional[str] = "💊"
 
 @app.get("/api/medication-suggestions")
 def get_medication_suggestions(query: str = ""):
@@ -667,11 +688,12 @@ def get_medication_suggestions(query: str = ""):
     matches = [m for m in PMOS_MED_DICTIONARY if q in m["name"].lower() or q in m["purpose"].lower()]
     return matches[:5]
 
+
 @app.get("/api/user-medications/{user_id}")
 def get_user_medications(user_id: int, db: Session = Depends(get_db)):
     meds = db.query(models.MedicationLog).filter(models.MedicationLog.user_id == user_id).all()
     
-    # Auto-seed baseline PMOS stack for user if empty
+    # Auto-seed baseline PMOS stack for new users if empty
     if not meds:
         seed_meds = [
             models.MedicationLog(
@@ -723,15 +745,30 @@ def get_user_medications(user_id: int, db: Session = Depends(get_db)):
         for m in meds
     ]
 
+
 @app.post("/api/add-medication")
 def add_user_medication(data: AddMedicationRequest, db: Session = Depends(get_db)):
-    matched = next((m for m in PMOS_MED_DICTIONARY if m["name"].lower() == data.med_name.lower()), None)
+    clean_name = data.med_name.strip()
+    
+    # 1. Prevent Duplicate Medication Logging for the Same User
+    existing = (
+        db.query(models.MedicationLog)
+        .filter(
+            models.MedicationLog.user_id == data.user_id,
+            func.lower(models.MedicationLog.med_name) == clean_name.lower()
+        )
+        .first()
+    )
+    if existing:
+        raise HTTPException(status_code=400, detail=f"'{clean_name}' is already active in your protocol.")
+
+    matched = next((m for m in PMOS_MED_DICTIONARY if m["name"].lower() == clean_name.lower()), None)
     icon = matched["icon"] if matched else data.icon or "💊"
     purpose = matched["purpose"] if matched else data.clinical_purpose or "Custom Therapeutic Support"
 
     new_med = models.MedicationLog(
         user_id=data.user_id,
-        med_name=data.med_name,
+        med_name=clean_name,
         dosage_frequency=data.dosage_frequency,
         clinical_purpose=purpose,
         icon=icon,
@@ -742,6 +779,7 @@ def add_user_medication(data: AddMedicationRequest, db: Session = Depends(get_db
     db.refresh(new_med)
     return {"status": "success", "message": "Medication added", "med_id": new_med.id}
 
+
 @app.post("/api/toggle-medication-dose/{med_id}")
 def toggle_medication_dose(med_id: int, db: Session = Depends(get_db)):
     med = db.query(models.MedicationLog).filter(models.MedicationLog.id == med_id).first()
@@ -750,3 +788,68 @@ def toggle_medication_dose(med_id: int, db: Session = Depends(get_db)):
     med.is_taken_today = not med.is_taken_today
     db.commit()
     return {"status": "success", "is_taken_today": med.is_taken_today}
+
+
+@app.delete("/api/delete-medication/{med_id}")
+def delete_medication(med_id: int, db: Session = Depends(get_db)):
+    med = db.query(models.MedicationLog).filter(models.MedicationLog.id == med_id).first()
+    if not med:
+        raise HTTPException(status_code=404, detail="Medication not found")
+    db.delete(med)
+    db.commit()
+    return {"status": "success", "message": "Medication deleted from protocol"}
+
+
+@app.post("/api/reset-medications-day/{user_id}")
+def reset_medications_day(user_id: int, db: Session = Depends(get_db)):
+    db.query(models.MedicationLog).filter(models.MedicationLog.user_id == user_id).update({"is_taken_today": False})
+    db.commit()
+    return {"status": "success", "message": "Medication protocol reset for the new day!"}
+
+
+@app.post("/api/scan-prescription")
+def scan_prescription(payload: dict):
+    filename = payload.get("filename", "").lower()
+    
+    if any(k in filename for k in ["met", "glucophage"]):
+        return {
+            "name": "Metformin XR",
+            "dosage": "500mg | With Dinner",
+            "purpose": "Reduces Hepatic Gluconeogenesis & Enhances Insulin Sensitivity",
+            "icon": "💊"
+        }
+    elif any(k in filename for k in ["ino", "myo", "ova"]):
+        return {
+            "name": "Myo-Inositol & D-Chiro-Inositol (40:1 ratio)",
+            "dosage": "2000mg | Morning & Evening",
+            "purpose": "Restores Oocyte Quality & Insulin Receptor Binding",
+            "icon": "🧬"
+        }
+    elif any(k in filename for k in ["spiro", "aldactone"]):
+        return {
+            "name": "Spironolactone",
+            "dosage": "50mg | Morning with Water",
+            "purpose": "Androgen Receptor Blocker for Hirsutism & Acne",
+            "icon": "💊"
+        }
+    elif any(k in filename for k in ["zinc", "saw"]):
+        return {
+            "name": "Zinc Picolinate + Saw Palmetto",
+            "dosage": "30mg | Midday",
+            "purpose": "5-Alpha Reductase & Anti-Androgen Support",
+            "icon": "🧴"
+        }
+    elif any(k in filename for k in ["vit", "d3", "k2"]):
+        return {
+            "name": "Vitamin D3 (5000 IU) + K2 (100mcg)",
+            "dosage": "Morning with Food",
+            "purpose": "Follicular Maturation Support",
+            "icon": "☀️"
+        }
+    else:
+        return {
+            "name": "Berberine HCl",
+            "dosage": "500mg | 20 mins Before Meals",
+            "purpose": "AMPK Activator & Glycemic Volatility Buffer",
+            "icon": "🌿"
+        }
