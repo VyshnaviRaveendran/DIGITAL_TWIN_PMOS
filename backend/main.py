@@ -807,49 +807,71 @@ def reset_medications_day(user_id: int, db: Session = Depends(get_db)):
     return {"status": "success", "message": "Medication protocol reset for the new day!"}
 
 
+class ScanPrescriptionRequest(BaseModel):
+    filename: Optional[str] = ""
+    extracted_text: Optional[str] = ""
+
 @app.post("/api/scan-prescription")
-def scan_prescription(payload: dict):
-    filename = payload.get("filename", "").lower()
-    
-    if any(k in filename for k in ["met", "glucophage"]):
+def scan_prescription(payload: ScanPrescriptionRequest):
+    # Combine filename and any extracted text content
+    search_corpus = f"{payload.filename} {payload.extracted_text}".lower()
+
+    # Clinical keyword matcher for PMOS medications
+    if any(k in search_corpus for k in ["metformin", "glucophage", "glycomet", "met"]):
         return {
             "name": "Metformin XR",
             "dosage": "500mg | With Dinner",
             "purpose": "Reduces Hepatic Gluconeogenesis & Enhances Insulin Sensitivity",
             "icon": "💊"
         }
-    elif any(k in filename for k in ["ino", "myo", "ova"]):
+    elif any(k in search_corpus for k in ["inositol", "myo", "chiro", "ova", "d-chiro"]):
         return {
             "name": "Myo-Inositol & D-Chiro-Inositol (40:1 ratio)",
             "dosage": "2000mg | Morning & Evening",
             "purpose": "Restores Oocyte Quality & Insulin Receptor Binding",
             "icon": "🧬"
         }
-    elif any(k in filename for k in ["spiro", "aldactone"]):
+    elif any(k in search_corpus for k in ["spirono", "aldactone", "spiro"]):
         return {
             "name": "Spironolactone",
             "dosage": "50mg | Morning with Water",
             "purpose": "Androgen Receptor Blocker for Hirsutism & Acne",
             "icon": "💊"
         }
-    elif any(k in filename for k in ["zinc", "saw"]):
+    elif any(k in search_corpus for k in ["zinc", "saw palmetto", "palmetto"]):
         return {
             "name": "Zinc Picolinate + Saw Palmetto",
-            "dosage": "30mg | Midday",
+            "dosage": "30mg | Midday with Food",
             "purpose": "5-Alpha Reductase & Anti-Androgen Support",
             "icon": "🧴"
         }
-    elif any(k in filename for k in ["vit", "d3", "k2"]):
+    elif any(k in search_corpus for k in ["vitamin d", "vit d", "d3", "cholecalciferol"]):
         return {
             "name": "Vitamin D3 (5000 IU) + K2 (100mcg)",
             "dosage": "Morning with Food",
             "purpose": "Follicular Maturation Support",
             "icon": "☀️"
         }
-    else:
+    elif any(k in search_corpus for k in ["magnesium", "glycinate", "mag"]):
+        return {
+            "name": "Magnesium Glycinate",
+            "dosage": "300mg | 30 mins Before Sleep",
+            "purpose": "Lowers Nocturnal Cortisol & Supports GABA Receptor Calming",
+            "icon": "🌙"
+        }
+    elif any(k in search_corpus for k in ["berberine", "berberin"]):
         return {
             "name": "Berberine HCl",
             "dosage": "500mg | 20 mins Before Meals",
             "purpose": "AMPK Activator & Glycemic Volatility Buffer",
             "icon": "🌿"
+        }
+    else:
+        # Prompt selection rather than blindly defaulting to Berberine
+        return {
+            "name": "",
+            "dosage": "",
+            "purpose": "",
+            "icon": "💊",
+            "requires_selection": True
         }

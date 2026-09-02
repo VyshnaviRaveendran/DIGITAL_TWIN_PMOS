@@ -14,16 +14,13 @@
 </head>
 <body class="bg-[#0B0F19] text-slate-100 font-sans h-screen flex overflow-hidden selection:bg-indigo-500 selection:text-white">
 
-  <!-- ================= COLLAPSIBLE SIDEBAR ================= -->
   <aside id="sidebar" class="w-64 bg-[#111625] border-r border-slate-800 flex flex-col justify-between p-5 h-full shrink-0 transition-all duration-300 relative z-30">
     
-    <!-- Sidebar Toggle Arrow Button -->
     <button onclick="toggleSidebar()" id="sidebarToggleBtn" class="absolute -right-3.5 top-7 w-7 h-7 bg-[#181F32] border border-slate-700 hover:border-indigo-500 text-indigo-300 rounded-full flex items-center justify-center text-xs shadow-md transition hover:scale-110 z-50">
       ◀
     </button>
 
     <div>
-      <!-- Clickable User Profile Header / Avatar -->
       <div onclick="window.location.href='dashboard.html'" class="flex items-center gap-3.5 mb-8 p-2 -m-2 rounded-xl hover:bg-slate-800/60 cursor-pointer transition group" title="Return to Overview">
         <div id="sideAvatarBadge" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-extrabold text-white text-sm shadow-lg shadow-indigo-500/20 group-hover:scale-105 shrink-0 transition-transform">
           👤
@@ -34,7 +31,6 @@
         </div>
       </div>
 
-      <!-- Nav Links -->
       <nav class="space-y-2">
         <button onclick="window.location.href='dashboard.html'" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
           <span class="text-base">❖</span> <span class="sidebar-label truncate">Digital Twin</span>
@@ -50,7 +46,6 @@
       </nav>
     </div>
 
-    <!-- Sidebar Status Widgets -->
     <div class="space-y-3">
       <div onclick="openBmiModal()" class="bg-[#181F32] hover:bg-[#1f283f] border border-cyan-500/30 rounded-2xl p-3 text-center cursor-pointer transition group sidebar-label" title="Click to edit Height & Weight">
         <div class="flex items-center justify-between text-[11px] text-cyan-300 font-semibold mb-1">
@@ -75,10 +70,8 @@
     </div>
   </aside>
 
-  <!-- ================= MAIN CONTENT CONTAINER ================= -->
   <main class="flex-1 px-8 py-6 overflow-y-auto h-full flex flex-col justify-between space-y-5">
     
-    <!-- Top Header Navigation -->
     <header class="flex justify-between items-center">
       <div>
         <h2 class="text-2xl font-bold text-white">The 5 PMOS Management Pillars</h2>
@@ -95,7 +88,6 @@
       </div>
     </header>
 
-    <!-- 5 Navigation Tabs -->
     <div class="flex items-center gap-2.5 flex-wrap">
       <button id="tabPillarDiet" onclick="switchPillarTab('diet')" class="bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm">
         🥑 Diet & Nutrition
@@ -114,13 +106,10 @@
       </button>
     </div>
 
-    <!-- ================= 1. DIET TAB CONTAINER ================= -->
     <div id="pillarDietContainer" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
 
-      <!-- LEFT: Scanner & Calorie Splitter (5 cols) -->
       <div class="lg:col-span-5 space-y-4 flex flex-col justify-between">
         
-        <!-- Scanner Card -->
         <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl">
           <div class="flex justify-between items-center mb-2.5">
             <h3 class="text-sm font-bold text-white flex items-center gap-2">
@@ -129,7 +118,6 @@
             <span id="scanStatusBadge" class="text-[10px] text-slate-400 font-medium">Ready</span>
           </div>
 
-          <!-- Drag & Drop Zone -->
           <div id="dropZone" onclick="document.getElementById('mealFileInput').click()" class="border border-dashed border-slate-700 hover:border-indigo-500 bg-[#0B0F19]/60 rounded-xl p-3 text-center cursor-pointer transition flex items-center justify-center min-h-[64px] mb-3">
             <div id="uploadPlaceholder" class="flex items-center gap-2 text-slate-400 text-xs">
               <span class="text-indigo-400 text-base">☁️</span>
@@ -142,7 +130,6 @@
             <input type="file" id="mealFileInput" accept="image/*" class="hidden" onchange="handleFileSelect(this.files)">
           </div>
 
-          <!-- Input + Meal Slot Selector -->
           <div class="space-y-2 mb-3">
             <div class="grid grid-cols-12 gap-2">
               <div class="col-span-7">
@@ -163,7 +150,6 @@
             </button>
           </div>
 
-          <!-- Macro Preview Box -->
           <div id="mlScanResult" class="bg-[#0B0F19] border border-slate-800 rounded-xl p-3 mb-3">
             <div class="flex justify-between items-center mb-2">
               <span class="font-bold text-white text-xs truncate max-w-[180px]" id="resMealName">Fresh Fruit Bowl</span>
@@ -197,7 +183,6 @@
           </button>
         </div>
 
-        <!-- Dynamic 4-Slot Calorie Splitter -->
         <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl">
           <div class="flex justify-between items-center mb-2.5">
             <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
@@ -254,7 +239,6 @@
 
       </div>
 
-      <!-- RIGHT: 4 Meal Calibrated Recommendations (7 cols) -->
       <div class="lg:col-span-7 flex flex-col justify-between">
         <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl h-full flex flex-col justify-between">
           <div>
@@ -290,10 +274,8 @@
 
     </div>
 
-    <!-- ================= 2. EXERCISE TAB CONTAINER ================= -->
     <div id="pillarExerciseContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
       
-      <!-- Left: Today's Assigned Exercise Plan (7 cols) -->
       <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-5">
         <div>
           <div class="flex justify-between items-center mb-3">
@@ -339,7 +321,6 @@
         </button>
       </div>
 
-      <!-- Right: 7-Day Weekly Workout Routine Schedule (5 cols) -->
       <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
         <div>
           <h4 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
@@ -386,7 +367,6 @@
 
     </div>
 
-    <!-- ================= 3. SLEEP TAB CONTAINER ================= -->
     <div id="pillarSleepContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5">
       <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
         <div class="flex justify-between items-center">
@@ -454,87 +434,86 @@
       </div>
     </div>
 
-    <!-- ================= 4. MEDICINE & SUPPLEMENTS TAB CONTAINER ================= -->
-   <div id="pillarMedsContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-  
-  <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
-    <div>
-      <div class="flex justify-between items-start mb-1">
-        <div class="flex items-center gap-2">
-          <span class="text-base text-rose-400">💊</span>
-          <h3 class="text-base font-bold text-white">Prescriptions & Targeted Supplement Protocol</h3>
-        </div>
-        
-        <button onclick="resetMedicationsDay()" class="bg-indigo-950 hover:bg-indigo-900 border border-indigo-500/40 text-indigo-300 text-[10px] px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1 shadow-sm" title="Reset all doses for a new day">
-          <span>🔄</span> Reset Day
-        </button>
-      </div>
+    <div id="pillarMedsContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
       
-      <p class="text-xs text-slate-400 leading-relaxed mb-4">
-        Track evidence-backed PMOS therapeutics (Metformin, Myo-Inositol 40:1, Berberine, Zinc, Vit D3/K2).
-      </p>
-
-      <div class="space-y-3" id="medicationListContainer">
-        </div>
-    </div>
-
-    <div class="p-3 bg-[#0B0F19] rounded-xl border border-slate-800 flex items-center justify-between text-xs">
-      <span class="text-slate-400">Daily Protocol Adherence:</span>
-      <span class="font-bold text-emerald-400" id="medAdherenceRate">0% Protocol Compliance</span>
-    </div>
-  </div>
-
-  <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
-    <div>
-      <div class="flex items-center justify-between mb-3">
-        <h4 class="text-sm font-bold text-white flex items-center gap-2">
-          <span>⊕</span> Add Custom Medication / Supplement
-        </h4>
-        
-        <label for="rxFileInput" class="cursor-pointer text-[11px] text-indigo-400 hover:text-indigo-300 font-medium underline flex items-center gap-1">
-          <span>📷</span> Scan Rx
-        </label>
-        <input type="file" id="rxFileInput" accept="image/*,.pdf" class="hidden" onchange="handleRxUpload(this.files)">
-      </div>
-
-      <form id="addMedForm" onsubmit="submitNewMedication(event)" class="space-y-3.5 text-xs relative">
-        <div class="relative">
-          <label class="block text-slate-400 font-medium mb-1">Name</label>
-          <input type="text" id="inputMedName" placeholder="e.g. Metformin or Myo-Inositol..." autocomplete="off" oninput="handleMedSearch(this.value)" required class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
+      <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+        <div>
+          <div class="flex justify-between items-start mb-1">
+            <div class="flex items-center gap-2">
+              <span class="text-base text-rose-400">💊</span>
+              <h3 class="text-base font-bold text-white">Prescriptions & Targeted Supplement Protocol</h3>
+            </div>
+            
+            <button onclick="resetMedicationsDay()" class="bg-indigo-950 hover:bg-indigo-900 border border-indigo-500/40 text-indigo-300 text-[10px] px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1 shadow-sm" title="Reset all doses for a new day">
+              <span>🔄</span> Reset Day
+            </button>
+          </div>
           
-          <div id="medSuggestionsBox" class="hidden absolute left-0 right-0 top-full mt-1 bg-[#181F32] border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden max-h-56 overflow-y-auto">
+          <p class="text-xs text-slate-400 leading-relaxed mb-4">
+            Track evidence-backed PMOS therapeutics (Metformin, Myo-Inositol 40:1, Berberine, Zinc, Vit D3/K2).
+          </p>
+
+          <div class="space-y-3" id="medicationListContainer">
             </div>
         </div>
 
+        <div class="p-3 bg-[#0B0F19] rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+          <span class="text-slate-400">Daily Protocol Adherence:</span>
+          <span class="font-bold text-emerald-400" id="medAdherenceRate">0% Protocol Compliance</span>
+        </div>
+      </div>
+
+      <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
         <div>
-          <label class="block text-slate-400 font-medium mb-1">Dosage & Frequency</label>
-          <input type="text" id="inputMedDosage" placeholder="e.g. 500mg twice daily with meals" required class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+              <span>⊕</span> Add Custom Medication / Supplement
+            </h4>
+            
+            <label for="rxFileInput" class="cursor-pointer text-[11px] text-indigo-400 hover:text-indigo-300 font-medium underline flex items-center gap-1">
+              <span>📷</span> Scan Rx
+            </label>
+            <input type="file" id="rxFileInput" accept="image/*,.pdf" class="hidden" onchange="handleRxUpload(this.files)">
+          </div>
+
+          <form id="addMedForm" onsubmit="submitNewMedication(event)" class="space-y-3.5 text-xs relative">
+            <div class="relative">
+              <label class="block text-slate-400 font-medium mb-1">Name</label>
+              <input type="text" id="inputMedName" placeholder="e.g. Metformin or Myo-Inositol..." autocomplete="off" oninput="handleMedSearch(this.value)" required class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
+              
+              <div id="medSuggestionsBox" class="hidden absolute left-0 right-0 top-full mt-1 bg-[#181F32] border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden max-h-56 overflow-y-auto">
+                </div>
+            </div>
+
+            <div>
+              <label class="block text-slate-400 font-medium mb-1">Dosage & Frequency</label>
+              <input type="text" id="inputMedDosage" placeholder="e.g. 500mg twice daily with meals" required class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+
+            <div>
+              <label class="block text-slate-400 font-medium mb-1">Timing Tag</label>
+              <select id="selectMedTiming" class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-indigo-300 font-semibold focus:outline-none focus:border-indigo-500">
+                <option value="Morning">☀️ Morning</option>
+                <option value="Morning & Evening">🌅 Morning & Evening</option>
+                <option value="With Dinner">🍲 With Dinner</option>
+                <option value="Midday">🥗 Midday with Food</option>
+                <option value="Before Sleep">🌙 Before Sleep</option>
+              </select>
+            </div>
+
+            <button type="submit" id="btnAddMedToProtocol" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition shadow-md shadow-indigo-600/20">
+              Add to Protocol
+            </button>
+          </form>
         </div>
 
-        <div>
-          <label class="block text-slate-400 font-medium mb-1">Timing Tag</label>
-          <select id="selectMedTiming" class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-indigo-300 font-semibold focus:outline-none focus:border-indigo-500">
-            <option value="Morning">☀️ Morning</option>
-            <option value="Morning & Evening">🌅 Morning & Evening</option>
-            <option value="With Dinner">🍲 With Dinner</option>
-            <option value="Midday">🥗 Midday with Food</option>
-            <option value="Before Sleep">🌙 Before Sleep</option>
-          </select>
+        <div class="p-3.5 bg-[#0B0F19] rounded-xl border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
+          💡 <strong class="text-slate-300">PMOS Tip:</strong> Inositols and insulin-sensitizers work synergistically with steady-state Zone 2 walking to accelerate androgen clearance.
         </div>
+      </div>
 
-        <button type="submit" id="btnAddMedToProtocol" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition shadow-md shadow-indigo-600/20">
-          Add to Protocol
-        </button>
-      </form>
     </div>
 
-    <div class="p-3.5 bg-[#0B0F19] rounded-xl border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
-      💡 <strong class="text-slate-300">PMOS Tip:</strong> Inositols and insulin-sensitizers work synergistically with steady-state Zone 2 walking to accelerate androgen clearance.
-    </div>
-  </div>
-
-</div>
-    <!-- ================= 5. STRESS RESET (4-7-8 BREATHING) ================= -->
     <div id="pillarStressContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5">
       <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center text-center space-y-5">
         <div>
@@ -572,7 +551,6 @@
 
   </main>
 
-  <!-- ================= GLOBAL BMI MODAL ================= -->
   <div id="bmiModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
     <div class="bg-[#111625] border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
       <div class="flex justify-between items-center mb-4">
@@ -612,7 +590,6 @@
     </div>
   </div>
 
-  <!-- ================= JAVASCRIPT ================= -->
   <script>
   let currentScannedCalories = 520;
   let currentScannedProtein = 36;
@@ -1109,8 +1086,6 @@
   // 4. MEDICATION & SUPPLEMENT FUNCTIONS
   async function loadUserMedications() {
     const userId = localStorage.getItem("user_id") || "1";
-    const container = document.getElementById("medicationListContainer");
-
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/user-medications/${userId}`);
       if (res.ok) {
@@ -1127,7 +1102,10 @@
     if (!container) return;
 
     if (userMedicationsList.length === 0) {
-      container.innerHTML = `<p class="text-xs text-slate-500 py-4 text-center">No medications logged yet. Add one from the right side!</p>`;
+      container.innerHTML = `<p class="text-xs text-slate-500 py-6 text-center">No active medications logged. Add your prescription on the right.</p>`;
+      if (document.getElementById("medAdherenceRate")) {
+        document.getElementById("medAdherenceRate").innerText = "0% Protocol Compliance";
+      }
       return;
     }
 
@@ -1138,23 +1116,29 @@
 
       return `
         <div class="flex items-center justify-between p-3.5 bg-[#0B0F19] rounded-xl border border-slate-800 hover:border-slate-700 transition">
-          <div class="flex items-start gap-3">
+          <div class="flex items-start gap-3 min-w-0 flex-1 pr-2">
             <span class="text-xl p-2 bg-[#111625] rounded-xl border border-slate-800 shrink-0">${m.icon || '💊'}</span>
-            <div>
-              <h4 class="text-xs font-bold text-white leading-tight">${m.name}</h4>
-              <p class="text-[11px] text-slate-400 mt-0.5">${m.dosage_frequency} | <span class="text-slate-500">${m.clinical_purpose}</span></p>
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-white leading-tight truncate">${m.name}</h4>
+              <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                ${m.dosage_frequency} <span class="text-slate-600">|</span> <span class="text-slate-500">${m.clinical_purpose}</span>
+              </p>
             </div>
           </div>
 
-          <div>
+          <div class="flex items-center gap-2 shrink-0">
             ${m.is_taken_today ? 
-              `<button onclick="toggleDose(${m.id})" class="px-3.5 py-1.5 bg-emerald-950 text-emerald-400 border border-emerald-500/40 text-xs font-semibold rounded-lg flex items-center gap-1 hover:bg-emerald-900/60 transition">
+              `<button onclick="toggleDose(${m.id})" class="px-3 py-1.5 bg-emerald-950 text-emerald-400 border border-emerald-500/40 text-xs font-semibold rounded-lg flex items-center gap-1 hover:bg-emerald-900/60 transition shadow-sm">
                 ✓ Taken
               </button>` : 
-              `<button onclick="toggleDose(${m.id})" class="px-3.5 py-1.5 bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white border border-slate-700 hover:border-indigo-500 text-xs font-semibold rounded-lg transition">
+              `<button onclick="toggleDose(${m.id})" class="px-3 py-1.5 bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white border border-slate-700 hover:border-indigo-500 text-xs font-semibold rounded-lg transition shadow-sm">
                 Take Dose
               </button>`
             }
+            
+            <button onclick="removeMedication(${m.id}, '${m.name}')" class="px-2.5 py-1.5 bg-rose-950/40 hover:bg-rose-900/80 text-rose-400 border border-rose-600/30 hover:border-rose-500 text-xs font-medium rounded-lg transition" title="Remove medication from daily list">
+              Remove
+            </button>
           </div>
         </div>
       `;
@@ -1177,6 +1161,37 @@
       }
     } catch (err) {
       console.error("Error toggling dose:", err);
+    }
+  }
+
+  async function removeMedication(medId, medName) {
+    if (confirm(`Remove "${medName}" from your active daily protocol?`)) {
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/api/delete-medication/${medId}`, { method: "DELETE" });
+        if (res.ok) {
+          userMedicationsList = userMedicationsList.filter(m => m.id !== medId);
+          renderMedicationsList();
+        } else {
+          alert("Unable to remove medication. Please try again.");
+        }
+      } catch (err) {
+        console.error("Error deleting medication:", err);
+      }
+    }
+  }
+
+  async function resetMedicationsDay() {
+    const userId = localStorage.getItem("user_id") || "1";
+    if (confirm("Start a new day and reset all dose checkmarks?")) {
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/api/reset-medications-day/${userId}`, { method: "POST" });
+        if (res.ok) {
+          userMedicationsList.forEach(m => m.is_taken_today = false);
+          renderMedicationsList();
+        }
+      } catch (err) {
+        console.error(err);
+      }
     }
   }
 
@@ -1226,6 +1241,12 @@
     const dosage = document.getElementById("inputMedDosage").value.trim();
     const timing = document.getElementById("selectMedTiming").value;
 
+    const duplicate = userMedicationsList.some(m => m.name.toLowerCase() === name.toLowerCase());
+    if (duplicate) {
+      alert(`⚠️ "${name}" is already active in your protocol!`);
+      return;
+    }
+
     const fullDosageStr = dosage.includes("|") ? dosage : `${dosage} | ${timing}`;
 
     try {
@@ -1239,10 +1260,13 @@
         })
       });
 
+      const data = await res.json();
       if (res.ok) {
         document.getElementById("inputMedName").value = "";
         document.getElementById("inputMedDosage").value = "";
         await loadUserMedications();
+      } else {
+        alert(`⚠️ ${data.detail || 'Could not add medication'}`);
       }
     } catch (err) {
       console.error("Error adding medication:", err);
@@ -1250,23 +1274,52 @@
   }
 
   async function handleRxUpload(files) {
-    if (files && files[0]) {
-      const file = files[0];
-      try {
-        const res = await fetch("http://127.0.0.1:8000/api/scan-prescription", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ filename: file.name })
-        });
-        if (res.ok) {
-          const data = await res.json();
+    if (!files || !files[0]) return;
+    const file = files[0];
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/scan-prescription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: file.name, extracted_text: "" })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+
+        if (data.requires_selection || !data.name) {
+          const choices = [
+            "Metformin XR (500mg | With Dinner)",
+            "Myo-Inositol 40:1 (2000mg | Morning & Evening)",
+            "Spironolactone (50mg | Morning with Water)",
+            "Zinc Picolinate + Saw Palmetto (30mg | Midday)",
+            "Vitamin D3 + K2 (Morning with Food)",
+            "Magnesium Glycinate (300mg | Before Sleep)"
+          ];
+          const selection = prompt(
+            `📷 Prescription uploaded: "${file.name}"\n\nPlease select or type your prescribed medicine:\n` +
+            choices.map((c, i) => `${i + 1}. ${c}`).join("\n"),
+            "1"
+          );
+
+          if (selection) {
+            const idx = parseInt(selection) - 1;
+            if (idx >= 0 && idx < choices.length) {
+              const [selName, selDosage] = choices[idx].split(" (");
+              document.getElementById("inputMedName").value = selName.trim();
+              document.getElementById("inputMedDosage").value = selDosage.replace(")", "").trim();
+            } else {
+              document.getElementById("inputMedName").value = selection.trim();
+            }
+          }
+        } else {
           document.getElementById("inputMedName").value = data.name;
           document.getElementById("inputMedDosage").value = data.dosage;
-          alert(`Extracted from ${file.name}:\n${data.name} (${data.dosage})`);
+          alert(`📷 Detected from "${file.name}":\n\nPrescribed: ${data.name}\nSchedule: ${data.dosage}\n\nClick "Add to Protocol" to confirm.`);
         }
-      } catch (err) {
-        console.error(err);
       }
+    } catch (err) {
+      console.error("Rx scan error:", err);
     }
   }
 
