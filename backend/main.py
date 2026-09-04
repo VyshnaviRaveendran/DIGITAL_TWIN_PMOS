@@ -1,13 +1,17 @@
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from sqlalchemy import func
+import os
+import re
 from datetime import datetime, date
 from typing import Optional
-from pydantic import BaseModel
+
 import numpy as np
 import pandas as pd
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from rapidfuzz import fuzz
 from sklearn.neighbors import KNeighborsClassifier
+from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 import models
 import schemas
@@ -27,6 +31,40 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ================= DATASET-DRIVEN CLINICAL KNOWLEDGE BASE =================
+DATASET_PATH = os.path.join(os.path.dirname(__file__), "pmos_medicines.csv")
+
+if os.path.exists(DATASET_PATH):
+    MED_DF = pd.read_csv(DATASET_PATH).fillna("")
+else:
+    # Emergency fallback schema if CSV is missing
+    MED_DF = pd.DataFrame(columns=[
+        "category", "generic_name", "brand_names", "default_dosage", "clinical_purpose", "icon"
+    ])
+
+def build_search_corpus():
+    corpus = []
+    for _, row in MED_DF.iterrows():
+        # 1. Map Generic Formulation
+        corpus.append({
+            "term": row["generic_name"].lower(),
+            "display_name": f"{row['generic_name']}",
+            "data": row.to_dict()
+        })
+        # 2. Map Every Commercial Trade/Brand Name (e.g. Nostra CR, Orofer XT, Glycomet)
+        if row["brand_names"]:
+            for brand in str(row["brand_names"]).split(";"):
+                clean_brand = brand.strip().lower()
+                if clean_brand:
+                    corpus.append({
+                        "term": clean_brand,
+                        "display_name": f"{brand.strip()} ({row['generic_name']})",
+                        "data": row.to_dict()
+                    })
+    return corpus
+
+SEARCH_CORPUS = build_search_corpus()
 
 
 # ================= PYDANTIC SCHEMAS =================
@@ -54,6 +92,10 @@ class AddMedicationRequest(BaseModel):
     dosage_frequency: str
     clinical_purpose: Optional[str] = "Prescribed PMOS Protocol"
     icon: Optional[str] = "💊"
+
+class ScanPrescriptionRequest(BaseModel):
+    filename: Optional[str] = ""
+    extracted_text: Optional[str] = ""
 
 
 # ================= ML MODEL INITIALIZATION =================
@@ -102,64 +144,6 @@ BASE_WEIGHTS = {
     "Dinner": 0.30,
     "Snack": 0.10
 }
-
-# Clinically mapped PMOS therapeutics database
-PMOS_MED_DICTIONARY = [
-    {
-        "name": "Metformin XR",
-        "default_dosage": "500mg | With Dinner",
-        "purpose": "Reduces Hepatic Gluconeogenesis & Enhances Insulin Sensitivity",
-        "icon": "💊"
-    },
-    {
-        "name": "Myo-Inositol & D-Chiro-Inositol (40:1 ratio)",
-        "default_dosage": "2000mg | Morning & Evening",
-        "purpose": "Restores Oocyte Quality & Insulin Receptor Binding",
-        "icon": "🧬"
-    },
-    {
-        "name": "Spironolactone",
-        "default_dosage": "50mg | Morning with Water",
-        "purpose": "Androgen Receptor Blocker for Hirsutism & Hormonal Acne",
-        "icon": "💊"
-    },
-    {
-        "name": "Berberine HCl",
-        "default_dosage": "500mg | 20 mins Before Meals",
-        "purpose": "AMPK Activator & Glycemic Volatility Buffer",
-        "icon": "🌿"
-    },
-    {
-        "name": "Zinc Picolinate + Saw Palmetto",
-        "default_dosage": "30mg | Midday with Food",
-        "purpose": "5-Alpha Reductase & Anti-Androgen Follicle Support",
-        "icon": "🧴"
-    },
-    {
-        "name": "Vitamin D3 (5000 IU) + K2 (100mcg)",
-        "default_dosage": "Morning with Healthy Fat",
-        "purpose": "Steroidogenesis & Follicular Maturation Support",
-        "icon": "☀️"
-    },
-    {
-        "name": "Magnesium Glycinate",
-        "default_dosage": "300mg | 30 mins Before Sleep",
-        "purpose": "Lowers Nocturnal Cortisol & Supports GABA Receptor Calming",
-        "icon": "🌙"
-    },
-    {
-        "name": "N-Acetyl Cysteine (NAC)",
-        "default_dosage": "600mg | Twice Daily Before Food",
-        "purpose": "Glutathione Precursor for Ovarian Oxidative Stress Reduction",
-        "icon": "🧪"
-    },
-    {
-        "name": "Spearmint Tea Extract",
-        "default_dosage": "Twice Daily (Morning & Evening)",
-        "purpose": "Lowers Free Plasma Testosterone Levels",
-        "icon": "🍵"
-    }
-]
 
 
 @app.get("/")
@@ -237,10 +221,7 @@ def get_latest_telemetry(user_id: int, db: Session = Depends(get_db)):
             "exercise_mins": latest.exercise_mins,
             "stability_score": int(latest.risk_score) if latest.risk_score else 67
         }
-    else:
-        return {
-            "has_logged": False
-        }
+    return {"has_logged": False}
 
 
 # ================= ANTHROPOMETRY / BMI ENDPOINT =================
@@ -518,7 +499,6 @@ def get_exercise_recommendation(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     bmi = user.bmi if user and user.bmi else 22.1
     
-    # 1. Fetch latest meal calories to calibrate target burn
     last_meal = (
         db.query(MealLog)
         .filter(MealLog.user_id == user_id)
@@ -526,8 +506,6 @@ def get_exercise_recommendation(user_id: int, db: Session = Depends(get_db)):
         .first()
     )
     meal_kcal = last_meal.calories if last_meal else 450
-
-    # 2. Daily Workout Rotation Map
     day_name = datetime.now().strftime("%A")
     
     daily_routines = {
@@ -583,9 +561,7 @@ def get_exercise_recommendation(user_id: int, db: Session = Depends(get_db)):
     }
 
     routine = daily_routines.get(day_name, daily_routines["Monday"])
-    
-    target_burn = int(meal_kcal * 0.45)
-    target_burn = max(120, min(350, target_burn))
+    target_burn = max(120, min(350, int(meal_kcal * 0.45)))
     
     duration = routine["base_time"]
     if bmi >= 25.0:
@@ -678,58 +654,97 @@ def log_sleep_schedule(data: SleepLogRequest, db: Session = Depends(get_db)):
     }
 
 
-# ================= PILLAR 4: MEDICATION & SUPPLEMENT API =================
+# ================= PILLAR 4: MEDICATION & SUPPLEMENT API (DATASET DRIVEN) =================
 
 @app.get("/api/medication-suggestions")
 def get_medication_suggestions(query: str = ""):
     q = query.lower().strip()
-    if not q:
+    if not q or len(q) < 2:
         return []
-    matches = [m for m in PMOS_MED_DICTIONARY if q in m["name"].lower() or q in m["purpose"].lower()]
-    return matches[:5]
+
+    results = []
+    seen_generics = set()
+
+    for item in SEARCH_CORPUS:
+        score = fuzz.partial_ratio(q, item["term"])
+        if q in item["term"] or score >= 75:
+            generic = item["data"]["generic_name"]
+            if generic not in seen_generics:
+                seen_generics.add(generic)
+                results.append({
+                    "name": item["display_name"],
+                    "default_dosage": item["data"]["default_dosage"],
+                    "purpose": item["data"]["clinical_purpose"],
+                    "category": item["data"]["category"],
+                    "icon": item["data"]["icon"],
+                    "score": score
+                })
+
+    results.sort(key=lambda x: x["score"], reverse=True)
+    return results[:6]
+
+
+@app.post("/api/scan-prescription")
+def scan_prescription(payload: ScanPrescriptionRequest):
+    combined_text = f"{payload.filename} {payload.extracted_text}".lower()
+    clean_text = re.sub(r'[^a-zA-Z0-9\s]', ' ', combined_text)
+
+    best_match = None
+    highest_score = 0
+
+    # Match extracted OCR text against both generic and commercial brand records
+    for item in SEARCH_CORPUS:
+        if len(item["term"]) >= 4 and item["term"] in clean_text:
+            score = 100
+        else:
+            score = fuzz.partial_ratio(item["term"], clean_text)
+
+        if score > highest_score and score >= 75:
+            highest_score = score
+            best_match = item
+
+    if best_match:
+        data = best_match["data"]
+        return {
+            "name": f"{best_match['display_name']}",
+            "dosage": data["default_dosage"],
+            "purpose": data["clinical_purpose"],
+            "category": data["category"],
+            "icon": data["icon"],
+            "confidence": round(highest_score / 100.0, 2),
+            "not_found": False
+        }
+
+    return {
+        "name": "",
+        "dosage": "",
+        "purpose": "",
+        "icon": "💊",
+        "confidence": 0.0,
+        "not_found": True
+    }
 
 
 @app.get("/api/user-medications/{user_id}")
 def get_user_medications(user_id: int, db: Session = Depends(get_db)):
     meds = db.query(models.MedicationLog).filter(models.MedicationLog.user_id == user_id).all()
     
-    # Auto-seed baseline PMOS stack for new users if empty
+    # Auto-seed baseline PMOS stack for new users if table is empty
     if not meds:
-        seed_meds = [
-            models.MedicationLog(
-                user_id=user_id,
-                med_name="Myo-Inositol & D-Chiro-Inositol (40:1 ratio)",
-                dosage_frequency="2000mg | Morning & Evening",
-                clinical_purpose="Restores Oocyte Quality & Insulin Receptor Binding",
-                icon="🧬",
-                is_taken_today=True
-            ),
-            models.MedicationLog(
-                user_id=user_id,
-                med_name="Metformin XR",
-                dosage_frequency="500mg | With Dinner",
-                clinical_purpose="Reduces Hepatic Gluconeogenesis",
-                icon="💊",
-                is_taken_today=False
-            ),
-            models.MedicationLog(
-                user_id=user_id,
-                med_name="Zinc Picolinate + Saw Palmetto",
-                dosage_frequency="30mg | Midday",
-                clinical_purpose="5-Alpha Reductase & Anti-Androgen Support",
-                icon="🧴",
-                is_taken_today=True
-            ),
-            models.MedicationLog(
-                user_id=user_id,
-                med_name="Vitamin D3 (5000 IU) + K2 (100mcg)",
-                dosage_frequency="Morning",
-                clinical_purpose="Follicular Maturation Support",
-                icon="☀️",
-                is_taken_today=True
-            )
+        seed_defaults = [
+            ("Myo-Inositol & D-Chiro-Inositol", "2000mg | Morning & Evening", "Restores oocyte quality & insulin receptor binding", "🧬", True),
+            ("Metformin XR", "500mg | With Dinner", "Reduces hepatic gluconeogenesis", "💊", False),
+            ("Vitamin D3 (5000 IU) + K2", "Morning with Healthy Fat", "Follicular maturation support", "☀️", True)
         ]
-        db.add_all(seed_meds)
+        for name, dose, purp, ico, taken in seed_defaults:
+            db.add(models.MedicationLog(
+                user_id=user_id,
+                med_name=name,
+                dosage_frequency=dose,
+                clinical_purpose=purp,
+                icon=ico,
+                is_taken_today=taken
+            ))
         db.commit()
         meds = db.query(models.MedicationLog).filter(models.MedicationLog.user_id == user_id).all()
 
@@ -750,7 +765,7 @@ def get_user_medications(user_id: int, db: Session = Depends(get_db)):
 def add_user_medication(data: AddMedicationRequest, db: Session = Depends(get_db)):
     clean_name = data.med_name.strip()
     
-    # 1. Prevent Duplicate Medication Logging for the Same User
+    # Check duplicate entry
     existing = (
         db.query(models.MedicationLog)
         .filter(
@@ -762,9 +777,14 @@ def add_user_medication(data: AddMedicationRequest, db: Session = Depends(get_db
     if existing:
         raise HTTPException(status_code=400, detail=f"'{clean_name}' is already active in your protocol.")
 
-    matched = next((m for m in PMOS_MED_DICTIONARY if m["name"].lower() == clean_name.lower()), None)
-    icon = matched["icon"] if matched else data.icon or "💊"
-    purpose = matched["purpose"] if matched else data.clinical_purpose or "Custom Therapeutic Support"
+    icon = data.icon or "💊"
+    purpose = data.clinical_purpose or "Custom Therapeutic Support"
+
+    for item in SEARCH_CORPUS:
+        if fuzz.ratio(clean_name.lower(), item["term"]) >= 80:
+            icon = item["data"]["icon"]
+            purpose = item["data"]["clinical_purpose"]
+            break
 
     new_med = models.MedicationLog(
         user_id=data.user_id,
@@ -805,73 +825,3 @@ def reset_medications_day(user_id: int, db: Session = Depends(get_db)):
     db.query(models.MedicationLog).filter(models.MedicationLog.user_id == user_id).update({"is_taken_today": False})
     db.commit()
     return {"status": "success", "message": "Medication protocol reset for the new day!"}
-
-
-class ScanPrescriptionRequest(BaseModel):
-    filename: Optional[str] = ""
-    extracted_text: Optional[str] = ""
-
-@app.post("/api/scan-prescription")
-def scan_prescription(payload: ScanPrescriptionRequest):
-    # Combine filename and any extracted text content
-    search_corpus = f"{payload.filename} {payload.extracted_text}".lower()
-
-    # Clinical keyword matcher for PMOS medications
-    if any(k in search_corpus for k in ["metformin", "glucophage", "glycomet", "met"]):
-        return {
-            "name": "Metformin XR",
-            "dosage": "500mg | With Dinner",
-            "purpose": "Reduces Hepatic Gluconeogenesis & Enhances Insulin Sensitivity",
-            "icon": "💊"
-        }
-    elif any(k in search_corpus for k in ["inositol", "myo", "chiro", "ova", "d-chiro"]):
-        return {
-            "name": "Myo-Inositol & D-Chiro-Inositol (40:1 ratio)",
-            "dosage": "2000mg | Morning & Evening",
-            "purpose": "Restores Oocyte Quality & Insulin Receptor Binding",
-            "icon": "🧬"
-        }
-    elif any(k in search_corpus for k in ["spirono", "aldactone", "spiro"]):
-        return {
-            "name": "Spironolactone",
-            "dosage": "50mg | Morning with Water",
-            "purpose": "Androgen Receptor Blocker for Hirsutism & Acne",
-            "icon": "💊"
-        }
-    elif any(k in search_corpus for k in ["zinc", "saw palmetto", "palmetto"]):
-        return {
-            "name": "Zinc Picolinate + Saw Palmetto",
-            "dosage": "30mg | Midday with Food",
-            "purpose": "5-Alpha Reductase & Anti-Androgen Support",
-            "icon": "🧴"
-        }
-    elif any(k in search_corpus for k in ["vitamin d", "vit d", "d3", "cholecalciferol"]):
-        return {
-            "name": "Vitamin D3 (5000 IU) + K2 (100mcg)",
-            "dosage": "Morning with Food",
-            "purpose": "Follicular Maturation Support",
-            "icon": "☀️"
-        }
-    elif any(k in search_corpus for k in ["magnesium", "glycinate", "mag"]):
-        return {
-            "name": "Magnesium Glycinate",
-            "dosage": "300mg | 30 mins Before Sleep",
-            "purpose": "Lowers Nocturnal Cortisol & Supports GABA Receptor Calming",
-            "icon": "🌙"
-        }
-    elif any(k in search_corpus for k in ["berberine", "berberin"]):
-        return {
-            "name": "Berberine HCl",
-            "dosage": "500mg | 20 mins Before Meals",
-            "purpose": "AMPK Activator & Glycemic Volatility Buffer",
-            "icon": "🌿"
-        }
-    else:
-        # Prompt selection rather than blindly defaulting to Berberine
-        return {
-            "name": "",
-            "dosage": "",
-            "purpose": "",
-            "icon": "💊",
-            "requires_selection": True
-        }
