@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digital Twin Health - 5 Pillars Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tesseract.js Neural OCR Engine -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script>
     const token = localStorage.getItem("user_token");
     if (!token) {
@@ -14,13 +16,16 @@
 </head>
 <body class="bg-[#0B0F19] text-slate-100 font-sans h-screen flex overflow-hidden selection:bg-indigo-500 selection:text-white">
 
+  <!-- ================= COLLAPSIBLE SIDEBAR ================= -->
   <aside id="sidebar" class="w-64 bg-[#111625] border-r border-slate-800 flex flex-col justify-between p-5 h-full shrink-0 transition-all duration-300 relative z-30">
     
+    <!-- Sidebar Toggle Button -->
     <button onclick="toggleSidebar()" id="sidebarToggleBtn" class="absolute -right-3.5 top-7 w-7 h-7 bg-[#181F32] border border-slate-700 hover:border-indigo-500 text-indigo-300 rounded-full flex items-center justify-center text-xs shadow-md transition hover:scale-110 z-50">
       ◀
     </button>
 
     <div>
+      <!-- Clickable User Profile -->
       <div onclick="window.location.href='dashboard.html'" class="flex items-center gap-3.5 mb-8 p-2 -m-2 rounded-xl hover:bg-slate-800/60 cursor-pointer transition group" title="Return to Overview">
         <div id="sideAvatarBadge" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-extrabold text-white text-sm shadow-lg shadow-indigo-500/20 group-hover:scale-105 shrink-0 transition-transform">
           👤
@@ -31,6 +36,7 @@
         </div>
       </div>
 
+      <!-- Navigation Links -->
       <nav class="space-y-2">
         <button onclick="window.location.href='dashboard.html'" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
           <span class="text-base">❖</span> <span class="sidebar-label truncate">Digital Twin</span>
@@ -46,6 +52,7 @@
       </nav>
     </div>
 
+    <!-- Sidebar Status Widgets -->
     <div class="space-y-3">
       <div onclick="openBmiModal()" class="bg-[#181F32] hover:bg-[#1f283f] border border-cyan-500/30 rounded-2xl p-3 text-center cursor-pointer transition group sidebar-label" title="Click to edit Height & Weight">
         <div class="flex items-center justify-between text-[11px] text-cyan-300 font-semibold mb-1">
@@ -70,11 +77,13 @@
     </div>
   </aside>
 
-  <main class="flex-1 px-8 py-6 overflow-y-auto h-full flex flex-col justify-between space-y-5">
+  <!-- ================= MAIN CONTENT CONTAINER ================= -->
+  <main class="flex-1 px-6 py-6 overflow-y-auto h-full flex flex-col space-y-6">
     
-    <header class="flex justify-between items-center">
+    <!-- Top Header Navigation -->
+    <header class="flex justify-between items-center shrink-0">
       <div>
-        <h2 class="text-2xl font-bold text-white">The 5 PMOS Management Pillars</h2>
+        <h2 class="text-2xl font-bold text-white tracking-tight">The 5 PMOS Management Pillars</h2>
         <p class="text-xs text-slate-400 mt-0.5">Diet, Exercise, Sleep, Medicine & Mental Wealth Interventions</p>
       </div>
 
@@ -88,8 +97,9 @@
       </div>
     </header>
 
-    <div class="flex items-center gap-2.5 flex-wrap">
-      <button id="tabPillarDiet" onclick="switchPillarTab('diet')" class="bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm">
+    <!-- 5 Navigation Tabs -->
+    <div class="flex items-center gap-2.5 flex-wrap shrink-0">
+      <button id="tabPillarDiet" onclick="switchPillarTab('diet')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
         🥑 Diet & Nutrition
       </button>
       <button id="tabPillarExercise" onclick="switchPillarTab('exercise')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
@@ -98,7 +108,7 @@
       <button id="tabPillarSleep" onclick="switchPillarTab('sleep')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
         🛌 Sleep & Recovery
       </button>
-      <button id="tabPillarMeds" onclick="switchPillarTab('meds')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
+      <button id="tabPillarMeds" onclick="switchPillarTab('meds')" class="bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm">
         💊 Medicine & Supplements
       </button>
       <button id="tabPillarStress" onclick="switchPillarTab('stress')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
@@ -106,10 +116,11 @@
       </button>
     </div>
 
-    <div id="pillarDietContainer" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+    <!-- ================= 1. DIET TAB CONTAINER ================= -->
+    <div id="pillarDietContainer" class="hidden grid-cols-1 md:grid-cols-12 gap-5 items-start">
 
-      <div class="lg:col-span-5 space-y-4 flex flex-col justify-between">
-        
+      <!-- LEFT: Scanner & Calorie Splitter -->
+      <div class="md:col-span-5 space-y-4">
         <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl">
           <div class="flex justify-between items-center mb-2.5">
             <h3 class="text-sm font-bold text-white flex items-center gap-2">
@@ -236,32 +247,30 @@
             <p class="text-xs font-bold text-emerald-300">🎉 All 4 Daily Meals Logged!</p>
           </div>
         </div>
-
       </div>
 
-      <div class="lg:col-span-7 flex flex-col justify-between">
-        <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl h-full flex flex-col justify-between">
-          <div>
-            <div class="flex justify-between items-center mb-2">
-              <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                <span>🍽️</span> 4-Meal Calibrated Recommendations
-              </h3>
-              <span id="recomPhenoBadge" class="bg-purple-900/40 text-purple-300 border border-purple-500/40 text-[10px] px-2.5 py-1 rounded-full font-medium">
-                Active Phenotype Plan
-              </span>
-            </div>
-
-            <div class="bg-purple-950/30 border border-purple-600/30 rounded-xl p-3 mb-3">
-              <p class="text-xs text-purple-300 font-semibold" id="recommendationTitle">
-                <span>💡</span> Calibrated Daily Matrix:
-              </p>
-              <p class="text-xs text-purple-200/80 leading-relaxed mt-0.5" id="recommendationBody">
-                Loading tailored biological nutritional guidance...
-              </p>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="recipeContainer"></div>
+      <!-- RIGHT: Recommendations -->
+      <div class="md:col-span-7 space-y-4">
+        <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <span>🍽️</span> 4-Meal Calibrated Recommendations
+            </h3>
+            <span id="recomPhenoBadge" class="bg-purple-900/40 text-purple-300 border border-purple-500/40 text-[10px] px-2.5 py-1 rounded-full font-medium">
+              Active Phenotype Plan
+            </span>
           </div>
+
+          <div class="bg-purple-950/30 border border-purple-600/30 rounded-xl p-3 mb-3">
+            <p class="text-xs text-purple-300 font-semibold" id="recommendationTitle">
+              <span>💡</span> Calibrated Daily Matrix:
+            </p>
+            <p class="text-xs text-purple-200/80 leading-relaxed mt-0.5" id="recommendationBody">
+              Loading tailored biological nutritional guidance...
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="recipeContainer"></div>
 
           <div class="mt-4 p-3 bg-[#0B0F19] rounded-xl border border-slate-800/80 text-xs text-slate-400 flex items-center justify-between">
             <span>Review clinical symptoms or recalibrate?</span>
@@ -274,9 +283,9 @@
 
     </div>
 
-    <div id="pillarExerciseContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-      
-      <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-5">
+    <!-- ================= 2. EXERCISE TAB CONTAINER ================= -->
+    <div id="pillarExerciseContainer" class="hidden grid-cols-1 md:grid-cols-12 gap-5 items-start">
+      <div class="md:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
         <div>
           <div class="flex justify-between items-center mb-3">
             <span class="px-3 py-1 bg-indigo-950 text-indigo-300 border border-indigo-500/30 text-xs font-semibold rounded-full flex items-center gap-1.5" id="exDayBadge">
@@ -321,7 +330,7 @@
         </button>
       </div>
 
-      <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+      <div class="md:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
         <div>
           <h4 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
             <span>🗓️</span> Weekly Exercise Schedule
@@ -364,11 +373,11 @@
           Completing workouts automatically syncs with your <span class="text-indigo-300 font-bold">Stability Index</span>.
         </div>
       </div>
-
     </div>
 
-    <div id="pillarSleepContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5">
-      <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+    <!-- ================= 3. SLEEP TAB CONTAINER ================= -->
+    <div id="pillarSleepContainer" class="hidden grid-cols-1 md:grid-cols-12 gap-5 items-start">
+      <div class="md:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
         <div class="flex justify-between items-center">
           <h3 class="text-sm font-bold text-white">Circadian Optimization & Recovery</h3>
           <span class="px-3 py-1 bg-purple-950 text-purple-300 border border-purple-500/30 text-xs font-semibold rounded-full">
@@ -408,8 +417,8 @@
         </p>
       </div>
 
-      <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl">
-        <h4 class="text-sm font-bold text-white mb-3">Log Sleep Window</h4>
+      <div class="md:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
+        <h4 class="text-sm font-bold text-white">Log Sleep Window</h4>
         <form id="sleepLogForm" onsubmit="submitSleepWindow(event)" class="space-y-3 text-xs">
           <div>
             <label class="block text-slate-400 mb-1">Bedtime (Lights Out)</label>
@@ -434,9 +443,11 @@
       </div>
     </div>
 
-    <div id="pillarMedsContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+    <!-- ================= 4. MEDICINE & SUPPLEMENTS TAB CONTAINER ================= -->
+    <div id="pillarMedsContainer" class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
       
-      <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+      <!-- LEFT COLUMN -->
+      <div class="md:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
         <div>
           <div class="flex justify-between items-start mb-1">
             <div class="flex items-center gap-2">
@@ -450,11 +461,10 @@
           </div>
           
           <p class="text-xs text-slate-400 leading-relaxed mb-4">
-            Track evidence-backed PMOS therapeutics (Metformin, Myo-Inositol 40:1, Berberine, Zinc, Vit D3/K2).
+            Evidence-backed PMOS therapeutics mapped dynamically against clinical protocols.
           </p>
 
-          <div class="space-y-3" id="medicationListContainer">
-            </div>
+          <div class="space-y-3" id="medicationListContainer"></div>
         </div>
 
         <div class="p-3 bg-[#0B0F19] rounded-xl border border-slate-800 flex items-center justify-between text-xs">
@@ -463,7 +473,8 @@
         </div>
       </div>
 
-      <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-4">
+      <!-- RIGHT COLUMN -->
+      <div class="md:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
         <div>
           <div class="flex items-center justify-between mb-3">
             <h4 class="text-sm font-bold text-white flex items-center gap-2">
@@ -479,15 +490,14 @@
           <form id="addMedForm" onsubmit="submitNewMedication(event)" class="space-y-3.5 text-xs relative">
             <div class="relative">
               <label class="block text-slate-400 font-medium mb-1">Name</label>
-              <input type="text" id="inputMedName" placeholder="e.g. Metformin or Myo-Inositol..." autocomplete="off" oninput="handleMedSearch(this.value)" required class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
+              <input type="text" id="inputMedName" placeholder="e.g. Nostra CR, Metformin, Orofer..." autocomplete="off" oninput="handleMedSearch(this.value)" required class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
               
-              <div id="medSuggestionsBox" class="hidden absolute left-0 right-0 top-full mt-1 bg-[#181F32] border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden max-h-56 overflow-y-auto">
-                </div>
+              <div id="medSuggestionsBox" class="hidden absolute left-0 right-0 top-full mt-1 bg-[#181F32] border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden max-h-56 overflow-y-auto"></div>
             </div>
 
             <div>
               <label class="block text-slate-400 font-medium mb-1">Dosage & Frequency</label>
-              <input type="text" id="inputMedDosage" placeholder="e.g. 500mg twice daily with meals" required class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
+              <input type="text" id="inputMedDosage" placeholder="e.g. 10mg | Night (9:00 PM) After Meal" required class="w-full bg-[#0B0F19] border border-slate-800 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
             </div>
 
             <div>
@@ -497,7 +507,7 @@
                 <option value="Morning & Evening">🌅 Morning & Evening</option>
                 <option value="With Dinner">🍲 With Dinner</option>
                 <option value="Midday">🥗 Midday with Food</option>
-                <option value="Before Sleep">🌙 Before Sleep</option>
+                <option value="Before Sleep" selected>🌙 Before Sleep</option>
               </select>
             </div>
 
@@ -514,8 +524,9 @@
 
     </div>
 
-    <div id="pillarStressContainer" class="hidden grid-cols-1 lg:grid-cols-12 gap-5">
-      <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center text-center space-y-5">
+    <!-- ================= 5. STRESS RESET (4-7-8 BREATHING) ================= -->
+    <div id="pillarStressContainer" class="hidden grid-cols-1 md:grid-cols-12 gap-5 items-start">
+      <div class="md:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center text-center space-y-5">
         <div>
           <h3 class="text-base font-bold text-white">4-7-8 Vagus Nerve Breathing Reset</h3>
           <p class="text-xs text-slate-400 mt-1">Direct parasympathetic activation to decrease acute adrenal cortisol release.</p>
@@ -536,7 +547,7 @@
         </div>
       </div>
 
-      <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+      <div class="md:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
         <div>
           <h4 class="text-sm font-bold text-white mb-2">Clinical Neuro-Endocrine Impact</h4>
           <p class="text-xs text-slate-300 leading-relaxed">
@@ -551,6 +562,7 @@
 
   </main>
 
+  <!-- ================= GLOBAL BMI MODAL ================= -->
   <div id="bmiModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
     <div class="bg-[#111625] border border-slate-700 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
       <div class="flex justify-between items-center mb-4">
@@ -590,6 +602,7 @@
     </div>
   </div>
 
+  <!-- ================= JAVASCRIPT ================= -->
   <script>
   let currentScannedCalories = 520;
   let currentScannedProtein = 36;
@@ -632,6 +645,7 @@
     loadPhenotypeDietSuggestions();
     loadExerciseRecommendation();
     loadSleepRecommendation();
+    loadUserMedications();
 
     const dropZone = document.getElementById('dropZone');
     if (dropZone) {
@@ -714,6 +728,7 @@
       tabStress.className = activeStyle;
     } else if (diet) {
       diet.classList.remove("hidden");
+      diet.classList.add("grid");
       tabDiet.className = activeStyle;
       fetchDietSummary();
       loadPhenotypeDietSuggestions();
@@ -1083,7 +1098,7 @@
     }
   }
 
-  // 4. MEDICATION & SUPPLEMENT FUNCTIONS
+  // ================= 4. DATASET-BACKED MEDICATION & AI OCR ENGINE =================
   async function loadUserMedications() {
     const userId = localStorage.getItem("user_id") || "1";
     try {
@@ -1102,7 +1117,7 @@
     if (!container) return;
 
     if (userMedicationsList.length === 0) {
-      container.innerHTML = `<p class="text-xs text-slate-500 py-6 text-center">No active medications logged. Add your prescription on the right.</p>`;
+      container.innerHTML = `<p class="text-xs text-slate-500 py-6 text-center">No active medications logged. Scan your prescription or add one from the right side.</p>`;
       if (document.getElementById("medAdherenceRate")) {
         document.getElementById("medAdherenceRate").innerText = "0% Protocol Compliance";
       }
@@ -1116,7 +1131,7 @@
 
       return `
         <div class="flex items-center justify-between p-3.5 bg-[#0B0F19] rounded-xl border border-slate-800 hover:border-slate-700 transition">
-          <div class="flex items-start gap-3 min-w-0 flex-1 pr-2">
+          <div class="flex items-start gap-3 min-w-0 flex-1 pr-3">
             <span class="text-xl p-2 bg-[#111625] rounded-xl border border-slate-800 shrink-0">${m.icon || '💊'}</span>
             <div class="min-w-0">
               <h4 class="text-xs font-bold text-white leading-tight truncate">${m.name}</h4>
@@ -1136,7 +1151,7 @@
               </button>`
             }
             
-            <button onclick="removeMedication(${m.id}, '${m.name}')" class="px-2.5 py-1.5 bg-rose-950/40 hover:bg-rose-900/80 text-rose-400 border border-rose-600/30 hover:border-rose-500 text-xs font-medium rounded-lg transition" title="Remove medication from daily list">
+            <button onclick="removeMedication(${m.id}, '${m.name}')" class="px-2.5 py-1.5 bg-rose-950/40 hover:bg-rose-900 text-rose-400 border border-rose-600/30 hover:border-rose-500 text-xs font-medium rounded-lg transition shadow-sm" title="Remove medication from your protocol">
               Remove
             </button>
           </div>
@@ -1147,6 +1162,22 @@
     const adherence = Math.round((takenCount / userMedicationsList.length) * 100);
     if (document.getElementById("medAdherenceRate")) {
       document.getElementById("medAdherenceRate").innerText = `${adherence}% Protocol Compliance`;
+    }
+  }
+
+  async function removeMedication(medId, medName) {
+    if (confirm(`Remove "${medName}" from your active daily protocol?`)) {
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/api/delete-medication/${medId}`, { method: "DELETE" });
+        if (res.ok) {
+          userMedicationsList = userMedicationsList.filter(m => m.id !== medId);
+          renderMedicationsList();
+        } else {
+          alert("Failed to delete medication from server.");
+        }
+      } catch (err) {
+        console.error("Error removing medication:", err);
+      }
     }
   }
 
@@ -1164,25 +1195,9 @@
     }
   }
 
-  async function removeMedication(medId, medName) {
-    if (confirm(`Remove "${medName}" from your active daily protocol?`)) {
-      try {
-        const res = await fetch(`http://127.0.0.1:8000/api/delete-medication/${medId}`, { method: "DELETE" });
-        if (res.ok) {
-          userMedicationsList = userMedicationsList.filter(m => m.id !== medId);
-          renderMedicationsList();
-        } else {
-          alert("Unable to remove medication. Please try again.");
-        }
-      } catch (err) {
-        console.error("Error deleting medication:", err);
-      }
-    }
-  }
-
   async function resetMedicationsDay() {
     const userId = localStorage.getItem("user_id") || "1";
-    if (confirm("Start a new day and reset all dose checkmarks?")) {
+    if (confirm("Start a new day and reset all daily doses to pending?")) {
       try {
         const res = await fetch(`http://127.0.0.1:8000/api/reset-medications-day/${userId}`, { method: "POST" });
         if (res.ok) {
@@ -1195,6 +1210,88 @@
     }
   }
 
+  // Neural OCR + CSV-Driven Fuzzy Text Recognizer
+  async function handleRxUpload(files) {
+    if (!files || !files[0]) return;
+    const file = files[0];
+    const nameInput = document.getElementById("inputMedName");
+    const dosageInput = document.getElementById("inputMedDosage");
+
+    nameInput.value = "AI Neural OCR scanning prescription...";
+    dosageInput.value = "Recognizing handwritten/printed text...";
+
+    try {
+      const ocrResult = await Tesseract.recognize(file, 'eng', {
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            dosageInput.value = `AI Reading text: ${Math.round(m.progress * 100)}%`;
+          }
+        }
+      });
+
+      const recognizedText = ocrResult.data.text || "";
+
+      const res = await fetch("http://127.0.0.1:8000/api/scan-prescription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: file.name,
+          extracted_text: recognizedText
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+
+        if (data.not_found || !data.name) {
+          nameInput.value = "";
+          dosageInput.value = "";
+          nameInput.placeholder = "e.g. Nostra CR, Metformin, Orofer...";
+          dosageInput.placeholder = "e.g. 10mg | Night (9:00 PM) After Meal";
+
+          alert(
+            `⚠️ No PMOS medication matched from this image.\n\n` +
+            `Extracted snippet:\n"${recognizedText.slice(0, 100).trim()}..."\n\n` +
+            `Please upload a valid prescription photo or enter the medication manually.`
+          );
+        } else {
+          nameInput.value = data.name;
+          dosageInput.value = data.dosage;
+
+          const timingSelect = document.getElementById("selectMedTiming");
+          const dosageLow = data.dosage.toLowerCase();
+          if (dosageLow.includes("night") || dosageLow.includes("bedtime") || dosageLow.includes("sleep")) {
+            timingSelect.value = "Before Sleep";
+          } else if (dosageLow.includes("dinner")) {
+            timingSelect.value = "With Dinner";
+          } else if (dosageLow.includes("morning & evening") || dosageLow.includes("twice")) {
+            timingSelect.value = "Morning & Evening";
+          } else if (dosageLow.includes("morning")) {
+            timingSelect.value = "Morning";
+          }
+
+          alert(
+            `🧠 AI Vision Scanner Extracted:\n\n` +
+            `Prescribed: ${data.name}\n` +
+            `Schedule: ${data.dosage}\n` +
+            `Purpose: ${data.purpose}\n` +
+            `Confidence: ${Math.round((data.confidence || 0.95) * 100)}%\n\n` +
+            `Click "Add to Protocol" to store.`
+          );
+        }
+      }
+    } catch (err) {
+      console.error("AI OCR Error:", err);
+      nameInput.value = "";
+      dosageInput.value = "";
+      alert("Error executing neural OCR. Please ensure the image is clear and well-lit.");
+    } finally {
+      const fileInput = document.getElementById("rxFileInput");
+      if (fileInput) fileInput.value = "";
+    }
+  }
+
+  // Dataset Autocomplete Search
   async function handleMedSearch(query) {
     const box = document.getElementById("medSuggestionsBox");
     if (!query || query.trim().length === 0) {
@@ -1270,56 +1367,6 @@
       }
     } catch (err) {
       console.error("Error adding medication:", err);
-    }
-  }
-
-  async function handleRxUpload(files) {
-    if (!files || !files[0]) return;
-    const file = files[0];
-
-    try {
-      const res = await fetch("http://127.0.0.1:8000/api/scan-prescription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filename: file.name, extracted_text: "" })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-
-        if (data.requires_selection || !data.name) {
-          const choices = [
-            "Metformin XR (500mg | With Dinner)",
-            "Myo-Inositol 40:1 (2000mg | Morning & Evening)",
-            "Spironolactone (50mg | Morning with Water)",
-            "Zinc Picolinate + Saw Palmetto (30mg | Midday)",
-            "Vitamin D3 + K2 (Morning with Food)",
-            "Magnesium Glycinate (300mg | Before Sleep)"
-          ];
-          const selection = prompt(
-            `📷 Prescription uploaded: "${file.name}"\n\nPlease select or type your prescribed medicine:\n` +
-            choices.map((c, i) => `${i + 1}. ${c}`).join("\n"),
-            "1"
-          );
-
-          if (selection) {
-            const idx = parseInt(selection) - 1;
-            if (idx >= 0 && idx < choices.length) {
-              const [selName, selDosage] = choices[idx].split(" (");
-              document.getElementById("inputMedName").value = selName.trim();
-              document.getElementById("inputMedDosage").value = selDosage.replace(")", "").trim();
-            } else {
-              document.getElementById("inputMedName").value = selection.trim();
-            }
-          }
-        } else {
-          document.getElementById("inputMedName").value = data.name;
-          document.getElementById("inputMedDosage").value = data.dosage;
-          alert(`📷 Detected from "${file.name}":\n\nPrescribed: ${data.name}\nSchedule: ${data.dosage}\n\nClick "Add to Protocol" to confirm.`);
-        }
-      }
-    } catch (err) {
-      console.error("Rx scan error:", err);
     }
   }
 

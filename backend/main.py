@@ -35,36 +35,48 @@ app.add_middleware(
 # ================= DATASET-DRIVEN CLINICAL KNOWLEDGE BASE =================
 DATASET_PATH = os.path.join(os.path.dirname(__file__), "pmos_medicines.csv")
 
-if os.path.exists(DATASET_PATH):
-    MED_DF = pd.read_csv(DATASET_PATH).fillna("")
-else:
-    # Emergency fallback schema if CSV is missing
-    MED_DF = pd.DataFrame(columns=[
+def load_medicine_dataset():
+    if os.path.exists(DATASET_PATH):
+        try:
+            return pd.read_csv(DATASET_PATH).fillna("")
+        except Exception as e:
+            print(f"Error loading pmos_medicines.csv: {e}")
+    return pd.DataFrame(columns=[
         "category", "generic_name", "brand_names", "default_dosage", "clinical_purpose", "icon"
     ])
 
-def build_search_corpus():
+MED_DF = load_medicine_dataset()
+
+def build_search_corpus(df: pd.DataFrame):
     corpus = []
-    for _, row in MED_DF.iterrows():
+    for _, row in df.iterrows():
+        gen_name = str(row.get("generic_name", "")).strip()
+        if not gen_name:
+            continue
+
         # 1. Map Generic Formulation
         corpus.append({
-            "term": row["generic_name"].lower(),
-            "display_name": f"{row['generic_name']}",
-            "data": row.to_dict()
+            "term": gen_name.lower(),
+            "display_name": gen_name,
+            "data": row.to_dict(),
+            "is_brand": False
         })
-        # 2. Map Every Commercial Trade/Brand Name (e.g. Nostra CR, Orofer XT, Glycomet)
-        if row["brand_names"]:
-            for brand in str(row["brand_names"]).split(";"):
-                clean_brand = brand.strip().lower()
+
+        # 2. Map Each Commercial Brand / Trade Name
+        brands = str(row.get("brand_names", ""))
+        if brands:
+            for brand in brands.split(";"):
+                clean_brand = brand.strip()
                 if clean_brand:
                     corpus.append({
-                        "term": clean_brand,
-                        "display_name": f"{brand.strip()} ({row['generic_name']})",
-                        "data": row.to_dict()
+                        "term": clean_brand.lower(),
+                        "display_name": f"{clean_brand} ({gen_name})",
+                        "data": row.to_dict(),
+                        "is_brand": True
                     })
     return corpus
 
-SEARCH_CORPUS = build_search_corpus()
+SEARCH_CORPUS = build_search_corpus(MED_DF)
 
 
 # ================= PYDANTIC SCHEMAS =================
@@ -337,7 +349,7 @@ def submit_health_log(data: schemas.HealthLogSchema, db: Session = Depends(get_d
     }
 
 
-# ================= PILLAR 1: DIET & DYNAMIC CALORIE SPLIT =================
+# ================= PILLAR 1: DIET & MEAL LOGS =================
 @app.post("/api/log-meal")
 def log_meal(data: schemas.MealLogCreate, db: Session = Depends(get_db)):
     new_meal = models.MealLog(
@@ -666,6 +678,7 @@ def get_medication_suggestions(query: str = ""):
     seen_generics = set()
 
     for item in SEARCH_CORPUS:
+        # Evaluate partial ratio score
         score = fuzz.partial_ratio(q, item["term"])
         if q in item["term"] or score >= 75:
             generic = item["data"]["generic_name"]
@@ -690,24 +703,43 @@ def scan_prescription(payload: ScanPrescriptionRequest):
     clean_text = re.sub(r'[^a-zA-Z0-9\s]', ' ', combined_text)
 
     best_match = None
-    highest_score = 0
+    highest_score = 0.0
 
-    # Match extracted OCR text against both generic and commercial brand records
+    # Multi-strategy fuzzy match against generic and brand dictionary
     for item in SEARCH_CORPUS:
-        if len(item["term"]) >= 4 and item["term"] in clean_text:
-            score = 100
-        else:
-            score = fuzz.partial_ratio(item["term"], clean_text)
+        term = item["term"]
+        if len(term) < 3:
+            continue
 
-        if score > highest_score and score >= 75:
+        # 1. Exact token containment (highest priority)
+        if term in clean_text:
+            score = 100.0
+        else:
+            # 2. Token set ratio (handles out-of-order words in tables)
+            token_score = fuzz.token_set_ratio(term, clean_text)
+            # 3. Partial ratio (handles fragmented OCR substrings)
+            partial_score = fuzz.partial_ratio(term, clean_text)
+            score = max(token_score, partial_score)
+
+        if score > highest_score and score >= 70.0:
             highest_score = score
             best_match = item
 
     if best_match:
         data = best_match["data"]
+        dosage = data["default_dosage"]
+
+        # Dynamic Schedule Extraction: check if specific prescription times were read
+        if any(w in clean_text for w in ["0 0 1", "0-0-1", "night", "9 pm", "bedtime"]):
+            if "night" not in dosage.lower():
+                dosage = f"{dosage.split('|')[0].strip()} | Night (After Meal)"
+        elif any(w in clean_text for w in ["1 0 0", "1-0-0", "morning"]):
+            if "morning" not in dosage.lower():
+                dosage = f"{dosage.split('|')[0].strip()} | Morning (After Meal)"
+
         return {
             "name": f"{best_match['display_name']}",
-            "dosage": data["default_dosage"],
+            "dosage": dosage,
             "purpose": data["clinical_purpose"],
             "category": data["category"],
             "icon": data["icon"],
@@ -734,7 +766,7 @@ def get_user_medications(user_id: int, db: Session = Depends(get_db)):
         seed_defaults = [
             ("Myo-Inositol & D-Chiro-Inositol", "2000mg | Morning & Evening", "Restores oocyte quality & insulin receptor binding", "🧬", True),
             ("Metformin XR", "500mg | With Dinner", "Reduces hepatic gluconeogenesis", "💊", False),
-            ("Vitamin D3 (5000 IU) + K2", "Morning with Healthy Fat", "Follicular maturation support", "☀️", True)
+            ("Vitamin D3 (5000 IU) + K2", "60000 IU weekly or 2000 IU daily with meal", "Follicular maturation support", "☀️", True)
         ]
         for name, dose, purp, ico, taken in seed_defaults:
             db.add(models.MedicationLog(
