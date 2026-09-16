@@ -108,10 +108,10 @@
       <button id="tabPillarSleep" onclick="switchPillarTab('sleep')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
         🛌 Sleep & Recovery
       </button>
-      <button id="tabPillarMeds" onclick="switchPillarTab('meds')" class="bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm">
+      <button id="tabPillarMeds" onclick="switchPillarTab('meds')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
         💊 Medicine & Supplements
       </button>
-      <button id="tabPillarStress" onclick="switchPillarTab('stress')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
+      <button id="tabPillarStress" onclick="switchPillarTab('stress')" class="bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm">
         🧠 Stress Reset (4-7-8)
       </button>
     </div>
@@ -444,7 +444,7 @@
     </div>
 
     <!-- ================= 4. MEDICINE & SUPPLEMENTS TAB CONTAINER ================= -->
-    <div id="pillarMedsContainer" class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+    <div id="pillarMedsContainer" class="hidden grid-cols-1 md:grid-cols-12 gap-5 items-start">
       
       <!-- LEFT COLUMN -->
       <div class="md:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
@@ -524,40 +524,84 @@
 
     </div>
 
-    <!-- ================= 5. STRESS RESET (4-7-8 BREATHING) ================= -->
-    <div id="pillarStressContainer" class="hidden grid-cols-1 md:grid-cols-12 gap-5 items-start">
-      <div class="md:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center text-center space-y-5">
-        <div>
-          <h3 class="text-base font-bold text-white">4-7-8 Vagus Nerve Breathing Reset</h3>
-          <p class="text-xs text-slate-400 mt-1">Direct parasympathetic activation to decrease acute adrenal cortisol release.</p>
+    <!-- ================= 5. STRESS RESET (INTERACTIVE NEURO-ENDOCRINE) ================= -->
+    <div id="pillarStressContainer" class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+      
+      <!-- Left Column: Breathing Visualizer & Technique Selector (7 cols) -->
+      <div class="md:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center text-center space-y-4">
+        
+        <div class="w-full flex justify-between items-center pb-2 border-b border-slate-800/80">
+          <div class="text-left">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🧠</span> Parasympathetic Vagus Reset
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">Direct neurological intervention to dampen acute HPA-axis cortisol spikes.</p>
+          </div>
+          
+          <!-- Technique Selector -->
+          <select id="selectStressTechnique" onchange="switchBreathingTechnique(this.value)" class="bg-[#0B0F19] border border-slate-700 text-indigo-300 font-semibold text-xs px-3 py-1.5 rounded-xl focus:outline-none focus:border-indigo-500">
+            <option value="4-7-8">4-7-8 Vagus Reset</option>
+            <option value="box">Box Breathing (4-4-4-4)</option>
+            <option value="sigh">Physiological Sigh</option>
+          </select>
         </div>
 
-        <div id="breathingCircle" class="w-36 h-36 rounded-full border-4 border-indigo-500 bg-indigo-500/10 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_25px_rgba(99,102,241,0.3)]">
-          <span id="breathingAction" class="text-sm font-bold text-white">Ready</span>
-          <span id="breathingTimer" class="text-2xl font-black text-indigo-400">4s</span>
+        <!-- Dynamic Animated Circle -->
+        <div class="py-4">
+          <div id="breathingCircle" class="w-40 h-40 rounded-full border-4 border-indigo-500 bg-indigo-500/10 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_25px_rgba(99,102,241,0.25)]">
+            <span id="breathingAction" class="text-xs font-bold uppercase tracking-wider text-slate-300">Ready</span>
+            <span id="breathingTimer" class="text-3xl font-black text-indigo-400 mt-1">4s</span>
+          </div>
         </div>
 
-        <div class="flex gap-3">
-          <button onclick="startBreathingExercise()" id="breathingStartBtn" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition shadow-md shadow-indigo-600/20">
+        <!-- Action Controls -->
+        <div class="flex gap-3 w-full max-w-xs justify-center">
+          <button onclick="startBreathingExercise()" id="breathingStartBtn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition shadow-md shadow-indigo-600/25">
             Start 2-Min Reset
           </button>
-          <button onclick="stopBreathingExercise()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl transition">
+          <button onclick="stopBreathingExercise()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl transition">
             Stop
           </button>
         </div>
+
+        <!-- Complete & Sync Button -->
+        <button onclick="completeStressSession()" id="btnSyncStressSession" class="w-full py-2.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2">
+          <span>✓</span> Complete & Boost Stability Index (+5 pts)
+        </button>
       </div>
 
-      <div class="md:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
+      <!-- Right Column: Cortisol Markers & Clinical Context (5 cols) -->
+      <div class="md:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
         <div>
-          <h4 class="text-sm font-bold text-white mb-2">Clinical Neuro-Endocrine Impact</h4>
-          <p class="text-xs text-slate-300 leading-relaxed">
-            Deep diaphragmatic exhalations stimulate the vagus nerve, reducing heart rate variability strain and dampening the HPA-axis to prevent androgen spikes.
+          <h4 class="text-sm font-bold text-white flex items-center gap-2 mb-1">
+            <span>⚡</span> Current Stress & Cortisol Symptoms
+          </h4>
+          <p class="text-xs text-slate-400 mb-3">Tag any symptoms you feel right now to log with your Digital Twin:</p>
+
+          <!-- Interactive Symptom Tag Grid -->
+          <div class="flex flex-wrap gap-2" id="stressSymptomTags">
+            <button type="button" onclick="toggleSymptomTag(this, 'Brain Fog')" class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">🧠 Brain Fog</button>
+            <button type="button" onclick="toggleSymptomTag(this, 'Heart Racing')" class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">⚡ Heart Racing</button>
+            <button type="button" onclick="toggleSymptomTag(this, 'Sugar Cravings')" class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">🍩 Sugar Cravings</button>
+            <button type="button" onclick="toggleSymptomTag(this, 'Low Mood')" class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">💥 Low Mood / Irritable</button>
+            <button type="button" onclick="toggleSymptomTag(this, 'Wired but Tired')" class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">🥱 Wired but Tired</button>
+          </div>
+        </div>
+
+        <!-- Clinical Endocrine Explanation -->
+        <div class="p-3.5 bg-[#0B0F19] rounded-xl border border-slate-800 text-xs space-y-1.5">
+          <p class="font-bold text-indigo-300">Clinical Mechanism:</p>
+          <p class="text-slate-300 leading-relaxed text-[11px]" id="techniqueClinicalNote">
+            Deep diaphragmatic exhalations stimulate the vagus nerve, immediately slowing cardiac output and blunting adrenal DHEA-S & cortisol surges that exacerbate insulin resistance.
           </p>
         </div>
-        <div class="p-3 bg-purple-950/30 border border-purple-500/30 rounded-xl text-xs text-purple-200 mt-4">
-          <span class="font-bold text-purple-300">Recommended Window:</span> Practice 5 minutes post-lunch or directly before sleeping.
+
+        <!-- Cycle / Routine Window -->
+        <div class="p-3 bg-purple-950/30 border border-purple-500/30 rounded-xl text-xs text-purple-200">
+          <span class="font-bold text-purple-300">Target Window:</span> Practice 5 minutes post-lunch or directly before sleep to prevent nocturnal cortisol peaks.
         </div>
       </div>
+
     </div>
 
   </main>
@@ -614,6 +658,10 @@
   let currentWorkoutTitle = "Daily Workout";
   let userMedicationsList = [];
   let isSidebarCollapsed = false;
+
+  // Stress State Variables
+  let selectedSymptoms = [];
+  let currentBreathingTechnique = "4-7-8";
   let breathingInterval = null;
 
   function toggleSidebar() {
@@ -735,7 +783,7 @@
     }
   }
 
-  // 1. DIET FUNCTIONS
+  // ================= 1. DIET FUNCTIONS =================
   function handleFileSelect(files) {
     if (files && files[0]) {
       const file = files[0];
@@ -960,7 +1008,7 @@
     }
   }
 
-  // 2. EXERCISE FUNCTIONS
+  // ================= 2. EXERCISE FUNCTIONS =================
   async function loadExerciseRecommendation() {
     const userId = localStorage.getItem("user_id") || "1";
     try {
@@ -1051,7 +1099,7 @@
     }
   }
 
-  // 3. SLEEP FUNCTIONS
+  // ================= 3. SLEEP FUNCTIONS =================
   async function loadSleepRecommendation() {
     const userId = localStorage.getItem("user_id") || "1";
     try {
@@ -1370,21 +1418,57 @@
     }
   }
 
-  // 5. STRESS 4-7-8 ENGINE
+  // ================= 5. ENHANCED STRESS & VAGUS ENGINE =================
+  function toggleSymptomTag(btn, tag) {
+    const idx = selectedSymptoms.indexOf(tag);
+    if (idx > -1) {
+      selectedSymptoms.splice(idx, 1);
+      btn.classList.remove("border-indigo-500", "bg-indigo-950/60", "text-indigo-300");
+      btn.classList.add("border-slate-800", "bg-[#0B0F19]", "text-slate-400");
+    } else {
+      selectedSymptoms.push(tag);
+      btn.classList.remove("border-slate-800", "bg-[#0B0F19]", "text-slate-400");
+      btn.classList.add("border-indigo-500", "bg-indigo-950/60", "text-indigo-300");
+    }
+  }
+
+  function switchBreathingTechnique(tech) {
+    stopBreathingExercise();
+    currentBreathingTechnique = tech;
+    const note = document.getElementById("techniqueClinicalNote");
+    
+    if (tech === "box") {
+      note.innerText = "Box Breathing (4s Inhale, 4s Hold, 4s Exhale, 4s Hold) stabilizes autonomic reactivity and improves heart rate variability (HRV).";
+    } else if (tech === "sigh") {
+      note.innerText = "The Physiological Sigh (two quick inhales through the nose followed by a long mouth exhale) reinflates alveoli and triggers rapid parasympathetic calm.";
+    } else {
+      note.innerText = "4-7-8 breathing maximizes blood oxygen saturation while long exhalations trigger acetylcholine release via the vagus nerve to reduce adrenal strain.";
+    }
+  }
+
   function startBreathingExercise() {
     stopBreathingExercise();
     const circle = document.getElementById("breathingCircle");
     const action = document.getElementById("breathingAction");
     const timer = document.getElementById("breathingTimer");
     const startBtn = document.getElementById("breathingStartBtn");
-    startBtn.disabled = true;
+    if (startBtn) startBtn.disabled = true;
 
+    if (currentBreathingTechnique === "box") {
+      runBoxBreathing(circle, action, timer);
+    } else if (currentBreathingTechnique === "sigh") {
+      runPhysiologicalSigh(circle, action, timer);
+    } else {
+      run478Breathing(circle, action, timer);
+    }
+  }
+
+  function run478Breathing(circle, action, timer) {
     let stage = 0;
     let count = 4;
-
     action.innerText = "Inhale (Nose)";
     timer.innerText = `${count}s`;
-    circle.className = "w-44 h-44 rounded-full border-4 border-emerald-500 bg-emerald-500/20 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_35px_rgba(16,185,129,0.5)]";
+    circle.className = "w-48 h-48 rounded-full border-4 border-emerald-500 bg-emerald-500/20 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_35px_rgba(16,185,129,0.5)]";
 
     breathingInterval = setInterval(() => {
       count--;
@@ -1393,15 +1477,74 @@
         if (stage === 0) {
           count = 4;
           action.innerText = "Inhale (Nose)";
-          circle.className = "w-44 h-44 rounded-full border-4 border-emerald-500 bg-emerald-500/20 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_35px_rgba(16,185,129,0.5)]";
+          circle.className = "w-48 h-48 rounded-full border-4 border-emerald-500 bg-emerald-500/20 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_35px_rgba(16,185,129,0.5)]";
         } else if (stage === 1) {
           count = 7;
-          action.innerText = "Hold Breath";
-          circle.className = "w-44 h-44 rounded-full border-4 border-amber-500 bg-amber-500/20 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_35px_rgba(245,158,11,0.5)]";
+          action.innerText = "Hold";
+          circle.className = "w-48 h-48 rounded-full border-4 border-amber-500 bg-amber-500/20 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_35px_rgba(245,158,11,0.5)]";
         } else if (stage === 2) {
           count = 8;
           action.innerText = "Exhale (Mouth)";
-          circle.className = "w-32 h-32 rounded-full border-4 border-indigo-500 bg-indigo-500/10 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_20px_rgba(99,102,241,0.3)]";
+          circle.className = "w-36 h-36 rounded-full border-4 border-indigo-500 bg-indigo-500/10 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_20px_rgba(99,102,241,0.3)]";
+        }
+      }
+      timer.innerText = `${count}s`;
+    }, 1000);
+  }
+
+  function runBoxBreathing(circle, action, timer) {
+    let stage = 0;
+    let count = 4;
+    action.innerText = "Inhale";
+    timer.innerText = `${count}s`;
+    circle.className = "w-48 h-48 rounded-full border-4 border-cyan-500 bg-cyan-500/20 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_30px_rgba(6,182,212,0.4)]";
+
+    breathingInterval = setInterval(() => {
+      count--;
+      if (count <= 0) {
+        stage = (stage + 1) % 4;
+        count = 4;
+        if (stage === 0) {
+          action.innerText = "Inhale";
+          circle.className = "w-48 h-48 rounded-full border-4 border-cyan-500 bg-cyan-500/20 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_30px_rgba(6,182,212,0.4)]";
+        } else if (stage === 1) {
+          action.innerText = "Hold";
+          circle.className = "w-48 h-48 rounded-full border-4 border-amber-500 bg-amber-500/20 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_30px_rgba(245,158,11,0.4)]";
+        } else if (stage === 2) {
+          action.innerText = "Exhale";
+          circle.className = "w-36 h-36 rounded-full border-4 border-indigo-500 bg-indigo-500/10 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_20px_rgba(99,102,241,0.3)]";
+        } else {
+          action.innerText = "Hold Empty";
+          circle.className = "w-36 h-36 rounded-full border-4 border-slate-600 bg-slate-800/20 flex flex-col items-center justify-center transition-all duration-1000";
+        }
+      }
+      timer.innerText = `${count}s`;
+    }, 1000);
+  }
+
+  function runPhysiologicalSigh(circle, action, timer) {
+    let stage = 0;
+    let count = 3;
+    action.innerText = "Deep Inhale";
+    timer.innerText = `${count}s`;
+    circle.className = "w-44 h-44 rounded-full border-4 border-emerald-500 bg-emerald-500/20 flex flex-col items-center justify-center transition-all duration-700";
+
+    breathingInterval = setInterval(() => {
+      count--;
+      if (count <= 0) {
+        stage = (stage + 1) % 3;
+        if (stage === 0) {
+          count = 3;
+          action.innerText = "Deep Inhale";
+          circle.className = "w-44 h-44 rounded-full border-4 border-emerald-500 bg-emerald-500/20 flex flex-col items-center justify-center transition-all duration-700";
+        } else if (stage === 1) {
+          count = 1;
+          action.innerText = "+ Sniff Inhale";
+          circle.className = "w-52 h-52 rounded-full border-4 border-teal-400 bg-teal-400/30 flex flex-col items-center justify-center transition-all duration-300";
+        } else {
+          count = 6;
+          action.innerText = "Long Exhale";
+          circle.className = "w-36 h-36 rounded-full border-4 border-indigo-500 bg-indigo-500/10 flex flex-col items-center justify-center transition-all duration-1000";
         }
       }
       timer.innerText = `${count}s`;
@@ -1417,10 +1560,49 @@
     if (startBtn) startBtn.disabled = false;
     if (action) action.innerText = "Ready";
     if (timer) timer.innerText = "4s";
-    if (circle) circle.className = "w-36 h-36 rounded-full border-4 border-indigo-500 bg-indigo-500/10 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_25px_rgba(99,102,241,0.3)]";
+    if (circle) circle.className = "w-40 h-40 rounded-full border-4 border-indigo-500 bg-indigo-500/10 flex flex-col items-center justify-center transition-all duration-1000 shadow-[0_0_25px_rgba(99,102,241,0.25)]";
   }
 
-  // 6. BMI UPDATE
+  async function completeStressSession() {
+    stopBreathingExercise();
+    const userId = localStorage.getItem("user_id") || "1";
+    const btn = document.getElementById("btnSyncStressSession");
+    if (btn) { btn.innerText = "Syncing with Digital Twin..."; btn.disabled = true; }
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/log-stress-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: parseInt(userId),
+          technique: currentBreathingTechnique,
+          duration_mins: 2,
+          symptoms: selectedSymptoms
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const scoreEl = document.getElementById("scoreDisplay");
+        if (scoreEl) scoreEl.innerText = data.new_stability_score;
+
+        alert(`🌿 Session Logged!\n\n${data.message}\nYour Stability Index is now ${data.new_stability_score}.`);
+
+        if (btn) {
+          btn.innerHTML = "<span>✓</span> Session Completed Today (+5 pts)";
+          btn.className = "w-full py-2.5 bg-emerald-950 text-emerald-300 border border-emerald-500/40 font-bold text-xs rounded-xl cursor-not-allowed";
+        }
+      }
+    } catch (err) {
+      console.error("Stress session log error:", err);
+      if (btn) {
+        btn.innerHTML = "<span>✓</span> Complete & Boost Stability Index (+5 pts)";
+        btn.disabled = false;
+      }
+    }
+  }
+
+  // ================= 6. BMI UPDATE =================
   async function submitBmiUpdate(event) {
     event.preventDefault();
     const userId = localStorage.getItem("user_id") || "1";

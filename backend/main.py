@@ -186,7 +186,21 @@ def login(credentials: schemas.LoginSchema, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == credentials.email).first()
     if not user or user.password_hash != credentials.password:
         raise HTTPException(status_code=400, detail="Invalid credentials")
-    return {"access_token": "sample_token_xyz", "user_id": user.id, "full_name": user.full_name}
+    
+    # Check if the user has completed the intake assessment
+    assessment = (
+        db.query(models.IntakeAssessment)
+        .filter(models.IntakeAssessment.user_id == user.id)
+        .first()
+    )
+    has_assessed = assessment is not None
+
+    return {
+        "access_token": "sample_token_xyz",
+        "user_id": user.id,
+        "full_name": user.full_name,
+        "has_assessed": has_assessed
+    }
 
 
 # ================= USER PROFILE & TELEMETRY =================
