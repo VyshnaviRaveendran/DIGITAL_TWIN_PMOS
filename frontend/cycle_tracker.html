@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Twin Health - Cycle & Ovulation Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .sidebar-label { display: block; }
+    .sidebar-collapsed .sidebar-label { display: none !important; }
+  </style>
+  <script>
+    const token = localStorage.getItem("user_token");
+    const userId = localStorage.getItem("user_id");
+    if (!token || !userId) {
+      window.location.href = "login.html";
+    }
+  </script>
+</head>
+<body class="bg-[#0B0F19] text-slate-100 font-sans h-screen flex overflow-hidden selection:bg-indigo-500 selection:text-white">
+
+  <!-- ================= UNIFIED SIDEBAR ================= -->
+  <aside id="sidebar" class="w-64 bg-[#111625] border-r border-slate-800 flex flex-col justify-between p-5 h-full shrink-0 transition-all duration-300 relative z-30">
+    <button onclick="toggleSidebar()" id="sidebarToggleBtn" class="absolute -right-3.5 top-7 w-7 h-7 bg-[#181F32] border border-slate-700 hover:border-indigo-500 text-indigo-300 rounded-full flex items-center justify-center text-xs shadow-md transition hover:scale-110 z-50">
+      ◀
+    </button>
+    <div>
+      <div onclick="window.location.href='dashboard.html'" class="flex items-center gap-3.5 mb-8 p-2 -m-2 rounded-xl hover:bg-slate-800/60 cursor-pointer transition group" title="Return to Dashboard">
+        <div id="sideAvatarBadge" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-extrabold text-white text-sm shadow-lg shadow-indigo-500/20 group-hover:scale-105 shrink-0 transition-transform">
+          👤
+        </div>
+        <div class="overflow-hidden sidebar-label">
+          <h1 id="sideUserName" class="font-bold text-sm text-white leading-tight truncate">User Account</h1>
+          <p id="sideUserEmail" class="text-xs text-slate-400 truncate">user@example.com</p>
+        </div>
+      </div>
+      <nav class="space-y-2">
+        <button onclick="window.location.href='dashboard.html'" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">❖</span> <span class="sidebar-label truncate">Digital Twin</span>
+        </button>
+        <button onclick="window.location.href='five_pillars.html'" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">🏛️</span> <span class="sidebar-label truncate">5 Pillars</span>
+        </button>
+        <button class="w-full flex items-center gap-3.5 px-4 py-2.5 bg-purple-600/20 text-purple-300 border border-purple-500/30 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">🌸</span> <span class="sidebar-label truncate">Cycle Tracker</span>
+        </button>
+      </nav>
+    </div>
+    <div class="space-y-3">
+      <div class="bg-[#181F32] border border-slate-800 rounded-2xl p-3.5 text-center sidebar-label">
+        <div class="flex items-center justify-center gap-2 text-xs text-slate-400 mb-1.5">
+          <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span> Monitored
+        </div>
+        <div id="sidebarPhaseDisplay" class="text-xs font-extrabold text-purple-300 my-1 truncate">
+          Follicular Phase
+        </div>
+        <p class="text-[11px] text-slate-400">Cycle Status</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="flex-1 px-8 py-6 overflow-y-auto h-full flex flex-col space-y-6">
+    
+    <!-- Header -->
+    <header class="flex justify-between items-center shrink-0">
+      <div>
+        <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+          <span>🌸</span> Cycle & Ovulation Tracker
+        </h2>
+        <p class="text-xs text-slate-400 mt-0.5">Track phase telemetry, calculate fertility windows, and log symptoms</p>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <button onclick="resetCycleData()" class="px-3.5 py-2 bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/40 text-rose-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+          <span>🔄</span> Reset Cycle Data
+        </button>
+        <button onclick="window.location.href='dashboard.html'" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-xl transition">
+          ← Back to Dashboard
+        </button>
+      </div>
+    </header>
+
+    <!-- Cycle Summary Metrics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+      <div class="bg-[#111625] border border-slate-800 rounded-2xl p-4">
+        <p class="text-[10px] uppercase font-bold text-slate-400">Current Phase</p>
+        <p id="valPhase" class="text-base font-extrabold text-purple-400 mt-1 truncate">Follicular Phase</p>
+      </div>
+      <div class="bg-[#111625] border border-slate-800 rounded-2xl p-4">
+        <p class="text-[10px] uppercase font-bold text-slate-400">Cycle Day</p>
+        <p id="valCycleDay" class="text-base font-extrabold text-indigo-400 mt-1">Day --</p>
+      </div>
+      <div class="bg-[#111625] border border-slate-800 rounded-2xl p-4">
+        <p class="text-[10px] uppercase font-bold text-slate-400">Estimated Ovulation</p>
+        <p id="valOvulation" class="text-base font-extrabold text-amber-400 mt-1">--</p>
+      </div>
+      <div class="bg-[#111625] border border-slate-800 rounded-2xl p-4">
+        <p class="text-[10px] uppercase font-bold text-slate-400">Next Expected Period</p>
+        <p id="valNextPeriod" class="text-base font-extrabold text-rose-400 mt-1">--</p>
+      </div>
+    </div>
+
+    <!-- Recommendations Banner -->
+    <div class="bg-[#111625] border border-purple-500/30 rounded-2xl p-4 shrink-0">
+      <p class="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+        <span>💡</span> Biological Phase Recommendations
+      </p>
+      <p id="valGuidance" class="text-xs text-slate-300 mt-1 leading-relaxed">
+        Log your last period start date to calculate personalized fertility and phase recommendations.
+      </p>
+    </div>
+
+    <!-- Two Column Grid: Form on Left, History Table on Right -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start flex-1">
+      
+      <!-- LEFT: Entry Form -->
+      <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <h3 class="text-sm font-bold text-white">Log New Cycle Entry</h3>
+        <form id="cycleForm" onsubmit="submitCycleLog(event)" class="space-y-3.5 text-xs">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Period Start Date</label>
+            <input type="date" id="inputStartDate" required class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-300 font-medium mb-1">Average Cycle Length (Days)</label>
+              <input type="number" id="inputCycleLength" value="28" min="20" max="45" required class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500">
+            </div>
+            <div>
+              <label class="block text-slate-300 font-medium mb-1">Flow Intensity</label>
+              <select id="selectFlow" class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500">
+                <option value="Light">Light</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="Heavy">Heavy</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Symptom Notes (Optional)</label>
+            <textarea id="inputNotes" rows="3" placeholder="Cramps, mood shifts, energy levels..." class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-purple-500"></textarea>
+          </div>
+          <button type="submit" id="btnSaveCycle" class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs rounded-xl transition shadow-lg shadow-purple-600/20">
+            Save Cycle Log
+          </button>
+        </form>
+      </div>
+
+      <!-- RIGHT: Logged Previous Periods Table -->
+      <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <span>📅</span> Previous Period History
+          </h3>
+          <span id="historyCountBadge" class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2.5 py-0.5 rounded-full">
+            0 Logged
+          </span>
+        </div>
+        <div class="overflow-x-auto max-h-72 overflow-y-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-[#0B0F19] text-[10px] text-slate-400 uppercase font-semibold sticky top-0 border-b border-slate-800">
+              <tr>
+                <th class="py-2.5 px-3">Start Date</th>
+                <th class="py-2.5 px-3">Cycle Length</th>
+                <th class="py-2.5 px-3">Flow</th>
+                <th class="py-2.5 px-3">Notes</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody" class="divide-y divide-slate-800/60 bg-[#111625]">
+              <tr>
+                <td colspan="4" class="py-6 text-center text-slate-500 text-xs">No previous periods logged yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ================= JAVASCRIPT ================= -->
+  <script>
+  const API_BASE = "http://127.0.0.1:8000";
+  let isSidebarCollapsed = false;
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("sidebarToggleBtn");
+    isSidebarCollapsed = !isSidebarCollapsed;
+    if (isSidebarCollapsed) {
+      sidebar.classList.remove("w-64");
+      sidebar.classList.add("w-20", "items-center", "sidebar-collapsed");
+      if (toggleBtn) toggleBtn.innerText = "▶";
+    } else {
+      sidebar.classList.remove("w-20", "items-center");
+      sidebar.classList.add("w-64");
+      if (toggleBtn) toggleBtn.innerText = "◀";
+    }
+  }
+
+  function getCleanUserId() {
+    const raw = localStorage.getItem("user_id");
+    return raw ? parseInt(raw, 10) : null;
+  }
+
+  document.addEventListener("DOMContentLoaded", async function() {
+    const fullName = localStorage.getItem("full_name") || "User Account";
+    const email = localStorage.getItem("user_email") || "user@example.com";
+    if (document.getElementById("sideUserName")) document.getElementById("sideUserName").innerText = fullName;
+    if (document.getElementById("sideUserEmail")) document.getElementById("sideUserEmail").innerText = email;
+
+    await loadTrackerSummary();
+    await loadCycleHistory();
+  });
+
+  async function loadTrackerSummary() {
+    const userId = getCleanUserId();
+    if (!userId) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/cycle-tracker/${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.has_logged) {
+          document.getElementById("valPhase").innerText = data.current_phase || "Follicular Phase";
+          document.getElementById("valCycleDay").innerText = `Day ${data.cycle_day || 1}`;
+          document.getElementById("valOvulation").innerText = data.estimated_ovulation || "--";
+          document.getElementById("valNextPeriod").innerText = data.next_period_date || "--";
+          document.getElementById("valGuidance").innerText = data.guidance || "";
+          
+          const sidePhase = document.getElementById("sidebarPhaseDisplay");
+          if (sidePhase) sidePhase.innerText = data.current_phase || "Monitored";
+        }
+      }
+    } catch (err) {
+      console.error("Tracker summary fetch error:", err);
+    }
+  }
+
+ async function loadCycleHistory() {
+    const userId = getCleanUserId();
+    if (!userId) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/cycle-history/${userId}`);
+      const tableBody = document.getElementById("historyTableBody");
+      const badge = document.getElementById("historyCountBadge");
+
+      if (res.ok) {
+        const rawHistory = await res.json();
+
+        // Filter out duplicate dates on frontend display
+        const uniqueHistory = [];
+        const seenDates = new Set();
+
+        for (const item of rawHistory) {
+          if (!seenDates.has(item.period_start_date)) {
+            seenDates.add(item.period_start_date);
+            uniqueHistory.push(item);
+          }
+        }
+
+        if (badge) badge.innerText = `${uniqueHistory.length} Logged`;
+
+        if (!uniqueHistory || uniqueHistory.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-500 text-xs">No previous periods logged yet.</td></tr>`;
+          return;
+        }
+
+        tableBody.innerHTML = uniqueHistory.map(item => `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-2.5 px-3 font-semibold text-purple-300">${item.period_start_date}</td>
+            <td class="py-2.5 px-3 text-slate-300">${item.cycle_length_days} Days</td>
+            <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-950 text-purple-300 border border-purple-500/30">${item.flow_intensity}</span></td>
+            <td class="py-2.5 px-3 text-slate-400 truncate max-w-[150px]">${item.notes}</td>
+          </tr>
+        `).join("");
+      }
+    } catch (err) {
+      console.error("Cycle history fetch error:", err);
+    }
+  }
+
+  
+async function submitCycleLog(event) {
+    event.preventDefault();
+    const userId = getCleanUserId();
+    if (!userId) return;
+
+    const startDate = document.getElementById("inputStartDate").value;
+    const cycleLen = parseInt(document.getElementById("inputCycleLength").value, 10);
+    const flow = document.getElementById("selectFlow").value;
+    const notes = document.getElementById("inputNotes").value;
+
+    if (!startDate) {
+      alert("Please select a valid period start date.");
+      return;
+    }
+
+    const btn = document.getElementById("btnSaveCycle");
+    if (btn) {
+      btn.innerText = "Syncing Log...";
+      btn.disabled = true;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/log-cycle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          period_start_date: startDate,
+          cycle_length_days: cycleLen,
+          flow_intensity: flow,
+          notes: notes
+        })
+      });
+
+      if (res.ok) {
+        document.getElementById("inputNotes").value = "";
+        
+        // Re-fetch both summary metrics and table history
+        await loadTrackerSummary();
+        await loadCycleHistory();
+
+        alert("Period entry logged successfully!");
+      } else {
+        alert("Failed to save entry. Check backend logs.");
+      }
+    } catch (err) {
+      console.error("Cycle submit error:", err);
+      alert("Network error saving cycle log.");
+    } finally {
+      if (btn) {
+        btn.innerText = "Save Cycle Log";
+        btn.disabled = false;
+      }
+    }
+  }
+  async function resetCycleData() {
+    const userId = getCleanUserId();
+    if (!userId) return;
+
+    if (confirm("Are you sure you want to clear all logged period data?")) {
+      try {
+        const res = await fetch(`${API_BASE}/api/reset-cycle/${userId}`, { method: "POST" });
+        if (res.ok) {
+          await loadTrackerSummary();
+          await loadCycleHistory();
+          alert("All cycle records have been reset.");
+        }
+      } catch (err) {
+        console.error("Cycle reset error:", err);
+      }
+    }
+  }
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Twin Health - Cycle & Ovulation Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .sidebar-label { display: block; }
+    .sidebar-collapsed .sidebar-label { display: none !important; }
+  </style>
+  <script>
+    const token = localStorage.getItem("user_token");
+    const userId = localStorage.getItem("user_id");
+    if (!token || !userId) {
+      window.location.href = "login.html";
+    }
+  </script>
+</head>
+<body class="bg-[#0B0F19] text-slate-100 font-sans h-screen flex overflow-hidden selection:bg-indigo-500 selection:text-white">
+
+  <!-- ================= UNIFIED SIDEBAR ================= -->
+  <aside id="sidebar" class="w-64 bg-[#111625] border-r border-slate-800 flex flex-col justify-between p-5 h-full shrink-0 transition-all duration-300 relative z-30">
+    <button onclick="toggleSidebar()" id="sidebarToggleBtn" class="absolute -right-3.5 top-7 w-7 h-7 bg-[#181F32] border border-slate-700 hover:border-indigo-500 text-indigo-300 rounded-full flex items-center justify-center text-xs shadow-md transition hover:scale-110 z-50">
+      ◀
+    </button>
+    <div>
+      <div onclick="window.location.href='dashboard.html'" class="flex items-center gap-3.5 mb-8 p-2 -m-2 rounded-xl hover:bg-slate-800/60 cursor-pointer transition group" title="Return to Dashboard">
+        <div id="sideAvatarBadge" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-extrabold text-white text-sm shadow-lg shadow-indigo-500/20 group-hover:scale-105 shrink-0 transition-transform">
+          👤
+        </div>
+        <div class="overflow-hidden sidebar-label">
+          <h1 id="sideUserName" class="font-bold text-sm text-white leading-tight truncate">User Account</h1>
+          <p id="sideUserEmail" class="text-xs text-slate-400 truncate">user@example.com</p>
+        </div>
+      </div>
+      <nav class="space-y-2">
+        <button onclick="window.location.href='dashboard.html'" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">❖</span> <span class="sidebar-label truncate">Digital Twin</span>
+        </button>
+        <button onclick="window.location.href='five_pillars.html'" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">🏛️</span> <span class="sidebar-label truncate">5 Pillars</span>
+        </button>
+        <button class="w-full flex items-center gap-3.5 px-4 py-2.5 bg-purple-600/20 text-purple-300 border border-purple-500/30 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">🌸</span> <span class="sidebar-label truncate">Cycle Tracker</span>
+        </button>
+      </nav>
+    </div>
+    <div class="space-y-3">
+      <div class="bg-[#181F32] border border-slate-800 rounded-2xl p-3.5 text-center sidebar-label">
+        <div class="flex items-center justify-center gap-2 text-xs text-slate-400 mb-1.5">
+          <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span> Monitored
+        </div>
+        <div id="sidebarPhaseDisplay" class="text-xs font-extrabold text-purple-300 my-1 truncate">
+          Follicular Phase
+        </div>
+        <p class="text-[11px] text-slate-400">Cycle Status</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="flex-1 px-8 py-6 overflow-y-auto h-full flex flex-col space-y-6">
+    
+    <!-- Header -->
+    <header class="flex justify-between items-center shrink-0">
+      <div>
+        <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+          <span>🌸</span> Cycle & Ovulation Tracker
+        </h2>
+        <p class="text-xs text-slate-400 mt-0.5">Track phase telemetry, calculate fertility windows, and log symptoms</p>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <button onclick="resetCycleData()" class="px-3.5 py-2 bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/40 text-rose-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+          <span>🔄</span> Reset Cycle Data
+        </button>
+        <button onclick="window.location.href='dashboard.html'" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-xl transition">
+          ← Back to Dashboard
+        </button>
+      </div>
+    </header>
+
+    <!-- Cycle Summary Metrics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+      <div class="bg-[#111625] border border-slate-800 rounded-2xl p-4">
+        <p class="text-[10px] uppercase font-bold text-slate-400">Current Phase</p>
+        <p id="valPhase" class="text-base font-extrabold text-purple-400 mt-1 truncate">Follicular Phase</p>
+      </div>
+      <div class="bg-[#111625] border border-slate-800 rounded-2xl p-4">
+        <p class="text-[10px] uppercase font-bold text-slate-400">Cycle Day</p>
+        <p id="valCycleDay" class="text-base font-extrabold text-indigo-400 mt-1">Day --</p>
+      </div>
+      <div class="bg-[#111625] border border-slate-800 rounded-2xl p-4">
+        <p class="text-[10px] uppercase font-bold text-slate-400">Estimated Ovulation</p>
+        <p id="valOvulation" class="text-base font-extrabold text-amber-400 mt-1">--</p>
+      </div>
+      <div class="bg-[#111625] border border-slate-800 rounded-2xl p-4">
+        <p class="text-[10px] uppercase font-bold text-slate-400">Next Expected Period</p>
+        <p id="valNextPeriod" class="text-base font-extrabold text-rose-400 mt-1">--</p>
+      </div>
+    </div>
+
+    <!-- Recommendations Banner -->
+    <div class="bg-[#111625] border border-purple-500/30 rounded-2xl p-4 shrink-0">
+      <p class="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+        <span>💡</span> Biological Phase Recommendations
+      </p>
+      <p id="valGuidance" class="text-xs text-slate-300 mt-1 leading-relaxed">
+        Log your last period start date to calculate personalized fertility and phase recommendations.
+      </p>
+    </div>
+
+    <!-- Two Column Grid: Form on Left, History Table on Right -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start flex-1">
+      
+      <!-- LEFT: Entry Form -->
+      <div class="lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <h3 class="text-sm font-bold text-white">Log New Cycle Entry</h3>
+        <form id="cycleForm" onsubmit="submitCycleLog(event)" class="space-y-3.5 text-xs">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Period Start Date</label>
+            <input type="date" id="inputStartDate" required class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-300 font-medium mb-1">Average Cycle Length (Days)</label>
+              <input type="number" id="inputCycleLength" value="28" min="20" max="45" required class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500">
+            </div>
+            <div>
+              <label class="block text-slate-300 font-medium mb-1">Flow Intensity</label>
+              <select id="selectFlow" class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500">
+                <option value="Light">Light</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="Heavy">Heavy</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Symptom Notes (Optional)</label>
+            <textarea id="inputNotes" rows="3" placeholder="Cramps, mood shifts, energy levels..." class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-purple-500"></textarea>
+          </div>
+          <button type="submit" id="btnSaveCycle" class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs rounded-xl transition shadow-lg shadow-purple-600/20">
+            Save Cycle Log
+          </button>
+        </form>
+      </div>
+
+      <!-- RIGHT: Logged Previous Periods Table -->
+      <div class="lg:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <span>📅</span> Previous Period History
+          </h3>
+          <span id="historyCountBadge" class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2.5 py-0.5 rounded-full">
+            0 Logged
+          </span>
+        </div>
+        <div class="overflow-x-auto max-h-72 overflow-y-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-[#0B0F19] text-[10px] text-slate-400 uppercase font-semibold sticky top-0 border-b border-slate-800">
+              <tr>
+                <th class="py-2.5 px-3">Start Date</th>
+                <th class="py-2.5 px-3">Cycle Length</th>
+                <th class="py-2.5 px-3">Flow</th>
+                <th class="py-2.5 px-3">Notes</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody" class="divide-y divide-slate-800/60 bg-[#111625]">
+              <tr>
+                <td colspan="4" class="py-6 text-center text-slate-500 text-xs">No previous periods logged yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ================= JAVASCRIPT ================= -->
+  <script>
+  const API_BASE = "http://127.0.0.1:8000";
+  let isSidebarCollapsed = false;
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("sidebarToggleBtn");
+    isSidebarCollapsed = !isSidebarCollapsed;
+    if (isSidebarCollapsed) {
+      sidebar.classList.remove("w-64");
+      sidebar.classList.add("w-20", "items-center", "sidebar-collapsed");
+      if (toggleBtn) toggleBtn.innerText = "▶";
+    } else {
+      sidebar.classList.remove("w-20", "items-center");
+      sidebar.classList.add("w-64");
+      if (toggleBtn) toggleBtn.innerText = "◀";
+    }
+  }
+
+  function getCleanUserId() {
+    const raw = localStorage.getItem("user_id");
+    return raw ? parseInt(raw, 10) : null;
+  }
+
+  document.addEventListener("DOMContentLoaded", async function() {
+    const fullName = localStorage.getItem("full_name") || "User Account";
+    const email = localStorage.getItem("user_email") || "user@example.com";
+    if (document.getElementById("sideUserName")) document.getElementById("sideUserName").innerText = fullName;
+    if (document.getElementById("sideUserEmail")) document.getElementById("sideUserEmail").innerText = email;
+
+    await loadTrackerSummary();
+    await loadCycleHistory();
+  });
+
+  async function loadTrackerSummary() {
+    const userId = getCleanUserId();
+    if (!userId) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/cycle-tracker/${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.has_logged) {
+          document.getElementById("valPhase").innerText = data.current_phase || "Follicular Phase";
+          document.getElementById("valCycleDay").innerText = `Day ${data.cycle_day || 1}`;
+          document.getElementById("valOvulation").innerText = data.estimated_ovulation || "--";
+          document.getElementById("valNextPeriod").innerText = data.next_period_date || "--";
+          document.getElementById("valGuidance").innerText = data.guidance || "";
+          
+          const sidePhase = document.getElementById("sidebarPhaseDisplay");
+          if (sidePhase) sidePhase.innerText = data.current_phase || "Monitored";
+        }
+      }
+    } catch (err) {
+      console.error("Tracker summary fetch error:", err);
+    }
+  }
+
+ async function loadCycleHistory() {
+    const userId = getCleanUserId();
+    if (!userId) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/cycle-history/${userId}`);
+      const tableBody = document.getElementById("historyTableBody");
+      const badge = document.getElementById("historyCountBadge");
+
+      if (res.ok) {
+        const rawHistory = await res.json();
+
+        // Filter out duplicate dates on frontend display
+        const uniqueHistory = [];
+        const seenDates = new Set();
+
+        for (const item of rawHistory) {
+          if (!seenDates.has(item.period_start_date)) {
+            seenDates.add(item.period_start_date);
+            uniqueHistory.push(item);
+          }
+        }
+
+        if (badge) badge.innerText = `${uniqueHistory.length} Logged`;
+
+        if (!uniqueHistory || uniqueHistory.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-500 text-xs">No previous periods logged yet.</td></tr>`;
+          return;
+        }
+
+        tableBody.innerHTML = uniqueHistory.map(item => `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-2.5 px-3 font-semibold text-purple-300">${item.period_start_date}</td>
+            <td class="py-2.5 px-3 text-slate-300">${item.cycle_length_days} Days</td>
+            <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-950 text-purple-300 border border-purple-500/30">${item.flow_intensity}</span></td>
+            <td class="py-2.5 px-3 text-slate-400 truncate max-w-[150px]">${item.notes}</td>
+          </tr>
+        `).join("");
+      }
+    } catch (err) {
+      console.error("Cycle history fetch error:", err);
+    }
+  }
+
+  
+async function submitCycleLog(event) {
+    event.preventDefault();
+    const userId = getCleanUserId();
+    if (!userId) return;
+
+    const startDate = document.getElementById("inputStartDate").value;
+    const cycleLen = parseInt(document.getElementById("inputCycleLength").value, 10);
+    const flow = document.getElementById("selectFlow").value;
+    const notes = document.getElementById("inputNotes").value;
+
+    if (!startDate) {
+      alert("Please select a valid period start date.");
+      return;
+    }
+
+    const btn = document.getElementById("btnSaveCycle");
+    if (btn) {
+      btn.innerText = "Syncing Log...";
+      btn.disabled = true;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/log-cycle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          period_start_date: startDate,
+          cycle_length_days: cycleLen,
+          flow_intensity: flow,
+          notes: notes
+        })
+      });
+
+      if (res.ok) {
+        document.getElementById("inputNotes").value = "";
+        
+        // Re-fetch both summary metrics and table history
+        await loadTrackerSummary();
+        await loadCycleHistory();
+
+        alert("Period entry logged successfully!");
+      } else {
+        alert("Failed to save entry. Check backend logs.");
+      }
+    } catch (err) {
+      console.error("Cycle submit error:", err);
+      alert("Network error saving cycle log.");
+    } finally {
+      if (btn) {
+        btn.innerText = "Save Cycle Log";
+        btn.disabled = false;
+      }
+    }
+  }
+  async function resetCycleData() {
+    const userId = getCleanUserId();
+    if (!userId) return;
+
+    if (confirm("Are you sure you want to clear all logged period data?")) {
+      try {
+        const res = await fetch(`${API_BASE}/api/reset-cycle/${userId}`, { method: "POST" });
+        if (res.ok) {
+          await loadTrackerSummary();
+          await loadCycleHistory();
+          alert("All cycle records have been reset.");
+        }
+      } catch (err) {
+        console.error("Cycle reset error:", err);
+      }
+    }
+  }
+  </script>
+</body>
+</html>
