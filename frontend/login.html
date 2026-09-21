@@ -40,19 +40,38 @@
 
       <div>
         <label for="password" class="block font-semibold text-slate-300 mb-1.5">Password</label>
-        <input 
-          type="password" 
-          id="password" 
-          required 
-          placeholder="••••••••"
-          class="w-full px-4 py-3 bg-[#0B0F19] border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
-        >
+        <div class="relative flex items-center">
+          <input 
+            type="password" 
+            id="password" 
+            required 
+            placeholder="••••••••"
+            class="w-full pl-4 pr-11 py-3 bg-[#0B0F19] border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
+          >
+          <button 
+            type="button" 
+            id="togglePasswordBtn" 
+            onclick="togglePasswordVisibility()"
+            class="absolute right-3.5 text-slate-400 hover:text-slate-200 focus:outline-none p-1 transition"
+            title="Toggle password visibility"
+          >
+            <!-- Eye Open Icon -->
+            <svg id="eyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+            <!-- Eye Off Icon (Hidden by default) -->
+            <svg id="eyeOffIcon" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908A9.954 9.954 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21M3 3l18 18"></path>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <button 
         type="submit" 
         id="submitBtn"
-        class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 font-semibold text-white text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition duration-200 mt-2"
+        class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 font-semibold text-white text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition duration-200 mt-2 cursor-pointer"
       >
         Sign In to Digital Twin
       </button>
@@ -66,14 +85,30 @@
 
   </div>
 
- <script>
+  <script>
     const loginForm = document.getElementById('loginForm');
     const alertMessage = document.getElementById('alertMessage');
     const submitBtn = document.getElementById('submitBtn');
 
+    function togglePasswordVisibility() {
+      const passwordInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('eyeIcon');
+      const eyeOffIcon = document.getElementById('eyeOffIcon');
+
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.classList.add('hidden');
+        eyeOffIcon.classList.remove('hidden');
+      } else {
+        passwordInput.type = 'password';
+        eyeIcon.classList.remove('hidden');
+        eyeOffIcon.classList.add('hidden');
+      }
+    }
+
     function showAlert(message, isError = true) {
       alertMessage.textContent = message;
-      alertMessage.classList.remove('hidden', 'bg-rose-500/10', 'text-rose-400', 'border-rose-500/30', 'bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/30');
+      alertMessage.className = 'mb-6 p-3 rounded-xl text-xs text-center font-medium block';
       
       if (isError) {
         alertMessage.classList.add('bg-rose-500/10', 'text-rose-400', 'border', 'border-rose-500/30');
@@ -97,10 +132,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            email: email,
-            password: password
-          })
+          body: JSON.stringify({ email, password })
         });
 
         const data = await response.json();
@@ -113,16 +145,16 @@
             localStorage.setItem('full_name', data.full_name);
           }
 
-          // Check if first-time user needs assessment calibration
+          // Direct based on calibration status
           if (data.has_assessed) {
             showAlert('Login successful! Redirecting to dashboard...', false);
             setTimeout(() => {
               window.location.href = 'dashboard.html';
             }, 600);
           } else {
-            showAlert('Welcome! Please complete your initial PMOS assessment...', false);
+            showAlert('Welcome! Please complete your initial intake assessment...', false);
             setTimeout(() => {
-              window.location.href = 'assessment.html';
+              window.location.href = 'intake.html';
             }, 600);
           }
 
@@ -135,10 +167,12 @@
         }
       } catch (error) {
         console.error('Login Fetch Error:', error);
-        showAlert('Unable to reach backend server. Make sure Uvicorn is active on port 8000.');
+        showAlert('Unable to reach backend server. Ensure Uvicorn is active on port 8000.');
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Sign In to Digital Twin';
       }
     });
   </script>
+</body>
+</html>

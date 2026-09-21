@@ -1,9 +1,19 @@
-<!-- ================= INTAKE ASSESSMENT MODAL ================= -->
-<div id="intakeModal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-6 overflow-y-auto hidden">
-  <div class="bg-[#111625] border border-slate-700 rounded-xl max-w-4xl w-full p-6 shadow-2xl relative my-auto max-h-[90vh] overflow-y-auto">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PMOS Diagnostic Intake Assessment</title>
+  <!-- Tailwind CSS CDN for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#0B0F19] text-slate-100 font-sans min-h-screen p-6 md:p-12 flex justify-center items-center">
+
+  <!-- ================= INTAKE ASSESSMENT CONTAINER ================= -->
+  <div class="bg-[#111625] border border-slate-700 rounded-xl max-w-4xl w-full p-6 shadow-2xl">
     
-    <!-- Close Header -->
-    <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+    <!-- Header with Back to Dashboard Button -->
+    <div class="flex items-center justify-between mb-6 border-b border-slate-800 pb-4">
       <div class="flex items-center gap-3">
         <div class="p-2 bg-purple-500/10 border border-purple-500/20 rounded-lg text-purple-400 text-lg">
           📋
@@ -13,14 +23,19 @@
           <p class="text-xs text-slate-400">Complete this intake to calibrate your digital twin phenotype model.</p>
         </div>
       </div>
-      <button onclick="closeIntakeModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2">&times;</button>
+
+      <!-- Exit / Back to Dashboard Link -->
+      <a href="dashboard.html" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium border border-slate-700 transition">
+        <span>←</span>
+        <span>Dashboard</span>
+      </a>
     </div>
 
     <!-- Intake Grid Content -->
-    <div class="grid grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
       
       <!-- Left: Form Controls (7 Cols) -->
-      <form id="intakeForm" onsubmit="submitIntakeForm(event)" class="col-span-7 space-y-5">
+      <form id="intakeForm" onsubmit="submitIntakeForm(event)" class="md:col-span-7 space-y-5">
         <div>
           <h4 class="text-xs font-bold text-white mb-2.5">1. Symptom Checklist <span class="text-slate-400 font-normal">(Select all that apply)</span></h4>
           <div class="grid grid-cols-2 gap-2 text-xs">
@@ -101,7 +116,7 @@
       </form>
 
       <!-- Right: Live Result Display (5 Cols) -->
-      <div class="col-span-5 bg-[#181F32] border border-slate-800 rounded-xl p-4 space-y-4 text-xs flex flex-col justify-between">
+      <div class="md:col-span-5 bg-[#181F32] border border-slate-800 rounded-xl p-4 space-y-4 text-xs flex flex-col justify-between">
         <div class="space-y-3">
           <div class="bg-gradient-to-r from-purple-900/40 to-pink-900/30 border border-purple-500/40 rounded-lg p-3 text-center">
             <span id="phenotypeTag" class="text-[9px] font-bold text-pink-400 uppercase tracking-wider">PHENOTYPE CALIBRATION</span>
@@ -125,12 +140,117 @@
           </div>
         </div>
 
-        <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-lg p-3 text-[11px]">
-          <p class="font-bold text-indigo-300 mb-0.5">💊 Protocol Focus:</p>
-          <p id="protocolFocusText" class="text-slate-300 text-[10px] leading-relaxed">Submit the intake form to generate calibrated dietary and clinical recommendations.</p>
+        <div class="space-y-3">
+          <div class="bg-indigo-950/40 border border-indigo-500/30 rounded-lg p-3 text-[11px]">
+            <p class="font-bold text-indigo-300 mb-0.5">💊 Protocol Focus:</p>
+            <p id="protocolFocusText" class="text-slate-300 text-[10px] leading-relaxed">Submit the intake form to generate calibrated dietary and clinical recommendations.</p>
+          </div>
+
+          <button id="goToDashboardBtn" onclick="window.location.href='dashboard.html'" class="hidden w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition text-center shadow-md">
+            View Digital Twin Dashboard →
+          </button>
         </div>
       </div>
 
     </div>
   </div>
-</div>
+
+  <!-- JavaScript Implementation -->
+  <script>
+    async function submitIntakeForm(event) {
+      if (event) {
+        event.preventDefault();
+      }
+
+      const userId = localStorage.getItem("user_id");
+      if (!userId) {
+        alert("Session expired or user not logged in. Please log in first.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      // Gather Form Inputs
+      const hasIrregularPeriods = document.getElementById('symp_periods').checked;
+      const hasHirsutism = document.getElementById('symp_hair').checked;
+      const hasHairThinning = document.getElementById('symp_thinning').checked;
+      const hasAcne = document.getElementById('symp_acne').checked;
+      const hasHighStress = document.getElementById('symp_stress').checked;
+      const hasWeightGain = document.getElementById('symp_weight').checked;
+
+      const usgValue = document.getElementById('usgInput').value;
+      const diagValue = document.getElementById('diagInput').value;
+
+      // Local Rotterdam Criteria Preview
+      const criteriaOvulatory = hasIrregularPeriods;
+      const hyperandrogenCount = [hasHirsutism, hasAcne, hasHairThinning].filter(Boolean).length;
+      const criteriaAndrogen = hyperandrogenCount > 0;
+      const criteriaUSG = usgValue === 'cysts';
+      const triadScore = (criteriaOvulatory ? 1 : 0) + (criteriaAndrogen ? 1 : 0) + (criteriaUSG ? 1 : 0);
+
+      // Construct Payload for FastAPI
+      const payload = {
+        user_id: parseInt(userId),
+        symp_periods: hasIrregularPeriods,
+        symp_hair: hasHirsutism,
+        symp_thinning: hasHairThinning,
+        symp_acne: hasAcne,
+        symp_stress: hasHighStress,
+        symp_weight: hasWeightGain,
+        usg_result: usgValue,
+        prior_diagnosis: diagValue
+      };
+
+      const btn = document.getElementById("submitIntakeBtn");
+      if (btn) btn.innerText = "⏳ Calibrating Phenotype...";
+
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/submit-intake", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const assignedPhenotype = data.assigned_phenotype;
+
+          // Save calibrated phenotype locally
+          localStorage.setItem("user_phenotype", assignedPhenotype);
+          localStorage.setItem("has_assessed", "true");
+
+          // Update UI Display
+          document.getElementById('phenotypeTitle').innerText = assignedPhenotype;
+          document.getElementById('phenotypeSubtitle').innerText = "Calibrated & saved to database successfully!";
+          document.getElementById('triadScoreDisplay').innerText = `${triadScore} / 3 Criteria`;
+          
+          const usgDisplayMap = { 'cysts': 'Cysts Present', 'normal': 'Normal / Clean', 'pending': 'Pending Scan' };
+          document.getElementById('usgStatusDisplay').innerText = usgDisplayMap[usgValue] || 'Unknown';
+          
+          let androgenSeverity = "None";
+          if (hyperandrogenCount === 1) androgenSeverity = "Mild";
+          else if (hyperandrogenCount === 2) androgenSeverity = "Moderate";
+          else if (hyperandrogenCount === 3) androgenSeverity = "Severe";
+          document.getElementById('androgenSeverityDisplay').innerText = androgenSeverity;
+
+          document.getElementById('protocolFocusText').innerText = `Calibrated for ${assignedPhenotype}. Digital Twin profiles, 5 Pillars recommendations, and metabolic targets have been updated.`;
+
+          if (btn) btn.innerText = "✓ Calibrated & Saved!";
+          
+          // Show quick link to dashboard
+          const dashBtn = document.getElementById("goToDashboardBtn");
+          if (dashBtn) dashBtn.classList.remove("hidden");
+
+        } else {
+          console.error("Server response error:", await res.text());
+          alert("Failed to submit intake assessment. Please check backend server.");
+          if (btn) btn.innerText = "⚙ Calibrate Digital Twin & Update Phenotype";
+        }
+      } catch (err) {
+        console.error("Network error:", err);
+        alert("Cannot connect to FastAPI server at http://127.0.0.1:8000. Make sure uvicorn is running!");
+        if (btn) btn.innerText = "⚙ Calibrate Digital Twin & Update Phenotype";
+      }
+    }
+  </script>
+</body>
+</html>

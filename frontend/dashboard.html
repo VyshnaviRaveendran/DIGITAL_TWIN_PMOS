@@ -6,8 +6,11 @@
   <title>Digital Twin Health - Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    // Strict authentication check on script execution
     const token = localStorage.getItem("user_token");
-    if (!token) {
+    const userId = localStorage.getItem("user_id");
+
+    if (!token || !userId) {
       window.location.href = "login.html";
     }
   </script>
@@ -44,10 +47,6 @@
         <button onclick="window.location.href='five_pillars.html'" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
           <span class="text-base">🏛️</span> <span class="sidebar-label truncate">5 Pillars</span>
         </button>
-
-        <button onclick="openLogModal()" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
-          <span class="text-base">📊</span> <span class="sidebar-label truncate">Telemetry Log</span>
-        </button>
       </nav>
     </div>
 
@@ -60,12 +59,12 @@
           <span class="text-[10px] text-slate-400 group-hover:text-cyan-300 underline">Edit</span>
         </div>
         <div class="flex items-center justify-center gap-2">
-          <span id="sideBmiScore" class="text-base font-extrabold text-white">22.1</span>
-          <span id="sideBmiCategory" class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/30 truncate max-w-[110px]">Normal</span>
+          <span id="sideBmiScore" class="text-base font-extrabold text-white">--</span>
+          <span id="sideBmiCategory" class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/30 truncate max-w-[110px]">Pending</span>
         </div>
       </div>
 
-      <!-- 2. Stability Risk Index Widget -->
+      <!-- 2. Stability Risk Index Widget (Calculated via 5 Pillars) -->
       <div class="bg-[#181F32] border border-slate-800 rounded-2xl p-3.5 text-center sidebar-label">
         <div class="flex items-center justify-center gap-2 text-xs text-slate-400 mb-1.5" id="syncStatusBadge">
           <span class="w-2 h-2 rounded-full bg-slate-500"></span> Uncalibrated
@@ -79,87 +78,80 @@
   </aside>
 
   <!-- ================= MAIN CONTENT CONTAINER ================= -->
-  <main class="flex-1 px-8 py-6 overflow-y-auto h-full flex flex-col justify-between">
+  <main class="flex-1 px-8 py-6 overflow-y-auto h-full flex flex-col justify-between min-w-0">
 
     <!-- ================= SECTION 1: DIGITAL TWIN OVERVIEW ================= -->
     <div id="overviewSection" class="w-full space-y-5">
       <header class="flex justify-between items-center">
         <div>
           <h2 class="text-2xl font-bold text-white">Digital Twin Overview</h2>
-          <p class="text-xs text-slate-400 mt-0.5" id="userGreeting">Real-time biological state & telemetry status</p>
+          <p class="text-xs text-slate-400 mt-0.5" id="userGreeting">Real-time biological state & 5 Pillars telemetry status</p>
         </div>
         
         <div class="flex items-center gap-2.5">
           <button onclick="openBmiModal()" id="navBmiBtn" class="px-3.5 py-2 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-500/40 text-cyan-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow-sm">
-            <span>📐</span> <span id="navBmiDisplay">BMI: 22.1</span>
+            <span>📐</span> <span id="navBmiDisplay">BMI: --</span>
           </button>
-          <button onclick="openIntakeModal()" class="px-3.5 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+          <button onclick="window.location.href='intake.html'" class="px-3.5 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
             <span>📋</span> Intake
           </button>
-          <button onclick="openLogModal()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium rounded-xl transition">
-            + Quick Log
+          <button onclick="window.location.href='five_pillars.html'" class="px-3.5 py-2 bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-200 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow-md">
+            <span>🏛️</span> 5 Pillars Log
           </button>
         </div>
       </header>
 
       <!-- Calibrated Phenotype Display Banner -->
-      <div class="bg-[#111625] border border-purple-500/30 rounded-2xl p-5 flex justify-between items-center shadow-lg">
-        <div>
+      <div class="bg-[#111625] border border-purple-500/30 rounded-2xl p-5 flex justify-between items-center shadow-lg gap-4">
+        <div class="min-w-0">
           <p class="text-xs font-semibold text-purple-400 uppercase tracking-wider">Calibrated Biological Profile</p>
-          <h3 id="dashPhenotypeDisplay" class="text-lg font-bold text-white mt-1">
-            Loading calibrated profile...
+          <h3 id="dashPhenotypeDisplay" class="text-lg font-bold text-white mt-1 truncate">
+            Loading biological profile...
           </h3>
         </div>
-        <span id="dashPhenotypeBadge" class="bg-purple-900/40 text-purple-300 border border-purple-500/40 text-xs px-3.5 py-1.5 rounded-full font-medium">
-          Calibrating...
+        <span id="dashPhenotypeBadge" class="bg-purple-900/40 text-purple-300 border border-purple-500/40 text-xs px-3.5 py-1.5 rounded-full font-medium whitespace-nowrap shrink-0">
+          Uncalibrated
         </span>
       </div>
 
-      <!-- Overview Visuals & Stats -->
-      <div class="grid grid-cols-12 gap-5 items-start">
+      <!-- Overview Visuals & Stats driven by 5 Pillars -->
+      <div class="grid grid-cols-12 gap-5 items-stretch">
         
         <!-- Left Card: Interactive Biological Twin (5 cols) -->
-        <div class="col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 flex flex-col justify-between min-h-[380px]">
+        <div class="col-span-12 lg:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 flex flex-col justify-between min-h-[380px]">
           <h3 class="text-sm font-semibold text-slate-300">Interactive Biological Twin</h3>
           
           <div class="my-auto flex flex-col items-center justify-center space-y-6 py-4">
-            <div class="w-14 h-14 rounded-full bg-indigo-500/20 border-2 border-indigo-500 flex items-center justify-center text-xs font-bold text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.3)]">Brain</div>
-            <div class="w-12 h-12 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]">Metabolic</div>
-            <div class="w-14 h-14 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-xs font-bold text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.3)]">Recovery</div>
+            <div id="brainTwinNode" class="w-14 h-14 rounded-full bg-indigo-500/20 border-2 border-indigo-500 flex items-center justify-center text-xs font-bold text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-all duration-300">Brain</div>
+            <div id="metabolicTwinNode" class="w-14 h-14 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-[11px] font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">Metabolic</div>
+            <div id="recoveryTwinNode" class="w-14 h-14 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">Recovery</div>
           </div>
 
-          <div class="flex justify-center gap-4 text-xs text-slate-400 pt-4 border-t border-slate-800/80">
+          <div class="flex justify-center gap-4 text-xs text-slate-400 pt-4 border-t border-slate-800/80 flex-wrap">
             <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Optimal</span>
             <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Mild Stress</span>
             <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span> High Risk</span>
           </div>
         </div>
 
-        <!-- Right Side Container: Telemetry Metrics & Quick 5 Pillars Link (7 cols) -->
-        <div class="col-span-7 space-y-5">
+        <!-- Right Side Container: 5 Pillars Synchronization & Recommendations (7 cols) -->
+        <div class="col-span-12 lg:col-span-7 space-y-5 flex flex-col justify-between">
           
-          <!-- Telemetry Card -->
-          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl">
-            <div class="flex justify-between items-center mb-4">
-              <h4 class="font-semibold text-sm text-slate-200">System Telemetry & Stress</h4>
-              <span class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Active Telemetry</span>
+          <!-- 5 Pillars Sync Card -->
+          <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="font-semibold text-sm text-slate-200">5 Pillars Biological Sync Status</h4>
+                <span id="pillarSyncStatusLabel" class="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Synced to Twin</span>
+              </div>
+              <p class="text-xs text-slate-400 mb-4">
+                Your Digital Twin parameters are continuously calibrated using metrics logged from the 5 Pillars (Nutrition, Movement, Sleep, Stress, and Environment).
+              </p>
             </div>
 
-            <!-- 3 Metrics Grid -->
-            <div class="grid grid-cols-3 gap-4 text-xs">
-              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800/80">
-                <p class="text-slate-500 text-xs mb-1">Stress Level</p>
-                <p id="stressVal" class="text-base font-bold text-slate-300">-- / 10</p>
-              </div>
-              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800/80">
-                <p class="text-slate-500 text-xs mb-1">Sleep Duration</p>
-                <p id="sleepVal" class="text-base font-bold text-slate-300">-- hrs</p>
-              </div>
-              <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800/80">
-                <p class="text-slate-500 text-xs mb-1">Exercise</p>
-                <p id="exerciseVal" class="text-base font-bold text-slate-300">-- mins</p>
-              </div>
-            </div>
+            <button onclick="window.location.href='five_pillars.html'" class="w-full py-3 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-2">
+              <span>🏛️</span> Open 5 Pillars Log & Analytics →
+            </button>
           </div>
 
           <!-- AI Twin Dynamic Recommendation Card -->
@@ -169,11 +161,11 @@
                 <span>⚡</span> AI Twin Dynamic Recommendation
               </div>
               <button onclick="window.location.href='five_pillars.html'" class="text-xs text-indigo-400 hover:text-indigo-300 underline font-medium">
-                Open 5 Pillars →
+                Adjust Pillars →
               </button>
             </div>
             <p id="recommendationText" class="text-xs text-slate-300 leading-relaxed">
-              Optimal state parameters maintained. Digital Twin operating in nominal biological range. Calibrated nutrition and low cortisol load sustained.
+              Fetching calibrated baseline metrics from 5 Pillars...
             </p>
           </div>
 
@@ -194,7 +186,7 @@
         <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
           <div>
             <div class="flex items-center gap-3.5 mb-6">
-              <div id="profAvatarBadge" class="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-xl text-indigo-300 font-extrabold shadow-lg">
+              <div id="profAvatarBadge" class="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-xl text-indigo-300 font-extrabold shadow-lg shrink-0">
                 👤
               </div>
               <div class="overflow-hidden">
@@ -206,7 +198,7 @@
             <div class="space-y-2.5 text-xs border-t border-slate-800 pt-4">
               <div class="flex justify-between py-0.5">
                 <span class="text-slate-400">User ID</span>
-                <span id="profUserId" class="font-semibold text-white">1</span>
+                <span id="profUserId" class="font-semibold text-white">--</span>
               </div>
               <div class="flex justify-between py-0.5">
                 <span class="text-slate-400">Account Status</span>
@@ -232,7 +224,7 @@
           <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl">
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-sm font-bold text-white">Calibrated Biological Profile</h3>
-              <button onclick="openIntakeModal()" class="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+              <button onclick="window.location.href='intake.html'" class="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
                 <span>🔄</span> Recalibrate
               </button>
             </div>
@@ -240,7 +232,7 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
               <div class="bg-[#0B0F19] p-3 rounded-xl border border-purple-500/30">
                 <p class="text-slate-400 text-[10px] uppercase font-medium">Active Phenotype</p>
-                <p id="profPhenotype" class="text-xs font-bold text-purple-300 mt-1 leading-tight">Pending</p>
+                <p id="profPhenotype" class="text-xs font-bold text-purple-300 mt-1 leading-tight truncate">Pending</p>
               </div>
               <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
                 <p class="text-slate-400 text-[10px] uppercase font-medium">Glycemic Status</p>
@@ -322,11 +314,11 @@
         <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800 flex justify-between items-center">
           <div>
             <p class="text-[10px] text-slate-400">Current Category</p>
-            <p id="modalBmiCategory" class="text-xs font-bold text-cyan-300">Normal (Lean PMOS)</p>
+            <p id="modalBmiCategory" class="text-xs font-bold text-cyan-300">--</p>
           </div>
           <div class="text-right">
             <p class="text-[10px] text-slate-400">Score</p>
-            <p id="modalBmiScore" class="text-sm font-bold text-white">22.1</p>
+            <p id="modalBmiScore" class="text-sm font-bold text-white">--</p>
           </div>
         </div>
 
@@ -337,46 +329,6 @@
       </form>
     </div>
   </div>
-
-  <!-- ================= QUICK LOG MODAL ================= -->
-  <div id="logModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-    <div class="bg-[#111625] border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-base font-bold text-white">Update Twin Biometrics</h3>
-        <button onclick="closeLogModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
-      </div>
-
-      <form id="healthLogForm" class="space-y-3.5 text-xs">
-        <div>
-          <label class="block text-slate-300 font-medium mb-1">Stress Level (0 - 10)</label>
-          <input type="number" id="stressInput" min="0" max="10" step="1" value="4" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
-        </div>
-        <div>
-          <label class="block text-slate-300 font-medium mb-1">Sleep Duration (Hours)</label>
-          <input type="number" id="sleepInput" min="0" max="24" step="0.5" value="7.5" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
-        </div>
-        <div>
-          <label class="block text-slate-300 font-medium mb-1">Exercise (Minutes)</label>
-          <input type="number" id="exerciseInput" min="0" max="300" value="30" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
-        </div>
-        <div>
-          <label class="block text-slate-300 font-medium mb-1">Diet Quality Score (1 - 10)</label>
-          <input type="number" id="dietInput" min="1" max="10" value="8" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
-        </div>
-        <div>
-          <label class="block text-slate-300 font-medium mb-1">Medication Taken (1 for Yes, 0 for No)</label>
-          <input type="number" id="medicationInput" min="0" max="1" value="1" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-indigo-500">
-        </div>
-
-        <div class="pt-2 flex gap-3">
-          <button type="button" onclick="closeLogModal()" class="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl">Cancel</button>
-          <button type="submit" id="submitLogBtn" class="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl">Submit</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="intakeContainer"></div>
 
   <!-- ================= JAVASCRIPT ================= -->
   <script>
@@ -401,6 +353,22 @@
     }
   }
 
+  function switchTab(tab) {
+    const overviewSec = document.getElementById("overviewSection");
+    const profileSec = document.getElementById("profileSection");
+    const navOverview = document.getElementById("navOverview");
+
+    if (tab === 'profile') {
+      overviewSec.classList.add("hidden");
+      profileSec.classList.remove("hidden");
+      navOverview.className = "w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left";
+    } else {
+      profileSec.classList.add("hidden");
+      overviewSec.classList.remove("hidden");
+      navOverview.className = "w-full flex items-center gap-3.5 px-4 py-2.5 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-xl text-sm font-medium transition text-left";
+    }
+  }
+
   function logout() {
     localStorage.removeItem("user_token");
     localStorage.removeItem("user_id");
@@ -408,112 +376,185 @@
     localStorage.removeItem("user_email");
     localStorage.removeItem("user_dob");
     localStorage.removeItem("user_phenotype");
+    localStorage.removeItem("has_assessed");
     window.location.href = "login.html";
   }
 
+  function refreshUserDisplay() {
+    const fullName = localStorage.getItem("full_name") || "User Account";
+    const email = localStorage.getItem("user_email") || "user@example.com";
+    const userId = localStorage.getItem("user_id") || "--";
+    const dob = localStorage.getItem("user_dob") || "Not set";
+
+    if (document.getElementById("sideUserName")) document.getElementById("sideUserName").innerText = fullName;
+    if (document.getElementById("sideUserEmail")) document.getElementById("sideUserEmail").innerText = email;
+    if (document.getElementById("profFullName")) document.getElementById("profFullName").innerText = fullName;
+    if (document.getElementById("profEmail")) document.getElementById("profEmail").innerText = email;
+    if (document.getElementById("profUserId")) document.getElementById("profUserId").innerText = userId;
+    if (document.getElementById("profDobDisplay")) document.getElementById("profDobDisplay").innerText = dob;
+    if (document.getElementById("editFullName")) document.getElementById("editFullName").value = fullName;
+    if (document.getElementById("editDob")) document.getElementById("editDob").value = dob !== "Not set" ? dob : "";
+  }
+
+  // Helper function to sync telemetry state across pages
+function syncPillarTelemetry(stress, sleep, exercise, stability) {
+  if (stress !== undefined) localStorage.setItem("latest_stress", stress);
+  if (sleep !== undefined) localStorage.setItem("latest_sleep", sleep);
+  if (exercise !== undefined) localStorage.setItem("latest_exercise", exercise);
+  if (stability !== undefined) localStorage.setItem("latest_stability", stability);
+}
+
+// Example 1: Meal Logging Callback
+async function handleMealLogged(mealData) {
+  // Save meal and fetch updated telemetry
+  const userId = localStorage.getItem("user_id");
+  const res = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+  if (res.ok) {
+    const data = await res.json();
+    syncPillarTelemetry(data.stress_level, data.sleep_hours, data.exercise_mins, data.stability_score);
+  }
+}
+
+// Example 2: Exercise Complete Callback
+async function handleExerciseCompleted(exerciseMins) {
+  const userId = localStorage.getItem("user_id");
+  localStorage.setItem("latest_exercise", exerciseMins);
+  
+  // Refresh aggregate state from backend
+  const res = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+  if (res.ok) {
+    const data = await res.json();
+    syncPillarTelemetry(data.stress_level, data.sleep_hours, data.exercise_mins, data.stability_score);
+  }
+}
+
+// Example 3: Sleep Log Callback
+async function handleSleepLogged(sleepHours) {
+  localStorage.setItem("latest_sleep", sleepHours);
+  const userId = localStorage.getItem("user_id");
+  
+  const res = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+  if (res.ok) {
+    const data = await res.json();
+    syncPillarTelemetry(data.stress_level, data.sleep_hours, data.exercise_mins, data.stability_score);
+  }
+}
+
   function applyLiveTwinState(stress, sleep, exercise, stabilityScore) {
-    const stressNum = parseFloat(stress) || 0;
-    const sleepNum = parseFloat(sleep) || 0;
-    const exerciseNum = parseInt(exercise) || 0;
+    // Read from 5 Pillars local storage cache if params are omitted
+    const stressNum = stress !== undefined ? parseFloat(stress) : parseFloat(localStorage.getItem("latest_stress") || 4);
+    const sleepNum = sleep !== undefined ? parseFloat(sleep) : parseFloat(localStorage.getItem("latest_sleep") || 7.5);
+    const exerciseNum = exercise !== undefined ? parseInt(exercise) : parseInt(localStorage.getItem("latest_exercise") || 30);
 
-    if (document.getElementById("stressVal")) document.getElementById("stressVal").innerText = `${stressNum} / 10`;
-    if (document.getElementById("sleepVal")) document.getElementById("sleepVal").innerText = `${sleepNum} hrs`;
-    if (document.getElementById("exerciseVal")) document.getElementById("exerciseVal").innerText = `${exerciseNum} mins`;
-    if (document.getElementById("scoreDisplay")) document.getElementById("scoreDisplay").innerText = stabilityScore;
+    let computedScore = stabilityScore;
+    if (computedScore === undefined || computedScore === null) {
+      computedScore = Math.max(0, Math.min(100, Math.round(100 - (stressNum * 5) + (sleepNum >= 7 ? 10 : -10) + (exerciseNum >= 30 ? 10 : 0))));
+    }
 
-    const allNodes = document.querySelectorAll("#overviewSection .rounded-full");
-    const recoveryNode = document.querySelector("#overviewSection .bg-rose-500\\/20") || allNodes[2];
+    if (document.getElementById("scoreDisplay")) document.getElementById("scoreDisplay").innerText = computedScore;
+
+    // Update Digital Twin Node Indicators
+    const recoveryNode = document.getElementById("recoveryTwinNode");
     if (recoveryNode) {
       if (stressNum >= 8 || (sleepNum > 0 && sleepNum < 6.5)) {
-        recoveryNode.className = "w-14 h-14 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-xs font-bold text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.6)] animate-pulse";
+        recoveryNode.className = "w-14 h-14 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-xs font-bold text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.6)] animate-pulse transition-all duration-300";
+      } else if (stressNum >= 5) {
+        recoveryNode.className = "w-14 h-14 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center text-xs font-bold text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all duration-300";
       } else {
-        recoveryNode.className = "w-14 h-14 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]";
+        recoveryNode.className = "w-14 h-14 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300";
       }
     }
 
+    const brainNode = document.getElementById("brainTwinNode");
+    if (brainNode) {
+      if (stressNum >= 7) {
+        brainNode.className = "w-14 h-14 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center text-xs font-bold text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all duration-300";
+      } else {
+        brainNode.className = "w-14 h-14 rounded-full bg-indigo-500/20 border-2 border-indigo-500 flex items-center justify-center text-xs font-bold text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-all duration-300";
+      }
+    }
+
+    // Update 5 Pillars Dynamic Output Recommendation
     const recEl = document.getElementById("recommendationText");
     if (recEl) {
       if (stressNum >= 7 || (sleepNum > 0 && sleepNum < 6.5)) {
-        recEl.innerHTML = `<span class="text-rose-400 font-semibold">⚠️ Adrenal & Recovery Strain Detected:</span> High sympathetic tone (${stressNum}/10 stress, ${sleepNum}h sleep). Cortisol spikes suppress progesterone and elevate androgens. Shift today's activity to 15-minute low-impact walking, vagus nerve breathing, and magnesium-dense nutrition.`;
+        recEl.innerHTML = `<span class="text-rose-400 font-semibold">⚠️ Adrenal & Recovery Strain Detected:</span> Elevated stress (${stressNum}/10) and low sleep (${sleepNum}h) logged via 5 Pillars. Shift focus toward vagal tone recovery, low-intensity movement, and restorative sleep protocols under <strong>5 Pillars</strong>.`;
       } else {
-        recEl.innerText = "Optimal state parameters maintained. Digital Twin operating in nominal biological range. Calibrated nutrition and low cortisol load sustained.";
+        recEl.innerText = "Optimal state parameters maintained across 5 Pillars. Digital Twin operating in nominal biological range with sustained recovery and metabolic alignment.";
       }
     }
   }
 
   function setEmptyTelemetryUI() {
-    if (document.getElementById("stressVal")) document.getElementById("stressVal").innerText = "-- / 10";
-    if (document.getElementById("sleepVal")) document.getElementById("sleepVal").innerText = "-- hrs";
-    if (document.getElementById("exerciseVal")) document.getElementById("exerciseVal").innerText = "-- mins";
     if (document.getElementById("scoreDisplay")) document.getElementById("scoreDisplay").innerText = "--";
     if (document.getElementById("syncStatusBadge")) {
-      document.getElementById("syncStatusBadge").innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> Action Required`;
+      document.getElementById("syncStatusBadge").innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> Unsynced`;
     }
     if (document.getElementById("recommendationText")) {
       document.getElementById("recommendationText").innerHTML = `
-        <span class="text-indigo-400 font-semibold">Welcome to your Digital Twin:</span> 
-        Please complete your <strong>Intake Assessment</strong> to calibrate your clinical phenotype and submit your first <strong>Quick Log</strong>.`;
+        <span class="text-indigo-400 font-semibold">Assessment Status:</span> 
+        Open <strong>5 Pillars</strong> to log baseline parameters and activate full Digital Twin biological tracking.`;
     }
   }
 
-  window.openIntakeModal = () => { const m = document.getElementById('intakeModal'); if (m) { m.classList.remove('hidden'); m.style.display = 'flex'; }};
-  window.closeIntakeModal = () => { const m = document.getElementById('intakeModal'); if (m) { m.classList.add('hidden'); m.style.display = 'none'; }};
-  window.openLogModal = () => { const m = document.getElementById('logModal'); if (m) { m.classList.remove('hidden'); m.style.display = 'flex'; }};
-  window.closeLogModal = () => { const m = document.getElementById('logModal'); if (m) { m.classList.add('hidden'); m.style.display = 'none'; }};
   window.openBmiModal = () => { const m = document.getElementById('bmiModal'); if (m) { m.classList.remove('hidden'); m.style.display = 'flex'; }};
   window.closeBmiModal = () => { const m = document.getElementById('bmiModal'); if (m) { m.classList.add('hidden'); m.style.display = 'none'; }};
 
   document.addEventListener("DOMContentLoaded", async function() {
     refreshUserDisplay();
-    try {
-      const res = await fetch("intake.html");
-      if (res.ok) document.getElementById("intakeContainer").innerHTML = await res.text();
-    } catch (err) {
-      console.error("Intake loader error:", err);
-    }
     await fetchUserProfileAndPhenotype();
   });
 
   async function fetchUserProfileAndPhenotype() {
-    const userId = localStorage.getItem("user_id") || "1";
-    try {
-      const res = await fetch(`http://127.0.0.1:8000/api/user-profile/${userId}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.height_cm && document.getElementById("inputHeight")) document.getElementById("inputHeight").value = data.height_cm;
-        if (data.weight_kg && document.getElementById("inputWeight")) document.getElementById("inputWeight").value = data.weight_kg;
-        if (data.bmi) {
-          if (document.getElementById("navBmiDisplay")) document.getElementById("navBmiDisplay").innerText = `BMI: ${data.bmi}`;
-          if (document.getElementById("sideBmiScore")) document.getElementById("sideBmiScore").innerText = `${data.bmi}`;
-          if (document.getElementById("modalBmiScore")) document.getElementById("modalBmiScore").innerText = `${data.bmi}`;
-        }
-        if (data.bmi_category) {
-          if (document.getElementById("sideBmiCategory")) document.getElementById("sideBmiCategory").innerText = data.bmi_category.split(' ')[0];
-          if (document.getElementById("modalBmiCategory")) document.getElementById("modalBmiCategory").innerText = data.bmi_category;
-        }
+  const currentUserId = localStorage.getItem("user_id");
+  if (!currentUserId) return;
 
-        if (data.assigned_phenotype && data.assigned_phenotype !== "None" && !data.assigned_phenotype.toLowerCase().includes("pending")) {
-          localStorage.setItem("user_phenotype", data.assigned_phenotype);
-          applyPhenotypeUI(data.assigned_phenotype, true);
-          await fetchLatestTelemetry(userId);
-        } else {
-          applyPhenotypeUI("Pending Assessment — Please complete clinical intake", false);
-          setEmptyTelemetryUI();
-          setTimeout(() => { openIntakeModal(); }, 400);
-        }
-      } else {
-        applyPhenotypeUI("Pending Assessment — Please complete clinical intake", false);
-        setEmptyTelemetryUI();
-      }
-    } catch (err) {
-      console.error("Profile fetch error:", err);
-      setEmptyTelemetryUI();
-    }
+  // 1. Immediately render cached phenotype if present
+  const cachedPhenotype = localStorage.getItem("user_phenotype");
+  if (cachedPhenotype && cachedPhenotype !== "None" && !cachedPhenotype.toLowerCase().includes("pending")) {
+    applyPhenotypeUI(cachedPhenotype, true);
   }
 
-  async function fetchLatestTelemetry(userId) {
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/user-profile/${currentUserId}`);
+    if (res.ok) {
+      const data = await res.json();
+      
+      // Update BMI displays
+      if (data.height_cm) document.getElementById("inputHeight").value = data.height_cm;
+      if (data.weight_kg) document.getElementById("inputWeight").value = data.weight_kg;
+      
+      if (data.bmi && data.bmi > 0) {
+        if (document.getElementById("navBmiDisplay")) document.getElementById("navBmiDisplay").innerText = `BMI: ${data.bmi}`;
+        if (document.getElementById("sideBmiScore")) document.getElementById("sideBmiScore").innerText = `${data.bmi}`;
+        if (document.getElementById("modalBmiScore")) document.getElementById("modalBmiScore").innerText = `${data.bmi}`;
+      }
+      
+      if (data.bmi_category) {
+        if (document.getElementById("sideBmiCategory")) document.getElementById("sideBmiCategory").innerText = data.bmi_category.split(' ')[0];
+        if (document.getElementById("modalBmiCategory")) document.getElementById("modalBmiCategory").innerText = data.bmi_category;
+      }
+
+      // 2. Handle Phenotype Calibration State
+      if (data.assigned_phenotype && data.assigned_phenotype !== "None" && !data.assigned_phenotype.toLowerCase().includes("pending")) {
+        localStorage.setItem("user_phenotype", data.assigned_phenotype);
+        applyPhenotypeUI(data.assigned_phenotype, true);
+        await fetchLatestTelemetry(currentUserId);
+      } else if (!cachedPhenotype) {
+        applyPhenotypeUI("Uncalibrated Profile", false);
+        setEmptyTelemetryUI();
+      } else {
+        await fetchLatestTelemetry(currentUserId);
+      }
+    }
+  } catch (err) {
+    console.error("Profile fetch error:", err);
+  }
+}
+  async function fetchLatestTelemetry(uid) {
+    if (!uid) return;
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+      const res = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${uid}`);
       if (res.ok) {
         const log = await res.json();
         if (log && log.has_logged) {
@@ -536,182 +577,78 @@
     if (document.getElementById("dashPhenotypeBadge")) {
       if (isCalibrated) {
         document.getElementById("dashPhenotypeBadge").innerText = "Live Calibrated";
-        document.getElementById("dashPhenotypeBadge").className = "bg-emerald-900/40 text-emerald-300 border border-emerald-500/40 text-xs px-3.5 py-1.5 rounded-full font-medium";
+        document.getElementById("dashPhenotypeBadge").className = "bg-emerald-900/40 text-emerald-300 border border-emerald-500/40 text-xs px-3.5 py-1.5 rounded-full font-medium whitespace-nowrap shrink-0";
       } else {
         document.getElementById("dashPhenotypeBadge").innerText = "Uncalibrated";
-        document.getElementById("dashPhenotypeBadge").className = "bg-purple-900/40 text-purple-300 border border-purple-500/40 text-xs px-3.5 py-1.5 rounded-full font-medium";
+        document.getElementById("dashPhenotypeBadge").className = "bg-purple-900/40 text-purple-300 border border-purple-500/40 text-xs px-3.5 py-1.5 rounded-full font-medium whitespace-nowrap shrink-0";
       }
     }
   }
 
-  function refreshUserDisplay() {
-    const fullName = localStorage.getItem("full_name") || "User";
-    const email = localStorage.getItem("user_email") || "user@example.com";
-    const userId = localStorage.getItem("user_id") || "1";
-    const dob = localStorage.getItem("user_dob") || "Not set";
-
-    const initials = fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "U";
-    if (document.getElementById("sideAvatarBadge")) document.getElementById("sideAvatarBadge").innerText = initials;
-    if (document.getElementById("profAvatarBadge")) document.getElementById("profAvatarBadge").innerText = initials;
-    if (document.getElementById("sideUserName")) document.getElementById("sideUserName").innerText = fullName;
-    if (document.getElementById("sideUserEmail")) document.getElementById("sideUserEmail").innerText = email;
-    if (document.getElementById("userGreeting")) document.getElementById("userGreeting").innerText = `Welcome back, ${fullName}! Real-time biological telemetry status`;
-    if (document.getElementById("profFullName")) document.getElementById("profFullName").innerText = fullName;
-    if (document.getElementById("profEmail")) document.getElementById("profEmail").innerText = email;
-    if (document.getElementById("profUserId")) document.getElementById("profUserId").innerText = userId;
-    if (document.getElementById("profDobDisplay")) document.getElementById("profDobDisplay").innerText = dob;
-
-    if (document.getElementById("editFullName")) document.getElementById("editFullName").value = fullName;
-    if (document.getElementById("editDob") && dob !== "Not set") document.getElementById("editDob").value = dob;
-  }
-
-  function updateUserProfile(event) {
-    event.preventDefault();
-    const alertBox = document.getElementById("profileUpdateAlert");
-    const newName = document.getElementById("editFullName").value.trim();
-    const newDob = document.getElementById("editDob").value;
-    const newPass = document.getElementById("editNewPassword").value;
-    const confirmPass = document.getElementById("editConfirmPassword").value;
-
-    if (newPass && newPass !== confirmPass) {
-      alertBox.textContent = "Passwords do not match!";
-      alertBox.className = "mb-3 p-2.5 rounded-xl text-xs text-center font-medium bg-rose-500/10 text-rose-400 border border-rose-500/30";
-      return;
-    }
-
-    if (newName) localStorage.setItem("full_name", newName);
-    if (newDob) localStorage.setItem("user_dob", newDob);
-
-    alertBox.textContent = "Profile updated successfully!";
-    alertBox.className = "mb-3 p-2.5 rounded-xl text-xs text-center font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
-
-    document.getElementById("editNewPassword").value = "";
-    document.getElementById("editConfirmPassword").value = "";
-    refreshUserDisplay();
-    setTimeout(() => alertBox.classList.add("hidden"), 3000);
-  }
-
-  function switchTab(tabName) {
-    const overviewSec = document.getElementById("overviewSection");
-    const profileSec = document.getElementById("profileSection");
-    const navOverview = document.getElementById("navOverview");
-
-    overviewSec.classList.add("hidden");
-    profileSec.classList.add("hidden");
-
-    const activeClass = "w-full flex items-center gap-3.5 px-4 py-2.5 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-xl text-sm font-medium transition text-left";
-    const inactiveClass = "w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left";
-
-    navOverview.className = inactiveClass;
-
-    if (tabName === "profile") {
-      profileSec.classList.remove("hidden");
-    } else {
-      overviewSec.classList.remove("hidden");
-      navOverview.className = activeClass;
-    }
-  }
-
-  window.submitIntakeForm = async function(event) {
-    if (event) event.preventDefault();
-    const userId = localStorage.getItem('user_id') || '1';
-    const payload = {
-      user_id: parseInt(userId),
-      symp_periods: document.getElementById('symp_periods')?.checked || false,
-      symp_hair: document.getElementById('symp_hair')?.checked || false,
-      symp_thinning: document.getElementById('symp_thinning')?.checked || false,
-      symp_acne: document.getElementById('symp_acne')?.checked || false,
-      symp_stress: document.getElementById('symp_stress')?.checked || false,
-      symp_weight: document.getElementById('symp_weight')?.checked || false,
-      usg_result: document.getElementById('usgInput')?.value || 'normal',
-      prior_diagnosis: document.getElementById('diagInput')?.value || 'none'
-    };
-
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/submit-intake', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await response.json();
-      if (response.ok) {
-        localStorage.setItem("user_phenotype", data.assigned_phenotype);
-        applyPhenotypeUI(data.assigned_phenotype, true);
-        setTimeout(() => {
-          window.closeIntakeModal();
-          openLogModal();
-        }, 600);
-      }
-    } catch (err) {
-      console.error("Intake submission error:", err);
-    }
-  };
-
-  document.getElementById("healthLogForm")?.addEventListener("submit", async function(e) {
+  async function submitBmiUpdate(e) {
     e.preventDefault();
-    const userId = localStorage.getItem("user_id") || "1";
-    const submitBtn = document.getElementById("submitLogBtn");
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerText = "Saving..."; }
+    const currentUserId = localStorage.getItem("user_id");
+    if (!currentUserId) return;
 
     const payload = {
-      user_id: parseInt(userId),
-      stress_level: parseInt(document.getElementById("stressInput").value),
-      sleep_hours: parseFloat(document.getElementById("sleepInput").value),
-      exercise_mins: parseInt(document.getElementById("exerciseInput").value),
-      diet_score: parseInt(document.getElementById("dietInput").value),
-      medication_status: parseInt(document.getElementById("medicationInput").value)
+      user_id: parseInt(currentUserId),
+      height_cm: parseFloat(document.getElementById("inputHeight")?.value || 0),
+      weight_kg: parseFloat(document.getElementById("inputWeight")?.value || 0)
     };
-
-    try {
-      const res = await fetch("http://127.0.0.1:8000/api/submit-health-log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (res.ok) {
-        applyLiveTwinState(payload.stress_level, payload.sleep_hours, payload.exercise_mins, data.stability_score);
-        if (document.getElementById("syncStatusBadge")) {
-          document.getElementById("syncStatusBadge").innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Synced`;
-        }
-        closeLogModal();
-      } else {
-        alert("Error saving log: " + (data.detail || "Unable to save metrics."));
-      }
-    } catch (err) {
-      console.error("Telemetry submit error:", err);
-    } finally {
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = "Submit"; }
-    }
-  });
-
-  async function submitBmiUpdate(event) {
-    event.preventDefault();
-    const userId = localStorage.getItem("user_id") || "1";
-    const height = parseFloat(document.getElementById("inputHeight").value);
-    const weight = parseFloat(document.getElementById("inputWeight").value);
-    const saveBtn = document.getElementById("saveBmiBtn");
-    if (saveBtn) saveBtn.innerText = "Syncing...";
 
     try {
       const res = await fetch("http://127.0.0.1:8000/api/update-bmi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: parseInt(userId), height_cm: height, weight_kg: weight })
+        body: JSON.stringify(payload)
       });
       if (res.ok) {
-        const data = await res.json();
-        if (document.getElementById("navBmiDisplay")) document.getElementById("navBmiDisplay").innerText = `BMI: ${data.bmi}`;
-        if (document.getElementById("sideBmiScore")) document.getElementById("sideBmiScore").innerText = `${data.bmi}`;
-        if (document.getElementById("sideBmiCategory")) document.getElementById("sideBmiCategory").innerText = data.bmi_category.split(' ')[0];
-        if (document.getElementById("modalBmiScore")) document.getElementById("modalBmiScore").innerText = `${data.bmi}`;
-        if (document.getElementById("modalBmiCategory")) document.getElementById("modalBmiCategory").innerText = `${data.bmi_category}`;
         closeBmiModal();
+        await fetchUserProfileAndPhenotype();
       }
     } catch (err) {
-      console.error("BMI update error:", err);
-    } finally {
-      if (saveBtn) saveBtn.innerText = "Sync BMI";
+      console.error("BMI update failed:", err);
+    }
+  }
+
+  async function updateUserProfile(e) {
+    e.preventDefault();
+    const currentUserId = localStorage.getItem("user_id");
+    if (!currentUserId) return;
+
+    const name = document.getElementById("editFullName")?.value || "";
+    const dob = document.getElementById("editDob")?.value || "";
+    const pass = document.getElementById("editNewPassword")?.value || "";
+    const confirmPass = document.getElementById("editConfirmPassword")?.value || "";
+    const alertBox = document.getElementById("profileUpdateAlert");
+
+    if (pass && pass !== confirmPass) {
+      if (alertBox) {
+        alertBox.className = "mb-3 p-2.5 rounded-xl text-xs text-center font-medium bg-rose-500/20 text-rose-300 border border-rose-500/40";
+        alertBox.innerText = "Passwords do not match!";
+        alertBox.classList.remove("hidden");
+      }
+      return;
+    }
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: parseInt(currentUserId), full_name: name, dob: dob, password: pass })
+      });
+      if (res.ok) {
+        localStorage.setItem("full_name", name);
+        if (dob) localStorage.setItem("user_dob", dob);
+        refreshUserDisplay();
+        if (alertBox) {
+          alertBox.className = "mb-3 p-2.5 rounded-xl text-xs text-center font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+          alertBox.innerText = "Profile updated successfully!";
+          alertBox.classList.remove("hidden");
+        }
+      }
+    } catch (err) {
+      console.error("Profile update failed:", err);
     }
   }
   </script>

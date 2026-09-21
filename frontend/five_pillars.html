@@ -1602,6 +1602,32 @@
     }
   }
 
+  async function submitExerciseWorkout(exerciseName, durationMins, caloriesBurned) {
+  const userId = localStorage.getItem("user_id");
+  const payload = {
+    user_id: parseInt(userId),
+    exercise_name: exerciseName,
+    duration_mins: parseInt(durationMins),
+    calories_burned: parseInt(caloriesBurned)
+  };
+
+  const res = await fetch("http://127.0.0.1:8000/api/complete-exercise", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  if (res.ok) {
+    // Refresh telemetry to restore stability score after burning calories
+    const telemRes = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+    if (telemRes.ok) {
+      const updatedTelem = await telemRes.json();
+      localStorage.setItem("latest_stability", updatedTelem.stability_score);
+      alert(`Workout logged! Burned ${caloriesBurned} kcal. Stability score updated to ${updatedTelem.stability_score}.`);
+    }
+  }
+}
+
   // ================= 6. BMI UPDATE =================
   async function submitBmiUpdate(event) {
     event.preventDefault();

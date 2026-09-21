@@ -7,8 +7,6 @@ import numpy as np
 import pandas as pd
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from rapidfuzz import fuzz
 from sklearn.neighbors import KNeighborsClassifier
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -17,6 +15,13 @@ import models
 import schemas
 from database import engine, Base, get_db
 from models import ExerciseLog, SleepLog, HealthLog, User, IntakeAssessment, MealLog, MedicationLog
+
+from schemas import (
+    SignupSchema, LoginSchema, IntakeSchema, BmiUpdateRequest, 
+    MealLogCreate, FlexibleScanRequest, ExerciseCompleteRequest, 
+    SleepLogRequest, AddMedicationRequest, ScanPrescriptionRequest, 
+    StressResetLogRequest
+)
 
 # Ensure database tables are created
 Base.metadata.create_all(bind=engine)
@@ -79,37 +84,6 @@ def build_search_corpus(df: pd.DataFrame):
 SEARCH_CORPUS = build_search_corpus(MED_DF)
 
 
-# ================= PYDANTIC SCHEMAS =================
-class BmiUpdateRequest(BaseModel):
-    user_id: int
-    height_cm: float
-    weight_kg: float
-
-class ExerciseCompleteRequest(BaseModel):
-    user_id: int
-    exercise_name: str
-    duration_mins: int
-    calories_burned: int
-
-class SleepLogRequest(BaseModel):
-    user_id: int
-    sleep_hours: float
-    bed_time: str
-    wake_time: str
-    sleep_quality: Optional[str] = "Restful"
-
-class AddMedicationRequest(BaseModel):
-    user_id: int
-    med_name: str
-    dosage_frequency: str
-    clinical_purpose: Optional[str] = "Prescribed PMOS Protocol"
-    icon: Optional[str] = "💊"
-
-class ScanPrescriptionRequest(BaseModel):
-    filename: Optional[str] = ""
-    extracted_text: Optional[str] = ""
-
-
 # ================= ML MODEL INITIALIZATION =================
 X_train = np.array([
     [520, 36, 42, 28],  # Underweight / Lean Optimal
@@ -165,7 +139,7 @@ def read_root():
 
 # ================= AUTHENTICATION ENDPOINTS =================
 @app.post("/api/signup")
-def signup(data: schemas.SignupSchema, db: Session = Depends(get_db)):
+def signup(data: SignupSchema, db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(models.User.email == data.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -182,7 +156,7 @@ def signup(data: schemas.SignupSchema, db: Session = Depends(get_db)):
 
 
 @app.post("/api/login")
-def login(credentials: schemas.LoginSchema, db: Session = Depends(get_db)):
+def login(credentials: LoginSchema, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == credentials.email).first()
     if not user or user.password_hash != credentials.password:
         raise HTTPException(status_code=400, detail="Invalid credentials")
@@ -231,23 +205,62 @@ def get_user_profile(user_id: int, db: Session = Depends(get_db)):
     }
 
 
+# ================= UNIFIED DIGITAL TWIN TELEMETRY FROM 5 PILLARS =================
 @app.get("/api/latest-telemetry/{user_id}")
 def get_latest_telemetry(user_id: int, db: Session = Depends(get_db)):
-    latest = (
-        db.query(HealthLog)
-        .filter(HealthLog.user_id == user_id)
-        .order_by(HealthLog.id.desc())
+    # 1. Fetch latest Sleep Log
+    latest_sleep = (
+        db.query(models.SleepLog)
+        .filter(models.SleepLog.user_id == user_id)
+        .order_by(models.SleepLog.id.desc())
         .first()
     )
-    if latest:
-        return {
-            "has_logged": True,
-            "stress_level": latest.stress_level,
-            "sleep_hours": latest.sleep_hours,
-            "exercise_mins": latest.exercise_mins,
-            "stability_score": int(latest.risk_score) if latest.risk_score else 67
-        }
-    return {"has_logged": False}
+    sleep_hrs = float(latest_sleep.sleep_hours) if latest_sleep else 7.5
+
+    # 2. Fetch latest Exercise Log
+    latest_exercise = (
+        db.query(models.ExerciseLog)
+        .filter(models.ExerciseLog.user_id == user_id)
+        .order_by(models.ExerciseLog.id.desc())
+        .first()
+    )
+    exercise_mins = latest_exercise.duration_mins if latest_exercise else 0
+
+    # 3. Fetch latest Stress Reset
+    latest_stress_reset = (
+        db.query(models.StressResetLog)
+        .filter(models.StressResetLog.user_id == user_id)
+        .order_by(models.StressResetLog.id.desc())
+        .first()
+    )
+    stress_lvl = 4 if latest_stress_reset else 5
+
+    # 4. Fetch Meals Count today to factor into stability
+    meals_count = (
+        db.query(models.MealLog)
+        .filter(models.MealLog.user_id == user_id)
+        .count()
+    )
+
+    # Calculate real-time Digital Twin Stability Index based on 5 Pillars state
+    base_stability = 100
+    stress_penalty = stress_lvl * 4
+    sleep_bonus = 10 if sleep_hrs >= 7.5 else -10
+    exercise_bonus = 10 if exercise_mins >= 20 else 0
+    nutrition_bonus = 5 if meals_count >= 2 else 0
+
+    stability_score = max(10, min(99, int(base_stability - stress_penalty + sleep_bonus + exercise_bonus + nutrition_bonus)))
+
+    has_logged = (latest_sleep is not None) or (latest_exercise is not None) or (latest_stress_reset is not None) or (meals_count > 0)
+
+    return {
+        "has_logged": has_logged,
+        "stress_level": stress_lvl,
+        "sleep_hours": sleep_hrs,
+        "exercise_mins": exercise_mins,
+        "meals_logged": meals_count,
+        "stability_score": stability_score
+    }
 
 
 # ================= ANTHROPOMETRY / BMI ENDPOINT =================
@@ -287,7 +300,7 @@ def update_user_bmi(data: BmiUpdateRequest, db: Session = Depends(get_db)):
 
 
 # ================= INTAKE & ROTTERDAM PHENOTYPE EVALUATION =================
-def classify_phenotype(data: schemas.IntakeSchema) -> str:
+def classify_phenotype(data: IntakeSchema) -> str:
     has_hyperandrogenism = data.symp_hair or data.symp_thinning or data.symp_acne
     has_ovulatory_dysfunction = data.symp_periods
     has_pcom_ultrasound = str(data.usg_result).lower() in ["cysts", "polycystic", "pco"]
@@ -307,10 +320,11 @@ def classify_phenotype(data: schemas.IntakeSchema) -> str:
 
 
 @app.post("/api/submit-intake")
-def submit_intake(data: schemas.IntakeSchema, db: Session = Depends(get_db)):
+def submit_intake(data: IntakeSchema, db: Session = Depends(get_db)):
     assigned_pheno = classify_phenotype(data)
     user = db.query(models.User).filter(models.User.id == data.user_id).first()
     assessment_id = 1
+    
     if user:
         new_assessment = models.IntakeAssessment(
             user_id=data.user_id,
@@ -329,43 +343,16 @@ def submit_intake(data: schemas.IntakeSchema, db: Session = Depends(get_db)):
         db.refresh(new_assessment)
         assessment_id = new_assessment.id
 
-    return {"status": "success", "assigned_phenotype": assigned_pheno, "assessment_id": assessment_id}
-
-
-# ================= DAILY HEALTH TELEMETRY =================
-@app.post("/api/submit-health-log")
-def submit_health_log(data: schemas.HealthLogSchema, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == data.user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    stability_score = int(100 - (data.stress_level * 5) + (data.sleep_hours * 2) + (data.exercise_mins * 0.2))
-    stability_score = max(10, min(99, stability_score))
-
-    new_log = models.HealthLog(
-        user_id=data.user_id,
-        stress_level=data.stress_level,
-        sleep_hours=float(data.sleep_hours),
-        exercise_mins=data.exercise_mins,
-        diet_score=data.diet_score,
-        medication_status=data.medication_status,
-        risk_score=float(stability_score)
-    )
-    db.add(new_log)
-    db.commit()
-    db.refresh(new_log)
-
     return {
-        "status": "success",
-        "message": "Health metrics logged successfully",
-        "stability_score": stability_score,
-        "log_id": new_log.id
+        "status": "success", 
+        "assigned_phenotype": assigned_pheno, 
+        "assessment_id": assessment_id
     }
 
 
 # ================= PILLAR 1: DIET & MEAL LOGS =================
 @app.post("/api/log-meal")
-def log_meal(data: schemas.MealLogCreate, db: Session = Depends(get_db)):
+def log_meal(data: MealLogCreate, db: Session = Depends(get_db)):
     new_meal = models.MealLog(
         user_id=data.user_id,
         meal_name=data.meal_name,
@@ -680,8 +667,7 @@ def log_sleep_schedule(data: SleepLogRequest, db: Session = Depends(get_db)):
     }
 
 
-# ================= PILLAR 4: MEDICATION & SUPPLEMENT API (DATASET DRIVEN) =================
-
+# ================= PILLAR 4: MEDICATION & SUPPLEMENT API =================
 @app.get("/api/medication-suggestions")
 def get_medication_suggestions(query: str = ""):
     q = query.lower().strip()
@@ -692,7 +678,6 @@ def get_medication_suggestions(query: str = ""):
     seen_generics = set()
 
     for item in SEARCH_CORPUS:
-        # Evaluate partial ratio score
         score = fuzz.partial_ratio(q, item["term"])
         if q in item["term"] or score >= 75:
             generic = item["data"]["generic_name"]
@@ -719,19 +704,15 @@ def scan_prescription(payload: ScanPrescriptionRequest):
     best_match = None
     highest_score = 0.0
 
-    # Multi-strategy fuzzy match against generic and brand dictionary
     for item in SEARCH_CORPUS:
         term = item["term"]
         if len(term) < 3:
             continue
 
-        # 1. Exact token containment (highest priority)
         if term in clean_text:
             score = 100.0
         else:
-            # 2. Token set ratio (handles out-of-order words in tables)
             token_score = fuzz.token_set_ratio(term, clean_text)
-            # 3. Partial ratio (handles fragmented OCR substrings)
             partial_score = fuzz.partial_ratio(term, clean_text)
             score = max(token_score, partial_score)
 
@@ -743,7 +724,6 @@ def scan_prescription(payload: ScanPrescriptionRequest):
         data = best_match["data"]
         dosage = data["default_dosage"]
 
-        # Dynamic Schedule Extraction: check if specific prescription times were read
         if any(w in clean_text for w in ["0 0 1", "0-0-1", "night", "9 pm", "bedtime"]):
             if "night" not in dosage.lower():
                 dosage = f"{dosage.split('|')[0].strip()} | Night (After Meal)"
@@ -775,7 +755,6 @@ def scan_prescription(payload: ScanPrescriptionRequest):
 def get_user_medications(user_id: int, db: Session = Depends(get_db)):
     meds = db.query(models.MedicationLog).filter(models.MedicationLog.user_id == user_id).all()
     
-    # Auto-seed baseline PMOS stack for new users if table is empty
     if not meds:
         seed_defaults = [
             ("Myo-Inositol & D-Chiro-Inositol", "2000mg | Morning & Evening", "Restores oocyte quality & insulin receptor binding", "🧬", True),
@@ -808,36 +787,13 @@ def get_user_medications(user_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/api/add-medication")
-def add_user_medication(data: AddMedicationRequest, db: Session = Depends(get_db)):
-    clean_name = data.med_name.strip()
-    
-    # Check duplicate entry
-    existing = (
-        db.query(models.MedicationLog)
-        .filter(
-            models.MedicationLog.user_id == data.user_id,
-            func.lower(models.MedicationLog.med_name) == clean_name.lower()
-        )
-        .first()
-    )
-    if existing:
-        raise HTTPException(status_code=400, detail=f"'{clean_name}' is already active in your protocol.")
-
-    icon = data.icon or "💊"
-    purpose = data.clinical_purpose or "Custom Therapeutic Support"
-
-    for item in SEARCH_CORPUS:
-        if fuzz.ratio(clean_name.lower(), item["term"]) >= 80:
-            icon = item["data"]["icon"]
-            purpose = item["data"]["clinical_purpose"]
-            break
-
+def add_medication(data: AddMedicationRequest, db: Session = Depends(get_db)):
     new_med = models.MedicationLog(
         user_id=data.user_id,
-        med_name=clean_name,
+        med_name=data.med_name,
         dosage_frequency=data.dosage_frequency,
-        clinical_purpose=purpose,
-        icon=icon,
+        clinical_purpose=data.clinical_purpose,
+        icon=data.icon,
         is_taken_today=False
     )
     db.add(new_med)
@@ -846,28 +802,126 @@ def add_user_medication(data: AddMedicationRequest, db: Session = Depends(get_db
     return {"status": "success", "message": "Medication added", "med_id": new_med.id}
 
 
-@app.post("/api/toggle-medication-dose/{med_id}")
-def toggle_medication_dose(med_id: int, db: Session = Depends(get_db)):
+@app.post("/api/toggle-medication/{med_id}")
+def toggle_medication(med_id: int, db: Session = Depends(get_db)):
     med = db.query(models.MedicationLog).filter(models.MedicationLog.id == med_id).first()
     if not med:
-        raise HTTPException(status_code=404, detail="Medication not found")
+        raise HTTPException(status_code=404, detail="Medication log not found")
+
     med.is_taken_today = not med.is_taken_today
     db.commit()
+    db.refresh(med)
     return {"status": "success", "is_taken_today": med.is_taken_today}
 
 
-@app.delete("/api/delete-medication/{med_id}")
-def delete_medication(med_id: int, db: Session = Depends(get_db)):
-    med = db.query(models.MedicationLog).filter(models.MedicationLog.id == med_id).first()
-    if not med:
-        raise HTTPException(status_code=404, detail="Medication not found")
-    db.delete(med)
-    db.commit()
-    return {"status": "success", "message": "Medication deleted from protocol"}
+# ================= PILLAR 5: STRESS & MENTAL WELLNESS ENDPOINTS =================
+@app.get("/api/stress-recommendation/{user_id}")
+def get_stress_recommendation(user_id: int, db: Session = Depends(get_db)):
+    latest_reset = (
+        db.query(models.StressResetLog)
+        .filter(models.StressResetLog.user_id == user_id)
+        .order_by(models.StressResetLog.id.desc())
+        .first()
+    )
+    
+    current_stress = 4 if latest_reset else 5
+
+    if current_stress >= 7:
+        recommended_technique = "4-7-8 Parasympathetic Downregulation"
+        duration = 10
+        guidance = "High adrenal stress detected. Focus on extended exhalations to activate the vagus nerve and reduce cortisol."
+    elif current_stress >= 4:
+        recommended_technique = "Box Breathing (4-4-4-4)"
+        duration = 5
+        guidance = "Moderate stress levels. Use equalized breathing counts to balance autonomic nervous system activity."
+    else:
+        recommended_technique = "Mindful Diaphragmatic Awareness"
+        duration = 5
+        guidance = "Optimal baseline state. Maintain calm focus with gentle belly breathing."
+
+    recent_resets = (
+        db.query(models.StressResetLog)
+        .filter(models.StressResetLog.user_id == user_id)
+        .order_by(models.StressResetLog.id.desc())
+        .limit(5)
+        .all()
+    )
+
+    return {
+        "current_stress_level": current_stress,
+        "recommended_technique": recommended_technique,
+        "recommended_duration_mins": duration,
+        "clinical_guidance": guidance,
+        "total_resets_logged": len(recent_resets)
+    }
 
 
-@app.post("/api/reset-medications-day/{user_id}")
-def reset_medications_day(user_id: int, db: Session = Depends(get_db)):
-    db.query(models.MedicationLog).filter(models.MedicationLog.user_id == user_id).update({"is_taken_today": False})
+@app.post("/api/log-stress-reset")
+def log_stress_reset(data: StressResetLogRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == data.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    symptoms_str = ",".join(data.symptoms) if data.symptoms else ""
+
+    new_log = models.StressResetLog(
+        user_id=data.user_id,
+        technique=data.technique,
+        duration_mins=data.duration_mins,
+        symptoms=symptoms_str
+    )
+    db.add(new_log)
     db.commit()
-    return {"status": "success", "message": "Medication protocol reset for the new day!"}
+    db.refresh(new_log)
+
+    return {
+        "status": "success",
+        "message": f"Logged {data.duration_mins} mins of {data.technique}.",
+        "log_id": new_log.id
+    }
+
+
+@app.get("/api/user-stress-logs/{user_id}")
+def get_user_stress_logs(user_id: int, db: Session = Depends(get_db)):
+    logs = (
+        db.query(models.StressResetLog)
+        .filter(models.StressResetLog.user_id == user_id)
+        .order_by(models.StressResetLog.id.desc())
+        .all()
+    )
+
+    return [
+        {
+            "id": log.id,
+            "technique": log.technique,
+            "duration_mins": log.duration_mins,
+            "symptoms": log.symptoms.split(",") if log.symptoms else [],
+            "date": log.created_at.strftime("%Y-%m-%d %H:%M")
+        }
+        for log in logs
+    ]
+
+@app.post("/api/update-profile")
+def update_profile(data: schemas.ProfileUpdateRequest, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == data.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if data.full_name:
+        user.full_name = data.full_name
+
+    if data.dob:
+        user.dob = data.dob
+
+    if data.password and data.password.strip():
+        user.password_hash = data.password.strip()
+
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "status": "success",
+        "message": "Profile updated successfully",
+        "full_name": user.full_name,
+        "dob": user.dob
+    }
