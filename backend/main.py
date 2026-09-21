@@ -1,6 +1,6 @@
 import os
 import re
-from datetime import datetime, date
+from datetime import datetime, date, time
 from typing import Optional
 
 import numpy as np
@@ -59,7 +59,6 @@ def build_search_corpus(df: pd.DataFrame):
         if not gen_name:
             continue
 
-        # 1. Map Generic Formulation
         corpus.append({
             "term": gen_name.lower(),
             "display_name": gen_name,
@@ -67,7 +66,6 @@ def build_search_corpus(df: pd.DataFrame):
             "is_brand": False
         })
 
-        # 2. Map Each Commercial Brand / Trade Name
         brands = str(row.get("brand_names", ""))
         if brands:
             for brand in brands.split(";"):
@@ -99,25 +97,21 @@ meal_knn_model.fit(X_train, y_train)
 
 # ================= 4-MEAL PHENOTYPE RECIPE DATABASE =================
 RECIPES_DF = pd.DataFrame([
-    # Phenotype B: Underweight / Hyperandrogenic PMOS
     {"meal_slot": "Breakfast", "name": "Avocado & Pasture-Raised Eggs on Seeded Sourdough", "kcal": 460, "protein": 24, "carbs": 28, "fats": 28, "gi": 35, "phenotype": "Phenotype B: Ovulatory-Hyperandrogenic PMOS", "desc": "Choline and mono-unsaturated fats to support hormone steroidogenesis."},
     {"meal_slot": "Lunch", "name": "Wild Alaskan Salmon & Quinoa Tahini Bowl", "kcal": 580, "protein": 40, "carbs": 32, "fats": 34, "gi": 28, "phenotype": "Phenotype B: Ovulatory-Hyperandrogenic PMOS", "desc": "High Omega-3s to downregulate follicular inflammation."},
     {"meal_slot": "Dinner", "name": "Slow-Roasted Grass-Fed Beef with Sweet Potato Mash", "kcal": 550, "protein": 42, "carbs": 38, "fats": 26, "gi": 40, "phenotype": "Phenotype B: Ovulatory-Hyperandrogenic PMOS", "desc": "Bioavailable zinc and iron supporting ovarian follicle maturation."},
     {"meal_slot": "Snack", "name": "Raw Macadamia, Walnuts & Pumpkin Seed Cluster", "kcal": 349, "protein": 12, "carbs": 10, "fats": 30, "gi": 15, "phenotype": "Phenotype B: Ovulatory-Hyperandrogenic PMOS", "desc": "Anti-androgenic magnesium & healthy lipid density."},
 
-    # Phenotype A: Classic PMOS / Insulin Resistant
     {"meal_slot": "Breakfast", "name": "Chia Seed & Flax Pudding with Collagen & Blueberries", "kcal": 380, "protein": 28, "carbs": 16, "fats": 22, "gi": 18, "phenotype": "Phenotype A: Classic PMOS", "desc": "High viscous fiber to blunt morning cortisol & insulin release."},
     {"meal_slot": "Lunch", "name": "Grilled Herb Chicken Breast & Cauliflower Rice Pilaf", "kcal": 490, "protein": 48, "carbs": 18, "fats": 24, "gi": 15, "phenotype": "Phenotype A: Classic PMOS", "desc": "Ultra low-glycemic load maintaining baseline insulin sensitivity."},
     {"meal_slot": "Dinner", "name": "Pan-Seared Halibut with Sautéed Asparagus & Garlic Kale", "kcal": 450, "protein": 44, "carbs": 14, "fats": 24, "gi": 12, "phenotype": "Phenotype A: Classic PMOS", "desc": "Sulforaphane & glutathione to promote estrogen liver conjugation."},
     {"meal_slot": "Snack", "name": "Organic Celery Sticks with Salted Almond Butter", "kcal": 219, "protein": 8, "carbs": 8, "fats": 18, "gi": 10, "phenotype": "Phenotype A: Classic PMOS", "desc": "Electrolytes and protein buffer preventing mid-day sugar cravings."},
 
-    # Phenotype C: Metabolic-Adrenal PMOS
     {"meal_slot": "Breakfast", "name": "Poached Eggs, Sautéed Spinach & Roasted Pumpkin Slices", "kcal": 410, "protein": 26, "carbs": 24, "fats": 24, "gi": 30, "phenotype": "Phenotype C: Metabolic-Adrenal PMOS", "desc": "Magnesium-dense start preventing adrenal cortisol surges."},
     {"meal_slot": "Lunch", "name": "Free-Range Turkey Breast with Steamed Broccoli & Tahini", "kcal": 510, "protein": 46, "carbs": 20, "fats": 28, "gi": 20, "phenotype": "Phenotype C: Metabolic-Adrenal PMOS", "desc": "Tryptophan-rich protein sustaining steady adrenal neurotransmitters."},
     {"meal_slot": "Dinner", "name": "Braised Cod Fillet with Stewed Zucchini & Olive Oil", "kcal": 480, "protein": 38, "carbs": 18, "fats": 28, "gi": 22, "phenotype": "Phenotype C: Metabolic-Adrenal PMOS", "desc": "Easily digestible evening protein supporting nocturnal growth hormone."},
     {"meal_slot": "Snack", "name": "Spiced Golden Turmeric Milk with Coconut Cream & Chia", "kcal": 239, "protein": 6, "carbs": 12, "fats": 18, "gi": 15, "phenotype": "Phenotype C: Metabolic-Adrenal PMOS", "desc": "Curcumin anti-inflammatory tonic for evening vagus downregulation."},
 
-    # Phenotype D: Normo-Androgenic PMOS
     {"meal_slot": "Breakfast", "name": "Greek Yogurt Bowl with Hemp Seeds & Raspberries", "kcal": 400, "protein": 32, "carbs": 22, "fats": 20, "gi": 25, "phenotype": "Phenotype D: Normo-Androgenic PMOS", "desc": "Probiotic and protein balance to sustain gut-estrogen clearance."},
     {"meal_slot": "Lunch", "name": "Mediterranean Quinoa Bowl with Extra Virgin Olive Oil & Tuna", "kcal": 530, "protein": 42, "carbs": 35, "fats": 24, "gi": 32, "phenotype": "Phenotype D: Normo-Androgenic PMOS", "desc": "Polyphenols supporting ovulatory regularity and vascular tone."},
     {"meal_slot": "Dinner", "name": "Grilled Chicken Paillard with Sautéed Artichoke Hearts", "kcal": 490, "protein": 45, "carbs": 20, "fats": 25, "gi": 20, "phenotype": "Phenotype D: Normo-Androgenic PMOS", "desc": "Fiber prebiotic substrate supporting luteal phase progesterone synthesis."},
@@ -161,7 +155,6 @@ def login(credentials: LoginSchema, db: Session = Depends(get_db)):
     if not user or user.password_hash != credentials.password:
         raise HTTPException(status_code=400, detail="Invalid credentials")
     
-    # Check if the user has completed the intake assessment
     assessment = (
         db.query(models.IntakeAssessment)
         .filter(models.IntakeAssessment.user_id == user.id)
@@ -191,6 +184,8 @@ def get_user_profile(user_id: int, db: Session = Depends(get_db)):
         .first()
     )
 
+    pheno = latest_assessment.assigned_phenotype if latest_assessment else None
+
     return {
         "user_id": user.id,
         "full_name": user.full_name,
@@ -200,67 +195,55 @@ def get_user_profile(user_id: int, db: Session = Depends(get_db)):
         "weight_kg": getattr(user, "weight_kg", 58.0),
         "bmi": getattr(user, "bmi", 22.1),
         "bmi_category": getattr(user, "bmi_category", "Normal (Lean PMOS)"),
-        "assigned_phenotype": latest_assessment.assigned_phenotype if latest_assessment else None,
-        "is_calibrated": latest_assessment is not None
+        "assigned_phenotype": pheno,
+        "is_calibrated": pheno is not None
     }
 
 
-# ================= UNIFIED DIGITAL TWIN TELEMETRY FROM 5 PILLARS =================
 @app.get("/api/latest-telemetry/{user_id}")
 def get_latest_telemetry(user_id: int, db: Session = Depends(get_db)):
-    # 1. Fetch latest Sleep Log
-    latest_sleep = (
-        db.query(models.SleepLog)
-        .filter(models.SleepLog.user_id == user_id)
-        .order_by(models.SleepLog.id.desc())
-        .first()
-    )
-    sleep_hrs = float(latest_sleep.sleep_hours) if latest_sleep else 7.5
+    try:
+        user_meals = db.query(models.MealLog).filter(models.MealLog.user_id == user_id).all()
+        
+        total_calories = sum(m.calories for m in user_meals)
+        high_gi_count = sum(1 for m in user_meals if "High" in (m.glycemic_risk or ""))
 
-    # 2. Fetch latest Exercise Log
-    latest_exercise = (
-        db.query(models.ExerciseLog)
-        .filter(models.ExerciseLog.user_id == user_id)
-        .order_by(models.ExerciseLog.id.desc())
-        .first()
-    )
-    exercise_mins = latest_exercise.duration_mins if latest_exercise else 0
+        today_exercises = db.query(models.ExerciseLog).filter(models.ExerciseLog.user_id == user_id).all()
+        total_burned = sum(e.calories_burned for e in today_exercises)
 
-    # 3. Fetch latest Stress Reset
-    latest_stress_reset = (
-        db.query(models.StressResetLog)
-        .filter(models.StressResetLog.user_id == user_id)
-        .order_by(models.StressResetLog.id.desc())
-        .first()
-    )
-    stress_lvl = 4 if latest_stress_reset else 5
+        target_kcal = 1939.0
+        net_calories = max(0.0, total_calories - total_burned)
+        calorie_surplus = max(0.0, net_calories - target_kcal)
 
-    # 4. Fetch Meals Count today to factor into stability
-    meals_count = (
-        db.query(models.MealLog)
-        .filter(models.MealLog.user_id == user_id)
-        .count()
-    )
+        base_stability = 100
+        surplus_penalty = int((calorie_surplus / 100.0) * 8)
+        glycemic_penalty = high_gi_count * 10
 
-    # Calculate real-time Digital Twin Stability Index based on 5 Pillars state
-    base_stability = 100
-    stress_penalty = stress_lvl * 4
-    sleep_bonus = 10 if sleep_hrs >= 7.5 else -10
-    exercise_bonus = 10 if exercise_mins >= 20 else 0
-    nutrition_bonus = 5 if meals_count >= 2 else 0
+        if total_calories == 0:
+            stability_score = 99
+        else:
+            stability_score = max(15, min(99, int(base_stability - surplus_penalty - glycemic_penalty)))
 
-    stability_score = max(10, min(99, int(base_stability - stress_penalty + sleep_bonus + exercise_bonus + nutrition_bonus)))
-
-    has_logged = (latest_sleep is not None) or (latest_exercise is not None) or (latest_stress_reset is not None) or (meals_count > 0)
-
-    return {
-        "has_logged": has_logged,
-        "stress_level": stress_lvl,
-        "sleep_hours": sleep_hrs,
-        "exercise_mins": exercise_mins,
-        "meals_logged": meals_count,
-        "stability_score": stability_score
-    }
+        return {
+            "has_logged": total_calories > 0,
+            "total_calories": total_calories,
+            "calories_burned": total_burned,
+            "net_calories": net_calories,
+            "calorie_surplus": calorie_surplus,
+            "stability_score": stability_score,
+            "is_high_risk": calorie_surplus > 300 or stability_score < 65
+        }
+    except Exception as e:
+        print(f"Error in telemetry calculation: {e}")
+        return {
+            "has_logged": False,
+            "total_calories": 0,
+            "calories_burned": 0,
+            "net_calories": 0,
+            "calorie_surplus": 0.0,
+            "stability_score": 99,
+            "is_high_risk": False
+        }
 
 
 # ================= ANTHROPOMETRY / BMI ENDPOINT =================
@@ -506,88 +489,48 @@ def scan_meal_image(payload: dict):
     }
 
 
-# ================= PILLAR 2: DAILY ROTATING EXERCISE & BMI =================
+# ================= PILLAR 2: EXERCISE & WORKOUT ENDPOINTS =================
 @app.get("/api/exercise-recommendation/{user_id}")
 def get_exercise_recommendation(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(models.User).filter(models.User.id == user_id).first()
     bmi = user.bmi if user and user.bmi else 22.1
     
-    last_meal = (
-        db.query(MealLog)
-        .filter(MealLog.user_id == user_id)
-        .order_by(MealLog.id.desc())
-        .first()
-    )
-    meal_kcal = last_meal.calories if last_meal else 450
-    day_name = datetime.now().strftime("%A")
+    user_meals = db.query(models.MealLog).filter(models.MealLog.user_id == user_id).all()
     
+    total_kcal = sum(m.calories for m in user_meals) if user_meals else 0
+    highest_meal = max(user_meals, key=lambda m: m.calories) if user_meals else None
+    matched_meal_name = highest_meal.meal_name if highest_meal else "Regular Meal"
+    
+    target_kcal = 1939.0
+    surplus_kcal = max(0.0, total_kcal - target_kcal)
+
+    if surplus_kcal > 0:
+        target_burn = int(surplus_kcal)
+    else:
+        target_burn = 250
+
+    day_name = datetime.now().strftime("%A")
     daily_routines = {
-        "Monday": {
-            "type": "Legs & Lower Body Workout",
-            "icon": "🦵",
-            "exercises": "Bodyweight Squats (3x12), Glute Bridges (3x15), Walking Lunges (3x10)",
-            "base_time": 25,
-            "tip": "Builds leg muscle to naturally balance blood sugar."
-        },
-        "Tuesday": {
-            "type": "Brisk Walk / Light Cardio",
-            "icon": "🏃",
-            "exercises": "Steady treadmill incline walk, brisk outdoor walk, or light cycling",
-            "base_time": 30,
-            "tip": "Burns stored calories without making you tired or stressed."
-        },
-        "Wednesday": {
-            "type": "Upper Body & Back Workout",
-            "icon": "💪",
-            "exercises": "Dumbbell/Bottle Rows (3x12), Wall Push-ups (3x10), Shoulder Press (3x12)",
-            "base_time": 25,
-            "tip": "Strengthens posture and boosts full-day metabolic rate."
-        },
-        "Thursday": {
-            "type": "Core & Belly Tone Focus",
-            "icon": "🧘",
-            "exercises": "Plank (3x30 sec), Bird-Dog (3x10), Gentle Ab Crunches (3x15)",
-            "base_time": 20,
-            "tip": "Tones core muscles without spiking stress hormones."
-        },
-        "Friday": {
-            "type": "Full Body Light Toning",
-            "icon": "⚡",
-            "exercises": "Step-ups (3x12), Low-Impact Marching (3x1 min), Wall sits (3x30s)",
-            "base_time": 30,
-            "tip": "Great full-body movement before the weekend."
-        },
-        "Saturday": {
-            "type": "Fun Cardio / Dance Workout",
-            "icon": "💃",
-            "exercises": "Zumba, dancing, light jogging, or cycling outdoors",
-            "base_time": 30,
-            "tip": "Improves heart health and releases mood-boosting endorphins."
-        },
-        "Sunday": {
-            "type": "Rest & Gentle Stretch",
-            "icon": "🌿",
-            "exercises": "Hamstring stretch, Child's pose, deep breathing walk",
-            "base_time": 15,
-            "tip": "Lets your muscles and hormone levels recover."
-        }
+        "Monday": {"type": "Legs & Lower Body Workout", "icon": "🦵", "exercises": "Squats, Glute Bridges, Lunges", "base_time": 25},
+        "Tuesday": {"type": "Brisk Walk / Light Cardio", "icon": "🏃", "exercises": "Steady treadmill walk or light cycling", "base_time": 30},
+        "Wednesday": {"type": "Upper Body & Back Workout", "icon": "💪", "exercises": "Dumbbell Rows, Wall Push-ups", "base_time": 25},
+        "Thursday": {"type": "Core & Belly Tone Focus", "icon": "🧘", "exercises": "Plank, Bird-Dog, Ab Crunches", "base_time": 20},
+        "Friday": {"type": "Full Body Light Toning", "icon": "⚡", "exercises": "Step-ups, Low-Impact Marching", "base_time": 30},
+        "Saturday": {"type": "Fun Cardio / Dance Workout", "icon": "💃", "exercises": "Zumba or outdoor cycling", "base_time": 30},
+        "Sunday": {"type": "Rest & Gentle Stretch", "icon": "🌿", "exercises": "Hamstring stretch, Child's pose", "base_time": 15}
     }
 
-    routine = daily_routines.get(day_name, daily_routines["Monday"])
-    target_burn = max(120, min(350, int(meal_kcal * 0.45)))
+    routine = daily_routines.get(day_name, daily_routines["Tuesday"])
     
     duration = routine["base_time"]
-    if bmi >= 25.0:
-        duration += 5
-    elif bmi < 19.0:
-        duration = max(15, duration - 5)
+    if surplus_kcal > 400:
+        duration += int(surplus_kcal / 25)
+    elif surplus_kcal > 200:
+        duration += 10
 
-    completed_today = (
-        db.query(ExerciseLog)
-        .filter(ExerciseLog.user_id == user_id)
-        .order_by(ExerciseLog.id.desc())
-        .first()
-    )
+    completed_today = db.query(models.ExerciseLog).filter(
+        models.ExerciseLog.user_id == user_id
+    ).order_by(models.ExerciseLog.id.desc()).first()
 
     return {
         "day": day_name,
@@ -596,30 +539,53 @@ def get_exercise_recommendation(user_id: int, db: Session = Depends(get_db)):
         "exercises": routine["exercises"],
         "duration_mins": duration,
         "target_burn_kcal": target_burn,
-        "last_meal_name": last_meal.meal_name if last_meal else "Regular Meal",
-        "last_meal_kcal": meal_kcal,
-        "health_tip": routine["tip"],
-        "is_completed_today": bool(completed_today)
+        "last_meal_name": matched_meal_name,
+        "total_logged_kcal": total_kcal,
+        "surplus_kcal": surplus_kcal,
+        "is_completed_today": completed_today is not None
     }
 
 
 @app.post("/api/complete-exercise")
 def complete_exercise(data: ExerciseCompleteRequest, db: Session = Depends(get_db)):
-    new_log = ExerciseLog(
+    user = db.query(models.User).filter(models.User.id == data.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    new_exercise = models.ExerciseLog(
         user_id=data.user_id,
         exercise_name=data.exercise_name,
         duration_mins=data.duration_mins,
         calories_burned=data.calories_burned
     )
-    db.add(new_log)
+    db.add(new_exercise)
     db.commit()
-    db.refresh(new_log)
+    db.refresh(new_exercise)
 
     return {
         "status": "success",
-        "message": f"Successfully stored {data.exercise_name} in database.",
-        "log_id": new_log.id
+        "message": f"Successfully logged {data.exercise_name} ({data.calories_burned} kcal burned)",
+        "log_id": new_exercise.id
     }
+
+
+@app.post("/api/reset-exercise/{user_id}")
+def reset_exercise_logs(user_id: int, db: Session = Depends(get_db)):
+    try:
+        deleted_count = db.query(models.ExerciseLog).filter(
+            models.ExerciseLog.user_id == user_id
+        ).delete(synchronize_session=False)
+
+        db.commit()
+
+        return {
+            "status": "success",
+            "message": "Exercise logs reset",
+            "deleted_count": deleted_count
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ================= PILLAR 3: SLEEP & CIRCADIAN ENDPOINTS =================
@@ -678,8 +644,7 @@ def get_medication_suggestions(query: str = ""):
     seen_generics = set()
 
     for item in SEARCH_CORPUS:
-        score = fuzz.partial_ratio(q, item["term"])
-        if q in item["term"] or score >= 75:
+        if q in item["term"]:
             generic = item["data"]["generic_name"]
             if generic not in seen_generics:
                 seen_generics.add(generic)
@@ -689,10 +654,9 @@ def get_medication_suggestions(query: str = ""):
                     "purpose": item["data"]["clinical_purpose"],
                     "category": item["data"]["category"],
                     "icon": item["data"]["icon"],
-                    "score": score
+                    "score": 100
                 })
 
-    results.sort(key=lambda x: x["score"], reverse=True)
     return results[:6]
 
 
@@ -702,7 +666,6 @@ def scan_prescription(payload: ScanPrescriptionRequest):
     clean_text = re.sub(r'[^a-zA-Z0-9\s]', ' ', combined_text)
 
     best_match = None
-    highest_score = 0.0
 
     for item in SEARCH_CORPUS:
         term = item["term"]
@@ -710,15 +673,8 @@ def scan_prescription(payload: ScanPrescriptionRequest):
             continue
 
         if term in clean_text:
-            score = 100.0
-        else:
-            token_score = fuzz.token_set_ratio(term, clean_text)
-            partial_score = fuzz.partial_ratio(term, clean_text)
-            score = max(token_score, partial_score)
-
-        if score > highest_score and score >= 70.0:
-            highest_score = score
             best_match = item
+            break
 
     if best_match:
         data = best_match["data"]
@@ -737,7 +693,7 @@ def scan_prescription(payload: ScanPrescriptionRequest):
             "purpose": data["clinical_purpose"],
             "category": data["category"],
             "icon": data["icon"],
-            "confidence": round(highest_score / 100.0, 2),
+            "confidence": 0.95,
             "not_found": False
         }
 
@@ -802,8 +758,8 @@ def add_medication(data: AddMedicationRequest, db: Session = Depends(get_db)):
     return {"status": "success", "message": "Medication added", "med_id": new_med.id}
 
 
-@app.post("/api/toggle-medication/{med_id}")
-def toggle_medication(med_id: int, db: Session = Depends(get_db)):
+@app.post("/api/toggle-medication-dose/{med_id}")
+def toggle_medication_dose(med_id: int, db: Session = Depends(get_db)):
     med = db.query(models.MedicationLog).filter(models.MedicationLog.id == med_id).first()
     if not med:
         raise HTTPException(status_code=404, detail="Medication log not found")
@@ -813,6 +769,15 @@ def toggle_medication(med_id: int, db: Session = Depends(get_db)):
     db.refresh(med)
     return {"status": "success", "is_taken_today": med.is_taken_today}
 
+@app.delete("/api/delete-medication/{med_id}")
+def delete_medication(med_id: int, db: Session = Depends(get_db)):
+    med = db.query(models.MedicationLog).filter(models.MedicationLog.id == med_id).first()
+    if not med:
+        raise HTTPException(status_code=404, detail="Medication not found")
+    
+    db.delete(med)
+    db.commit()
+    return {"status": "success", "message": f"Medication {med_id} deleted successfully"}
 
 # ================= PILLAR 5: STRESS & MENTAL WELLNESS ENDPOINTS =================
 @app.get("/api/stress-recommendation/{user_id}")
@@ -900,6 +865,7 @@ def get_user_stress_logs(user_id: int, db: Session = Depends(get_db)):
         }
         for log in logs
     ]
+
 
 @app.post("/api/update-profile")
 def update_profile(data: schemas.ProfileUpdateRequest, db: Session = Depends(get_db)):

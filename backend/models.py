@@ -28,6 +28,7 @@ class User(Base):
     exercise_logs = relationship("ExerciseLog", back_populates="user", cascade="all, delete-orphan")
     sleep_logs = relationship("SleepLog", back_populates="user", cascade="all, delete-orphan")
     medications = relationship("MedicationLog", back_populates="user", cascade="all, delete-orphan")
+    stress_logs = relationship("StressResetLog", back_populates="user", cascade="all, delete-orphan")
 
 
 # ================= INTAKE ASSESSMENT TABLE =================
@@ -135,3 +136,17 @@ class MedicationLog(Base):
     logged_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="medications")
+
+
+# ================= PILLAR 5: STRESS RESET TABLE =================
+class StressResetLog(Base):
+    __tablename__ = "stress_reset_logs"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    technique = Column(String(100), nullable=False)
+    duration_mins = Column(Integer, default=5)
+    symptoms = Column(String(255), nullable=True)  # Stored as comma-separated values
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="stress_logs")

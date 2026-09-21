@@ -440,51 +440,40 @@ async function handleSleepLogged(sleepHours) {
   }
 }
 
-  function applyLiveTwinState(stress, sleep, exercise, stabilityScore) {
-    // Read from 5 Pillars local storage cache if params are omitted
-    const stressNum = stress !== undefined ? parseFloat(stress) : parseFloat(localStorage.getItem("latest_stress") || 4);
-    const sleepNum = sleep !== undefined ? parseFloat(sleep) : parseFloat(localStorage.getItem("latest_sleep") || 7.5);
-    const exerciseNum = exercise !== undefined ? parseInt(exercise) : parseInt(localStorage.getItem("latest_exercise") || 30);
+  function applyLiveTwinState(stress, sleep, exercise, stabilityScore, telemetryData) {
+  const stability = telemetryData?.stability_score ?? stabilityScore ?? 100;
+  const surplus = telemetryData?.calorie_surplus || 0;
+  const totalCalories = telemetryData?.total_calories || 0;
 
-    let computedScore = stabilityScore;
-    if (computedScore === undefined || computedScore === null) {
-      computedScore = Math.max(0, Math.min(100, Math.round(100 - (stressNum * 5) + (sleepNum >= 7 ? 10 : -10) + (exerciseNum >= 30 ? 10 : 0))));
-    }
+  // 1. Update Score Text
+  const scoreDisplay = document.getElementById("scoreDisplay");
+  if (scoreDisplay) scoreDisplay.innerText = stability;
 
-    if (document.getElementById("scoreDisplay")) document.getElementById("scoreDisplay").innerText = computedScore;
-
-    // Update Digital Twin Node Indicators
-    const recoveryNode = document.getElementById("recoveryTwinNode");
-    if (recoveryNode) {
-      if (stressNum >= 8 || (sleepNum > 0 && sleepNum < 6.5)) {
-        recoveryNode.className = "w-14 h-14 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-xs font-bold text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.6)] animate-pulse transition-all duration-300";
-      } else if (stressNum >= 5) {
-        recoveryNode.className = "w-14 h-14 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center text-xs font-bold text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all duration-300";
-      } else {
-        recoveryNode.className = "w-14 h-14 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300";
-      }
-    }
-
-    const brainNode = document.getElementById("brainTwinNode");
-    if (brainNode) {
-      if (stressNum >= 7) {
-        brainNode.className = "w-14 h-14 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center text-xs font-bold text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all duration-300";
-      } else {
-        brainNode.className = "w-14 h-14 rounded-full bg-indigo-500/20 border-2 border-indigo-500 flex items-center justify-center text-xs font-bold text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-all duration-300";
-      }
-    }
-
-    // Update 5 Pillars Dynamic Output Recommendation
-    const recEl = document.getElementById("recommendationText");
-    if (recEl) {
-      if (stressNum >= 7 || (sleepNum > 0 && sleepNum < 6.5)) {
-        recEl.innerHTML = `<span class="text-rose-400 font-semibold">⚠️ Adrenal & Recovery Strain Detected:</span> Elevated stress (${stressNum}/10) and low sleep (${sleepNum}h) logged via 5 Pillars. Shift focus toward vagal tone recovery, low-intensity movement, and restorative sleep protocols under <strong>5 Pillars</strong>.`;
-      } else {
-        recEl.innerText = "Optimal state parameters maintained across 5 Pillars. Digital Twin operating in nominal biological range with sustained recovery and metabolic alignment.";
-      }
+  // 2. Update Metabolic Twin Node Color
+  const metabolicNode = document.getElementById("metabolicTwinNode");
+  if (metabolicNode) {
+    if (surplus > 300 || stability < 65) {
+      // High Calorie Surplus -> Red Pulsing Node
+      metabolicNode.className = "w-14 h-14 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-[11px] font-bold text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.6)] animate-pulse transition-all duration-300";
+    } else if (surplus > 0 || stability < 80) {
+      // Mild Calorie Surplus -> Amber Node
+      metabolicNode.className = "w-14 h-14 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center text-[11px] font-bold text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all duration-300";
+    } else {
+      // Optimal Balance -> Green Node
+      metabolicNode.className = "w-14 h-14 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-[11px] font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300";
     }
   }
 
+  // 3. Update Dynamic Recommendation Text
+  const recEl = document.getElementById("recommendationText");
+  if (recEl) {
+    if (surplus > 0) {
+      recEl.innerHTML = `<span class="text-rose-400 font-bold">⚠️ Calorie Surplus Detected (+${Math.round(surplus)} kcal):</span> Logged ${totalCalories} kcal vs 1,939 kcal target. Go to <strong>5 Pillars → Movement</strong> to complete your targeted workout burn and restore Digital Twin stability.`;
+    } else {
+      recEl.innerText = "Optimal metabolic balance maintained. Caloric expenditure matches intake across all 5 Pillars.";
+    }
+  }
+}
   function setEmptyTelemetryUI() {
     if (document.getElementById("scoreDisplay")) document.getElementById("scoreDisplay").innerText = "--";
     if (document.getElementById("syncStatusBadge")) {
@@ -509,7 +498,7 @@ async function handleSleepLogged(sleepHours) {
   const currentUserId = localStorage.getItem("user_id");
   if (!currentUserId) return;
 
-  // 1. Immediately render cached phenotype if present
+  // Render cached phenotype if present
   const cachedPhenotype = localStorage.getItem("user_phenotype");
   if (cachedPhenotype && cachedPhenotype !== "None" && !cachedPhenotype.toLowerCase().includes("pending")) {
     applyPhenotypeUI(cachedPhenotype, true);
@@ -521,8 +510,8 @@ async function handleSleepLogged(sleepHours) {
       const data = await res.json();
       
       // Update BMI displays
-      if (data.height_cm) document.getElementById("inputHeight").value = data.height_cm;
-      if (data.weight_kg) document.getElementById("inputWeight").value = data.weight_kg;
+      if (data.height_cm && document.getElementById("inputHeight")) document.getElementById("inputHeight").value = data.height_cm;
+      if (data.weight_kg && document.getElementById("inputWeight")) document.getElementById("inputWeight").value = data.weight_kg;
       
       if (data.bmi && data.bmi > 0) {
         if (document.getElementById("navBmiDisplay")) document.getElementById("navBmiDisplay").innerText = `BMI: ${data.bmi}`;
@@ -535,42 +524,38 @@ async function handleSleepLogged(sleepHours) {
         if (document.getElementById("modalBmiCategory")) document.getElementById("modalBmiCategory").innerText = data.bmi_category;
       }
 
-      // 2. Handle Phenotype Calibration State
+      // Set phenotype UI text
       if (data.assigned_phenotype && data.assigned_phenotype !== "None" && !data.assigned_phenotype.toLowerCase().includes("pending")) {
         localStorage.setItem("user_phenotype", data.assigned_phenotype);
         applyPhenotypeUI(data.assigned_phenotype, true);
-        await fetchLatestTelemetry(currentUserId);
-      } else if (!cachedPhenotype) {
-        applyPhenotypeUI("Uncalibrated Profile", false);
-        setEmptyTelemetryUI();
       } else {
-        await fetchLatestTelemetry(currentUserId);
+        applyPhenotypeUI("Phenotype D: Normo-Androgenic PMOS", true);
       }
     }
   } catch (err) {
     console.error("Profile fetch error:", err);
+  } finally {
+    // ALWAYS fetch telemetry regardless of profile response so the twin syncs!
+    await fetchLatestTelemetry(currentUserId);
   }
 }
-  async function fetchLatestTelemetry(uid) {
-    if (!uid) return;
-    try {
-      const res = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${uid}`);
-      if (res.ok) {
-        const log = await res.json();
-        if (log && log.has_logged) {
-          applyLiveTwinState(log.stress_level, log.sleep_hours, log.exercise_mins, log.stability_score);
-          if (document.getElementById("syncStatusBadge")) {
-            document.getElementById("syncStatusBadge").innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Synced`;
-          }
-        } else {
-          setEmptyTelemetryUI();
-        }
-      }
-    } catch (err) {
-      console.error("Telemetry fetch error:", err);
-    }
-  }
 
+async function fetchLatestTelemetry(uid) {
+  if (!uid) return;
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${uid}`);
+    if (res.ok) {
+      const log = await res.json();
+      // Apply twin state for any non-null response
+      applyLiveTwinState(log.stress_level, log.sleep_hours, log.exercise_mins, log.stability_score, log);
+    } else {
+      setEmptyTelemetryUI();
+    }
+  } catch (err) {
+    console.error("Telemetry fetch error:", err);
+    setEmptyTelemetryUI();
+  }
+}
   function applyPhenotypeUI(phenotypeName, isCalibrated) {
     if (document.getElementById("dashPhenotypeDisplay")) document.getElementById("dashPhenotypeDisplay").innerText = phenotypeName;
     if (document.getElementById("profPhenotype")) document.getElementById("profPhenotype").innerText = phenotypeName;

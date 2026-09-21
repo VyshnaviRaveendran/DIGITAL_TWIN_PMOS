@@ -298,7 +298,7 @@
             <span class="text-3xl p-2.5 bg-[#0B0F19] rounded-2xl border border-slate-800" id="exMainIcon">🦵</span>
             <div>
               <h3 class="text-lg font-bold text-white" id="exPlanTitle">Legs & Lower Body Workout</h3>
-              <p class="text-xs text-slate-400" id="exHealthTip">Builds leg muscle to naturally balance blood sugar.</p>
+              <p class="text-xs text-slate-400" id="exSubTitle">Targeted activity for glucose regulation</p>
             </div>
           </div>
 
@@ -309,7 +309,7 @@
             </p>
           </div>
 
-          <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="grid grid-cols-3 gap-3 text-center my-4">
             <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
               <p class="text-[10px] text-slate-500 uppercase font-semibold">Target Time</p>
               <p class="text-base font-bold text-white mt-0.5" id="exTargetDuration">25 mins</p>
@@ -323,11 +323,17 @@
               <p class="text-xs font-bold text-cyan-400 mt-1 truncate" id="exMatchedMeal">Last Meal</p>
             </div>
           </div>
-        </div>
 
-        <button onclick="markTodayExerciseDone()" id="btnCompleteExercise" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20">
-          <span>✓</span> Mark Workout as Done for Today
-        </button>
+          <div class="space-y-2 mt-4">
+            <button id="btnCompleteExercise" onclick="markTodayExerciseDone()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20">
+              <span>✓</span> Mark Workout as Done for Today
+            </button>
+
+            <button id="btnResetExercise" onclick="resetTodayExercise()" class="hidden w-full py-2 bg-[#181F32] hover:bg-rose-950/40 border border-slate-700 hover:border-rose-500/40 text-slate-400 hover:text-rose-300 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-1.5">
+              <span>🔄</span> Reset Today's Workout Status
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="md:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
@@ -524,8 +530,8 @@
 
     </div>
 
-    <!-- ================= 5. STRESS RESET (INTERACTIVE NEURO-ENDOCRINE) ================= -->
-    <div id="pillarStressContainer" class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+    <!-- ================= 5. STRESS RESET (UPDATED WITH SYMPTOM LOGGING & RESET DAY) ================= -->
+    <div id="pillarStressContainer" class="hidden grid-cols-1 md:grid-cols-12 gap-5 items-start">
       
       <!-- Left Column: Breathing Visualizer & Technique Selector (7 cols) -->
       <div class="md:col-span-7 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center text-center space-y-4">
@@ -538,12 +544,19 @@
             <p class="text-xs text-slate-400 mt-0.5">Direct neurological intervention to dampen acute HPA-axis cortisol spikes.</p>
           </div>
           
-          <!-- Technique Selector -->
-          <select id="selectStressTechnique" onchange="switchBreathingTechnique(this.value)" class="bg-[#0B0F19] border border-slate-700 text-indigo-300 font-semibold text-xs px-3 py-1.5 rounded-xl focus:outline-none focus:border-indigo-500">
-            <option value="4-7-8">4-7-8 Vagus Reset</option>
-            <option value="box">Box Breathing (4-4-4-4)</option>
-            <option value="sigh">Physiological Sigh</option>
-          </select>
+          <div class="flex items-center gap-2">
+            <!-- Reset Day Button -->
+            <button onclick="resetStressDay()" class="bg-indigo-950 hover:bg-indigo-900 border border-indigo-500/40 text-indigo-300 text-[10px] px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1 shadow-sm" title="Reset all stress and symptom logs for today">
+              <span>🔄</span> Reset Day
+            </button>
+
+            <!-- Technique Selector -->
+            <select id="selectStressTechnique" onchange="switchBreathingTechnique(this.value)" class="bg-[#0B0F19] border border-slate-700 text-indigo-300 font-semibold text-xs px-3 py-1.5 rounded-xl focus:outline-none focus:border-indigo-500">
+              <option value="4-7-8">4-7-8 Vagus Reset</option>
+              <option value="box">Box Breathing (4-4-4-4)</option>
+              <option value="sigh">Physiological Sigh</option>
+            </select>
+          </div>
         </div>
 
         <!-- Dynamic Animated Circle -->
@@ -571,35 +584,42 @@
       </div>
 
       <!-- Right Column: Cortisol Markers & Clinical Context (5 cols) -->
-      <div class="md:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-        <div>
-          <h4 class="text-sm font-bold text-white flex items-center gap-2 mb-1">
-            <span>⚡</span> Current Stress & Cortisol Symptoms
-          </h4>
-          <p class="text-xs text-slate-400 mb-3">Tag any symptoms you feel right now to log with your Digital Twin:</p>
+      <div class="md:col-span-5 bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4 flex flex-col justify-between">
+        <div class="space-y-4">
+          <div>
+            <h4 class="text-sm font-bold text-white flex items-center gap-2 mb-1">
+              <span>⚡</span> Current Stress & Cortisol Symptoms
+            </h4>
+            <p class="text-xs text-slate-400 mb-3">Tag any symptoms you feel right now to log with your Digital Twin:</p>
 
-          <!-- Interactive Symptom Tag Grid -->
-          <div class="flex flex-wrap gap-2" id="stressSymptomTags">
-            <button type="button" onclick="toggleSymptomTag(this, 'Brain Fog')" class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">🧠 Brain Fog</button>
-            <button type="button" onclick="toggleSymptomTag(this, 'Heart Racing')" class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">⚡ Heart Racing</button>
-            <button type="button" onclick="toggleSymptomTag(this, 'Sugar Cravings')" class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">🍩 Sugar Cravings</button>
-            <button type="button" onclick="toggleSymptomTag(this, 'Low Mood')" class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">💥 Low Mood / Irritable</button>
-            <button type="button" onclick="toggleSymptomTag(this, 'Wired but Tired')" class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">🥱 Wired but Tired</button>
+            <!-- Interactive Symptom Tag Grid -->
+            <div class="flex flex-wrap gap-2" id="stressSymptomTags">
+              <button type="button" onclick="toggleSymptomTag(this, 'Brain Fog')" class="symptom-tag px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">🧠 Brain Fog</button>
+              <button type="button" onclick="toggleSymptomTag(this, 'Heart Racing')" class="symptom-tag px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">⚡ Heart Racing</button>
+              <button type="button" onclick="toggleSymptomTag(this, 'Sugar Cravings')" class="symptom-tag px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">🍩 Sugar Cravings</button>
+              <button type="button" onclick="toggleSymptomTag(this, 'Low Mood')" class="symptom-tag px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">💥 Low Mood / Irritable</button>
+              <button type="button" onclick="toggleSymptomTag(this, 'Wired but Tired')" class="symptom-tag px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">🥱 Wired but Tired</button>
+            </div>
+          </div>
+
+          <!-- Clinical Endocrine Explanation -->
+          <div class="p-3.5 bg-[#0B0F19] rounded-xl border border-slate-800 text-xs space-y-1.5">
+            <p class="font-bold text-indigo-300">Clinical Mechanism:</p>
+            <p class="text-slate-300 leading-relaxed text-[11px]" id="techniqueClinicalNote">
+              Deep diaphragmatic exhalations stimulate the vagus nerve, immediately slowing cardiac output and blunting adrenal DHEA-S & cortisol surges that exacerbate insulin resistance.
+            </p>
+          </div>
+
+          <!-- Cycle / Routine Window -->
+          <div class="p-3 bg-purple-950/30 border border-purple-500/30 rounded-xl text-xs text-purple-200">
+            <span class="font-bold text-purple-300">Target Window:</span> Practice 5 minutes post-lunch or directly before sleep to prevent nocturnal cortisol peaks.
           </div>
         </div>
 
-        <!-- Clinical Endocrine Explanation -->
-        <div class="p-3.5 bg-[#0B0F19] rounded-xl border border-slate-800 text-xs space-y-1.5">
-          <p class="font-bold text-indigo-300">Clinical Mechanism:</p>
-          <p class="text-slate-300 leading-relaxed text-[11px]" id="techniqueClinicalNote">
-            Deep diaphragmatic exhalations stimulate the vagus nerve, immediately slowing cardiac output and blunting adrenal DHEA-S & cortisol surges that exacerbate insulin resistance.
-          </p>
-        </div>
-
-        <!-- Cycle / Routine Window -->
-        <div class="p-3 bg-purple-950/30 border border-purple-500/30 rounded-xl text-xs text-purple-200">
-          <span class="font-bold text-purple-300">Target Window:</span> Practice 5 minutes post-lunch or directly before sleep to prevent nocturnal cortisol peaks.
-        </div>
+        <!-- Log Selected Symptoms Button -->
+        <button onclick="logSelectedSymptoms()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 mt-4">
+          <span>📌</span> Log Selected Symptoms
+        </button>
       </div>
 
     </div>
@@ -664,6 +684,11 @@
   let currentBreathingTechnique = "4-7-8";
   let breathingInterval = null;
 
+  function getCleanUserId() {
+    const rawUserId = localStorage.getItem("user_id") || "1";
+    return parseInt(rawUserId, 10) || 1;
+  }
+
   function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("sidebarToggleBtn");
@@ -714,7 +739,7 @@
   }
 
   async function fetchUserProfile() {
-    const userId = localStorage.getItem("user_id") || "1";
+    const userId = getCleanUserId();
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/user-profile/${userId}`);
       if (res.ok) {
@@ -805,7 +830,7 @@
 
   async function scanMealWithML() {
     const mealFileName = document.getElementById("mealNameInput").value || "Custom Meal";
-    const userId = localStorage.getItem("user_id") || "1";
+    const userId = getCleanUserId();
     const statusBadge = document.getElementById("scanStatusBadge");
     if (statusBadge) statusBadge.innerText = "Evaluating...";
 
@@ -813,7 +838,7 @@
       const response = await fetch("http://127.0.0.1:8000/api/scan-meal-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: parseInt(userId), image_filename: mealFileName, meal_name: mealFileName })
+        body: JSON.stringify({ user_id: userId, image_filename: mealFileName, meal_name: mealFileName })
       });
       const data = await response.json();
       if (response.ok) {
@@ -849,18 +874,12 @@
   }
 
   async function addMealToLog() {
-    const userId = localStorage.getItem("user_id") || "1";
+    const userId = getCleanUserId();
     const mealName = document.getElementById("resMealName")?.innerText || "Logged Meal";
     const mealSlot = document.getElementById("mealSlotSelect")?.value || "Dinner";
 
-    const remainingKcal = parseInt(document.getElementById("valRemaining")?.innerText) || 0;
-    if (currentScannedCalories > remainingKcal && remainingKcal > 0) {
-      const proceed = confirm(`⚠️ Calorie Warning:\nThis meal (${currentScannedCalories} kcal) exceeds your remaining daily budget (${remainingKcal} kcal) by ${currentScannedCalories - remainingKcal} kcal.\n\nDo you still want to log it?`);
-      if (!proceed) return;
-    }
-
     const payload = {
-      user_id: parseInt(userId),
+      user_id: userId,
       meal_name: mealName,
       meal_type: mealSlot,
       calories: currentScannedCalories,
@@ -876,10 +895,19 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
+
       if (res.ok) {
         await fetchDietSummary();
         await loadPhenotypeDietSuggestions();
         await loadExerciseRecommendation();
+
+        // Refresh telemetry so the sidebar stability index drops immediately
+        const telemRes = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+        if (telemRes.ok) {
+          const telemData = await telemRes.json();
+          const scoreDisplay = document.getElementById("scoreDisplay");
+          if (scoreDisplay) scoreDisplay.innerText = telemData.stability_score;
+        }
       }
     } catch (err) {
       console.error(err);
@@ -887,7 +915,7 @@
   }
 
   async function fetchDietSummary() {
-    const userId = localStorage.getItem("user_id") || "1";
+    const userId = getCleanUserId();
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/diet-summary/${userId}`);
       const data = await res.json();
@@ -933,7 +961,7 @@
   }
 
   async function loadPhenotypeDietSuggestions() {
-    const userId = localStorage.getItem("user_id") || "1";
+    const userId = getCleanUserId();
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/diet-recommendations/${userId}`);
       const data = await res.json();
@@ -964,7 +992,7 @@
               <span class="text-[10px] text-slate-400 font-medium">${r.protein}g P · ${r.fats}g F · GI ${r.gi}</span>
               ${r.is_logged ? 
                 `<span class="text-emerald-400 font-bold text-xs">✓ Logged</span>` :
-                `<button onclick="selectSuggestedRecipe('${r.meal_slot}', '${r.name}', ${r.kcal}, ${r.protein}, ${r.carbs}, ${r.fats})" class="bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-xs px-2.5 py-1 rounded-lg transition font-medium">+ Select</button>`
+                `<button onclick="selectSuggestedRecipe('${r.meal_slot}', '${r.name}', ${r.kcal},${r.protein}, ${r.carbs},${r.fats})" class="bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-xs px-2.5 py-1 rounded-lg transition font-medium">+ Select</button>`
               }
             </div>
           </div>
@@ -993,7 +1021,7 @@
   }
 
   async function resetDayRollover() {
-    const userId = localStorage.getItem("user_id") || "1";
+    const userId = getCleanUserId();
     if (confirm("Reset day & refresh all 4 meal allowances?")) {
       try {
         const res = await fetch(`http://127.0.0.1:8000/api/reset-day/${userId}`, { method: "POST" });
@@ -1008,100 +1036,130 @@
     }
   }
 
-  // ================= 2. EXERCISE FUNCTIONS =================
+  // ================= PILLAR 2: DAILY ROTATING EXERCISE & BMI =================
   async function loadExerciseRecommendation() {
-    const userId = localStorage.getItem("user_id") || "1";
+    const userId = getCleanUserId();
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/exercise-recommendation/${userId}`);
       if (res.ok) {
         const data = await res.json();
-
-        currentWorkoutTitle = `${data.day}: ${data.workout_type}`;
+        
         currentTargetDuration = data.duration_mins;
         currentTargetBurn = data.target_burn_kcal;
+        currentWorkoutTitle = data.workout_type;
 
         if (document.getElementById("exDayBadge")) document.getElementById("exDayBadge").innerText = `📅 ${data.day}'s Plan`;
-        if (document.getElementById("exMainIcon")) document.getElementById("exMainIcon").innerText = data.icon;
+        if (document.getElementById("exMainIcon")) document.getElementById("exMainIcon").innerText = data.icon || "🏃";
         if (document.getElementById("exPlanTitle")) document.getElementById("exPlanTitle").innerText = data.workout_type;
-        if (document.getElementById("exHealthTip")) document.getElementById("exHealthTip").innerText = data.health_tip;
         if (document.getElementById("exRoutineList")) document.getElementById("exRoutineList").innerText = data.exercises;
         if (document.getElementById("exTargetDuration")) document.getElementById("exTargetDuration").innerText = `${data.duration_mins} mins`;
         if (document.getElementById("exTargetBurn")) document.getElementById("exTargetBurn").innerText = `${data.target_burn_kcal} kcal`;
-        if (document.getElementById("exMatchedMeal")) document.getElementById("exMatchedMeal").innerText = `${data.last_meal_name} (${data.last_meal_kcal} kcal)`;
+        if (document.getElementById("exMatchedMeal")) document.getElementById("exMatchedMeal").innerText = data.last_meal_name || "Daily Target";
 
-        const btn = document.getElementById("btnCompleteExercise");
-        const status = document.getElementById("exStatusLabel");
+        const subTitleEl = document.getElementById("exSubTitle");
+        if (subTitleEl) subTitleEl.innerText = `${data.duration_mins} Mins • ${data.target_burn_kcal} Kcal Target`;
+
+        const btnComplete = document.getElementById("btnCompleteExercise");
+        const btnReset = document.getElementById("btnResetExercise");
+        const statusLabel = document.getElementById("exStatusLabel");
 
         if (data.is_completed_today) {
-          if (btn) {
-            btn.innerHTML = "<span>✓</span> Workout Completed Today!";
-            btn.className = "w-full py-3.5 bg-emerald-950 text-emerald-300 border border-emerald-500/40 font-bold text-xs rounded-xl cursor-not-allowed";
-            btn.disabled = true;
+          if (statusLabel) {
+            statusLabel.innerText = "Completed ✓";
+            statusLabel.className = "text-xs font-bold text-emerald-400";
           }
-          if (status) {
-            status.innerText = "✓ Completed";
-            status.className = "text-xs font-bold text-emerald-400";
+          if (btnComplete) {
+            btnComplete.innerHTML = "<span>✓</span> Workout Completed Today!";
+            btnComplete.className = "w-full py-3.5 bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 font-bold text-xs rounded-xl cursor-not-allowed";
+            btnComplete.disabled = true;
+          }
+          if (btnReset) {
+            btnReset.classList.remove("hidden");
           }
         } else {
-          if (btn) {
-            btn.innerHTML = "<span>✓</span> Mark Workout as Done for Today";
-            btn.className = "w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20";
-            btn.disabled = false;
+          if (statusLabel) {
+            statusLabel.innerText = "Ready to start";
+            statusLabel.className = "text-xs font-medium text-amber-400";
           }
-          if (status) {
-            status.innerText = "Ready to start";
-            status.className = "text-xs font-medium text-emerald-400";
+          if (btnComplete) {
+            btnComplete.innerHTML = "<span>✓</span> Mark Workout as Done for Today";
+            btnComplete.className = "w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20";
+            btnComplete.disabled = false;
+          }
+          if (btnReset) {
+            btnReset.classList.add("hidden");
           }
         }
       }
     } catch (err) {
-      console.error("Exercise recommendation error:", err);
+      console.error("Error loading exercise recommendation:", err);
     }
   }
 
   async function markTodayExerciseDone() {
-    const userId = localStorage.getItem("user_id") || "1";
-    const btn = document.getElementById("btnCompleteExercise");
-    const status = document.getElementById("exStatusLabel");
+    await submitExerciseWorkout(currentWorkoutTitle, currentTargetDuration, currentTargetBurn);
+    await loadExerciseRecommendation();
+  }
 
-    if (btn) { btn.innerText = "Saving..."; btn.disabled = true; }
+  async function resetTodayExercise() {
+    const userId = getCleanUserId();
+
+    if (!confirm("Are you sure you want to reset today's completed workout status?")) {
+      return;
+    }
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/complete-exercise", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: parseInt(userId),
-          exercise_name: currentWorkoutTitle,
-          duration_mins: currentTargetDuration,
-          calories_burned: currentTargetBurn
-        })
+      const res = await fetch(`http://127.0.0.1:8000/api/reset-exercise/${userId}`, {
+        method: "POST"
       });
 
       if (res.ok) {
-        alert(`🎉 Great job! Completed ${currentWorkoutTitle} (${currentTargetDuration} mins, ~${currentTargetBurn} kcal burned).`);
-        if (btn) {
-          btn.innerHTML = "<span>✓</span> Workout Completed Today!";
-          btn.className = "w-full py-3.5 bg-emerald-950 text-emerald-300 border border-emerald-500/40 font-bold text-xs rounded-xl cursor-not-allowed";
-          btn.disabled = true;
+        await loadExerciseRecommendation();
+
+        const telemRes = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+        if (telemRes.ok) {
+          const telem = await telemRes.json();
+          const scoreDisplay = document.getElementById("scoreDisplay");
+          if (scoreDisplay) scoreDisplay.innerText = telem.stability_score;
         }
-        if (status) {
-          status.innerText = "✓ Completed";
-          status.className = "text-xs font-bold text-emerald-400";
-        }
+
+        alert("Today's workout status has been reset. You can now log your workout again.");
+      } else {
+        alert("Failed to reset exercise status. Check backend server.");
       }
     } catch (err) {
-      console.error("Exercise completion error:", err);
-      if (btn) {
-        btn.innerText = "Mark Workout as Done for Today";
-        btn.disabled = false;
+      console.error("Error resetting exercise status:", err);
+    }
+  }
+
+  async function submitExerciseWorkout(exerciseName, durationMins, caloriesBurned) {
+    const userId = getCleanUserId();
+    const payload = {
+      user_id: userId,
+      exercise_name: exerciseName,
+      duration_mins: parseInt(durationMins, 10),
+      calories_burned: parseInt(caloriesBurned, 10)
+    };
+
+    const res = await fetch("http://127.0.0.1:8000/api/complete-exercise", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const telemRes = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+      if (telemRes.ok) {
+        const updatedTelem = await telemRes.json();
+        localStorage.setItem("latest_stability", updatedTelem.stability_score);
+        alert(`Workout logged! Burned ${caloriesBurned} kcal. Stability score updated to ${updatedTelem.stability_score}.`);
       }
     }
   }
 
   // ================= 3. SLEEP FUNCTIONS =================
   async function loadSleepRecommendation() {
-    const userId = localStorage.getItem("user_id") || "1";
+    const userId = getCleanUserId();
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/sleep-recommendation/${userId}`);
       if (res.ok) {
@@ -1120,7 +1178,7 @@
 
   async function submitSleepWindow(event) {
     event.preventDefault();
-    const userId = localStorage.getItem("user_id") || "1";
+    const userId = getCleanUserId();
     const bed = document.getElementById("sleepInputBed").value;
     const wake = document.getElementById("sleepInputWake").value;
     const quality = document.getElementById("sleepInputQuality").value;
@@ -1130,7 +1188,7 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: parseInt(userId),
+          user_id: userId,
           sleep_hours: 8.0,
           bed_time: bed,
           wake_time: wake,
@@ -1148,7 +1206,7 @@
 
   // ================= 4. DATASET-BACKED MEDICATION & AI OCR ENGINE =================
   async function loadUserMedications() {
-    const userId = localStorage.getItem("user_id") || "1";
+    const userId = getCleanUserId();
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/user-medications/${userId}`);
       if (res.ok) {
@@ -1214,11 +1272,16 @@
   }
 
   async function removeMedication(medId, medName) {
+    const cleanMedId = parseInt(medId, 10);
+
     if (confirm(`Remove "${medName}" from your active daily protocol?`)) {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/delete-medication/${medId}`, { method: "DELETE" });
+        const res = await fetch(`http://127.0.0.1:8000/api/delete-medication/${cleanMedId}`, { 
+          method: "DELETE" 
+        });
+
         if (res.ok) {
-          userMedicationsList = userMedicationsList.filter(m => m.id !== medId);
+          userMedicationsList = userMedicationsList.filter(m => m.id !== cleanMedId);
           renderMedicationsList();
         } else {
           alert("Failed to delete medication from server.");
@@ -1244,7 +1307,7 @@
   }
 
   async function resetMedicationsDay() {
-    const userId = localStorage.getItem("user_id") || "1";
+    const userId = getCleanUserId();
     if (confirm("Start a new day and reset all daily doses to pending?")) {
       try {
         const res = await fetch(`http://127.0.0.1:8000/api/reset-medications-day/${userId}`, { method: "POST" });
@@ -1381,7 +1444,7 @@
 
   async function submitNewMedication(event) {
     event.preventDefault();
-    const userId = localStorage.getItem("user_id") || "1";
+    const userId = getCleanUserId();
     const name = document.getElementById("inputMedName").value.trim();
     const dosage = document.getElementById("inputMedDosage").value.trim();
     const timing = document.getElementById("selectMedTiming").value;
@@ -1399,7 +1462,7 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: parseInt(userId),
+          user_id: userId,
           med_name: name,
           dosage_frequency: fullDosageStr
         })
@@ -1429,6 +1492,67 @@
       selectedSymptoms.push(tag);
       btn.classList.remove("border-slate-800", "bg-[#0B0F19]", "text-slate-400");
       btn.classList.add("border-indigo-500", "bg-indigo-950/60", "text-indigo-300");
+    }
+  }
+
+  async function logSelectedSymptoms() {
+    const userId = getCleanUserId();
+
+    if (selectedSymptoms.length === 0) {
+      alert("Please select at least one symptom tag before logging.");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/log-stress-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          technique: "Symptom Logging",
+          duration_mins: 2,
+          symptoms: selectedSymptoms
+        })
+      });
+
+      if (res.ok) {
+        alert("Symptoms logged successfully!");
+        document.querySelectorAll(".symptom-tag").forEach(btn => {
+          btn.classList.remove("border-indigo-500", "bg-indigo-950/60", "text-indigo-300");
+          btn.classList.add("border-slate-800", "bg-[#0B0F19]", "text-slate-400");
+        });
+        selectedSymptoms = [];
+      } else {
+        alert("Failed to log symptoms.");
+      }
+    } catch (err) {
+      console.error("Error logging symptoms:", err);
+    }
+  }
+
+  async function resetStressDay() {
+    const userId = getCleanUserId();
+
+    if (confirm("Reset all stress and symptom logs for today?")) {
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/api/reset-stress-day/${userId}`, {
+          method: "POST"
+        });
+
+        if (res.ok) {
+          alert("Stress and symptom logs reset successfully.");
+          const telemRes = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+          if (telemRes.ok) {
+            const telemData = await telemRes.json();
+            const scoreDisplay = document.getElementById("scoreDisplay");
+            if (scoreDisplay) scoreDisplay.innerText = telemData.stability_score;
+          }
+        } else {
+          alert("Failed to reset stress logs.");
+        }
+      } catch (err) {
+        console.error("Error resetting stress day:", err);
+      }
     }
   }
 
@@ -1565,7 +1689,7 @@
 
   async function completeStressSession() {
     stopBreathingExercise();
-    const userId = localStorage.getItem("user_id") || "1";
+    const userId = getCleanUserId();
     const btn = document.getElementById("btnSyncStressSession");
     if (btn) { btn.innerText = "Syncing with Digital Twin..."; btn.disabled = true; }
 
@@ -1574,7 +1698,7 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: parseInt(userId),
+          user_id: userId,
           technique: currentBreathingTechnique,
           duration_mins: 2,
           symptoms: selectedSymptoms
@@ -1584,9 +1708,11 @@
       if (res.ok) {
         const data = await res.json();
         const scoreEl = document.getElementById("scoreDisplay");
-        if (scoreEl) scoreEl.innerText = data.new_stability_score;
+        if (scoreEl && data.new_stability_score !== undefined) {
+          scoreEl.innerText = data.new_stability_score;
+        }
 
-        alert(`🌿 Session Logged!\n\n${data.message}\nYour Stability Index is now ${data.new_stability_score}.`);
+        alert(`🌿 Session Logged!\n\n${data.message}`);
 
         if (btn) {
           btn.innerHTML = "<span>✓</span> Session Completed Today (+5 pts)";
@@ -1602,36 +1728,10 @@
     }
   }
 
-  async function submitExerciseWorkout(exerciseName, durationMins, caloriesBurned) {
-  const userId = localStorage.getItem("user_id");
-  const payload = {
-    user_id: parseInt(userId),
-    exercise_name: exerciseName,
-    duration_mins: parseInt(durationMins),
-    calories_burned: parseInt(caloriesBurned)
-  };
-
-  const res = await fetch("http://127.0.0.1:8000/api/complete-exercise", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  if (res.ok) {
-    // Refresh telemetry to restore stability score after burning calories
-    const telemRes = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
-    if (telemRes.ok) {
-      const updatedTelem = await telemRes.json();
-      localStorage.setItem("latest_stability", updatedTelem.stability_score);
-      alert(`Workout logged! Burned ${caloriesBurned} kcal. Stability score updated to ${updatedTelem.stability_score}.`);
-    }
-  }
-}
-
   // ================= 6. BMI UPDATE =================
   async function submitBmiUpdate(event) {
     event.preventDefault();
-    const userId = localStorage.getItem("user_id") || "1";
+    const userId = getCleanUserId();
     const height = parseFloat(document.getElementById("inputHeight").value);
     const weight = parseFloat(document.getElementById("inputWeight").value);
     const saveBtn = document.getElementById("saveBmiBtn");
@@ -1641,7 +1741,7 @@
       const res = await fetch("http://127.0.0.1:8000/api/update-bmi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: parseInt(userId), height_cm: height, weight_kg: weight })
+        body: JSON.stringify({ user_id: userId, height_cm: height, weight_kg: weight })
       });
       if (res.ok) {
         const data = await res.json();
