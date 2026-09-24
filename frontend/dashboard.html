@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digital Twin Health - Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .sidebar-label { display: block; }
+    .sidebar-collapsed .sidebar-label { display: none !important; }
+  </style>
   <script>
     const token = localStorage.getItem("user_token");
     const userId = localStorage.getItem("user_id");
@@ -14,7 +18,6 @@
   </script>
 </head>
 <body class="bg-[#0B0F19] text-slate-100 font-sans h-screen flex overflow-hidden selection:bg-indigo-500 selection:text-white">
-
   <!-- ================= UNIFIED SIDEBAR ================= -->
   <aside id="sidebar" class="w-64 bg-[#111625] border-r border-slate-800 flex flex-col justify-between p-5 h-full shrink-0 transition-all duration-300 relative z-30">
     
@@ -31,7 +34,6 @@
           <p id="sideUserEmail" class="text-xs text-slate-400 truncate">user@example.com</p>
         </div>
       </div>
-
       <!-- Nav Links -->
       <nav class="space-y-2">
         <button id="navOverview" onclick="switchTab('overview')" class="w-full flex items-center gap-3.5 px-4 py-2.5 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-xl text-sm font-medium transition text-left">
@@ -48,7 +50,6 @@
         </button>
       </nav>
     </div>
-
     <!-- Sidebar Bottom Widgets -->
     <div class="space-y-3">
       <div onclick="openBmiModal()" class="bg-[#181F32] hover:bg-[#1f283f] border border-cyan-500/30 rounded-2xl p-3 text-center cursor-pointer transition group sidebar-label" title="Click to edit Height & Weight">
@@ -75,7 +76,6 @@
 
   <!-- ================= MAIN CONTENT ================= -->
   <main class="flex-1 px-8 py-6 overflow-y-auto h-full flex flex-col justify-between min-w-0">
-
     <div id="overviewSection" class="w-full space-y-5">
       <header class="flex justify-between items-center">
         <div>
@@ -111,9 +111,9 @@
           <h3 class="text-sm font-semibold text-slate-300">Interactive Biological Twin</h3>
           
           <div class="my-auto flex flex-col items-center justify-center space-y-6 py-4">
-            <div id="brainTwinNode" class="w-14 h-14 rounded-full bg-indigo-500/20 border-2 border-indigo-500 flex items-center justify-center text-xs font-bold text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-all duration-300">Brain</div>
-            <div id="metabolicTwinNode" class="w-14 h-14 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-[11px] font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">Metabolic</div>
-            <div id="recoveryTwinNode" class="w-14 h-14 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">Recovery</div>
+            <div id="brainTwinNode" class="w-16 h-16 rounded-full bg-indigo-500/20 border-2 border-indigo-500 flex items-center justify-center text-xs font-bold text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.3)] transition-all duration-300">Brain</div>
+            <div id="metabolicTwinNode" class="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-[11px] font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">Metabolic</div>
+            <div id="recoveryTwinNode" class="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">Recovery</div>
           </div>
 
           <div class="flex justify-center gap-4 text-xs text-slate-400 pt-4 border-t border-slate-800/80 flex-wrap">
@@ -134,7 +134,6 @@
                 Your Digital Twin parameters are continuously calibrated using metrics logged from the 5 Pillars (Nutrition, Movement, Sleep, Stress, and Environment).
               </p>
             </div>
-
             <button onclick="window.location.href='five_pillars.html'" class="w-full py-3 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-2">
               <span>🏛</span> Open 5 Pillars Log & Analytics →
             </button>
@@ -165,7 +164,6 @@
           <p class="text-xs text-slate-400 mt-0.5">Manage account credentials and baseline biological parameters</p>
         </div>
       </header>
-
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
           <div>
@@ -176,7 +174,6 @@
                 <p id="profEmail" class="text-xs text-slate-400 truncate">user@example.com</p>
               </div>
             </div>
-
             <div class="space-y-2.5 text-xs border-t border-slate-800 pt-4">
               <div class="flex justify-between py-0.5"><span class="text-slate-400">User ID</span><span id="profUserId" class="font-semibold text-white">--</span></div>
               <div class="flex justify-between py-0.5"><span class="text-slate-400">Account Status</span><span class="text-emerald-400 font-medium">● Active & Synced</span></div>
@@ -184,19 +181,16 @@
               <div class="flex justify-between py-0.5"><span class="text-slate-400">Date of Birth</span><span id="profDobDisplay" class="font-semibold text-slate-200">Not set</span></div>
             </div>
           </div>
-
           <button onclick="logout()" class="w-full mt-6 py-2.5 bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-2">
             <span>🚪</span> Sign Out
           </button>
         </div>
-
         <div class="lg:col-span-2 space-y-5">
           <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl">
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-sm font-bold text-white">Calibrated Biological Profile</h3>
               <button onclick="window.location.href='intake.html'" class="px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5"><span>🔄</span> Recalibrate</button>
             </div>
-
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
               <div class="bg-[#0B0F19] p-3 rounded-xl border border-purple-500/30">
                 <p class="text-slate-400 text-[10px] uppercase font-medium">Active Phenotype</p>
@@ -216,7 +210,6 @@
               </div>
             </div>
           </div>
-
           <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl">
             <h3 class="text-sm font-bold text-white mb-4">Edit Details & Security</h3>
             <form id="profileUpdateForm" onsubmit="updateUserProfile(event)" class="space-y-3.5 text-xs">
@@ -236,7 +229,6 @@
         </div>
       </div>
     </div>
-
   </main>
 
   <!-- BMI MODAL -->
@@ -246,7 +238,6 @@
         <div class="flex items-center gap-2"><span class="text-lg">📐</span><h3 class="text-base font-bold text-white">Anthropometry & BMI</h3></div>
         <button onclick="closeBmiModal()" class="text-slate-400 hover:text-white text-lg font-bold">×</button>
       </div>
-
       <form id="globalBmiForm" onsubmit="submitBmiUpdate(event)" class="space-y-4 text-xs">
         <div><label class="block text-slate-300 font-medium mb-1">Height (cm)</label><input type="number" id="inputHeight" step="0.5" value="162" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-500"></div>
         <div><label class="block text-slate-300 font-medium mb-1">Weight (kg)</label><input type="number" id="inputWeight" step="0.1" value="58" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-500"></div>
@@ -275,27 +266,23 @@
           <p class="text-slate-400 print:text-gray-600" id="rptDateRange">Timeframe: Last 30 Days</p>
         </div>
       </div>
-
       <div class="grid grid-cols-4 gap-3 bg-[#0B0F19] p-4 rounded-xl border border-slate-800 mb-6 print:bg-gray-100 print:border-gray-300">
         <div><p class="text-[10px] text-slate-400 print:text-gray-600">Assigned Phenotype</p><p class="text-xs font-bold text-purple-300 print:text-purple-900" id="rptPhenotype">--</p></div>
         <div><p class="text-[10px] text-slate-400 print:text-gray-600">BMI / Category</p><p class="text-xs font-bold text-cyan-300 print:text-cyan-900" id="rptBmi">--</p></div>
         <div><p class="text-[10px] text-slate-400 print:text-gray-600">Avg. Daily Intake</p><p class="text-xs font-bold text-emerald-300 print:text-emerald-900" id="rptAvgCal">-- kcal</p></div>
         <div><p class="text-[10px] text-slate-400 print:text-gray-600">Workouts Logged</p><p class="text-xs font-bold text-amber-300 print:text-amber-900" id="rptWorkouts">-- sessions</p></div>
       </div>
-
       <div class="space-y-4 mb-6">
         <h3 class="text-sm font-bold text-white border-b border-slate-800/60 pb-1 print:text-black print:border-gray-300">🌸 Menstrual & Symptom Tracking Summary</h3>
         <div id="rptCycleDetails" class="text-xs text-slate-300 space-y-1 print:text-gray-800">No cycle data logged in the last 30 days.</div>
       </div>
-
       <div class="space-y-4 mb-6">
         <h3 class="text-sm font-bold text-white border-b border-slate-800/60 pb-1 print:text-black print:border-gray-300">🏛️ 5 Pillars Management Analytics</h3>
         <div id="rptPillarsDetails" class="grid grid-cols-2 gap-4 text-xs">
-          <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800"><p class="font-bold text-indigo-400">Nutrition & Exercise</p><p class="text-slate-400 mt-1">High GI Meals: 0</p><p class="text-slate-400">Calories Burned: 0 kcal</p></div>
-          <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800"><p class="font-bold text-purple-400">Medications & Stress</p><p class="text-slate-400 mt-1">Active Meds: None</p><p class="text-slate-400">Parasympathetic Resets: 0</p></div>
+          <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800"><p class="font-bold text-indigo-400">Nutrition & Exercise</p><p class="text-slate-400 mt-1" id="rptHighGi">High GI Meals: 0</p><p class="text-slate-400" id="rptBurned">Calories Burned: 0 kcal</p></div>
+          <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800"><p class="font-bold text-purple-400">Medications & Stress</p><p class="text-slate-400 mt-1" id="rptActiveMeds">Active Meds: None</p><p class="text-slate-400" id="rptResets">Parasympathetic Resets: 0</p></div>
         </div>
       </div>
-
       <div class="flex justify-end gap-3 pt-4 border-t border-slate-800 print:hidden">
         <button onclick="closeReportModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-xl">Close</button>
         <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl flex items-center gap-1.5 shadow-md"><span>🖨️</span> Print / Save as PDF</button>
@@ -310,17 +297,14 @@
   function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("sidebarToggleBtn");
-    const labels = document.querySelectorAll(".sidebar-label");
     isSidebarCollapsed = !isSidebarCollapsed;
     if (isSidebarCollapsed) {
       sidebar.classList.remove("w-64");
-      sidebar.classList.add("w-20", "items-center");
-      labels.forEach(el => el.classList.add("hidden"));
+      sidebar.classList.add("w-20", "items-center", "sidebar-collapsed");
       if (toggleBtn) toggleBtn.innerText = "▶";
     } else {
-      sidebar.classList.remove("w-20", "items-center");
+      sidebar.classList.remove("w-20", "items-center", "sidebar-collapsed");
       sidebar.classList.add("w-64");
-      labels.forEach(el => el.classList.remove("hidden"));
       if (toggleBtn) toggleBtn.innerText = "◀";
     }
   }
@@ -388,6 +372,7 @@
     refreshUserDisplay();
     try {
       await fetchUserProfileAndPhenotype();
+      await syncDigitalTwinOverview();
     } catch (err) {
       console.warn("API Connection Error during initial load:", err);
     }
@@ -415,6 +400,107 @@
       }
     } catch (err) {
       console.warn("Fallback to baseline profile", err);
+    }
+  }
+async function syncDigitalTwinOverview() {
+  const currentUserId = localStorage.getItem("user_id");
+  if (!currentUserId) return;
+
+  try {
+    // 1. Telemetry Data
+    const telemRes = await fetch(`${API_BASE}/api/latest-telemetry/${currentUserId}`);
+    if (telemRes.ok) {
+      const telem = await telemRes.json();
+      
+      const scoreEl = document.getElementById("scoreDisplay");
+      if (scoreEl && telem.stability_score !== undefined) {
+        scoreEl.innerText = telem.stability_score;
+      }
+
+      const badgeEl = document.getElementById("syncStatusBadge");
+      const pillarSyncLabel = document.getElementById("pillarSyncStatusLabel");
+
+      if (telem.has_logged) {
+        if (badgeEl) {
+          badgeEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Calibrated`;
+        }
+        if (pillarSyncLabel) {
+          pillarSyncLabel.innerText = "Synced to Twin";
+          pillarSyncLabel.className = "px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+        }
+      } else {
+        if (badgeEl) {
+          badgeEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> Uncalibrated`;
+        }
+        if (pillarSyncLabel) {
+          pillarSyncLabel.innerText = "Pending Logs";
+          pillarSyncLabel.className = "px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20";
+        }
+      }
+
+      updateTwinNodes(telem);
+    }
+
+    // 2. Multi-Pillar Risk Diagnostic Call
+    const twinRes = await fetch(`${API_BASE}/api/update-twin`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: parseInt(currentUserId, 10) })
+    });
+
+    if (twinRes.ok) {
+      const twinData = await twinRes.json();
+      const container = document.getElementById("recommendationTextContainer") || document.getElementById("recommendationText")?.parentElement;
+      
+      if (container && twinData.recommendations) {
+        container.innerHTML = twinData.recommendations.map(rec => {
+          if (rec.type === "risk") {
+            return `
+              <div class="p-3 bg-rose-950/40 border border-rose-500/40 rounded-xl text-xs text-rose-200 space-y-1 mb-2">
+                <p class="font-bold text-rose-400">${rec.title}</p>
+                <p class="leading-relaxed text-slate-300">${rec.body}</p>
+              </div>`;
+          } else {
+            return `
+              <div class="p-3 bg-emerald-950/30 border border-emerald-500/30 rounded-xl text-xs text-emerald-200 space-y-1 mb-2">
+                <p class="font-bold text-emerald-400">${rec.title}</p>
+                <p class="leading-relaxed text-slate-300">${rec.body}</p>
+              </div>`;
+          }
+        }).join("");
+      }
+    }
+
+  } catch (err) {
+    console.error("Digital Twin sync error:", err);
+  }
+}
+   function updateTwinNodes(telem) {
+    const brainNode = document.getElementById("brainTwinNode");
+    const metabolicNode = document.getElementById("metabolicTwinNode");
+    const recoveryNode = document.getElementById("recoveryTwinNode");
+
+    // Base Styles
+    const optimalStyle = "w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-xs font-bold text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300";
+    const mildStressStyle = "w-16 h-16 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center text-xs font-bold text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all duration-300";
+    const highRiskStyle = "w-16 h-16 rounded-full bg-rose-500/20 border-2 border-rose-500 flex items-center justify-center text-xs font-bold text-rose-300 shadow-[0_0_20px_rgba(244,63,94,0.5)] animate-pulse transition-all duration-300";
+
+    if (!telem.has_logged) {
+      if (brainNode) brainNode.className = optimalStyle;
+      if (metabolicNode) metabolicNode.className = optimalStyle;
+      if (recoveryNode) recoveryNode.className = optimalStyle;
+      return;
+    }
+
+    // High Risk Condition (Surplus > 300 kcal or Stability Index < 65)
+    if (telem.is_high_risk) {
+      if (metabolicNode) metabolicNode.className = highRiskStyle;
+      if (brainNode) brainNode.className = mildStressStyle;
+      if (recoveryNode) recoveryNode.className = telem.stability_score < 40 ? highRiskStyle : mildStressStyle;
+    } else {
+      if (brainNode) brainNode.className = optimalStyle;
+      if (metabolicNode) metabolicNode.className = optimalStyle;
+      if (recoveryNode) recoveryNode.className = optimalStyle;
     }
   }
 
@@ -445,6 +531,7 @@
       if (res.ok) {
         closeBmiModal();
         await fetchUserProfileAndPhenotype();
+        await syncDigitalTwinOverview();
       }
     } catch (err) {
       console.error("BMI update failed:", err);
@@ -473,20 +560,53 @@
     }
   }
 
-  async function fetchAndRenderReport() {
+ async function fetchAndRenderReport() {
     const currentUserId = localStorage.getItem("user_id");
     if (!currentUserId) return;
     try {
       const res = await fetch(`${API_BASE}/api/generate-health-report/${currentUserId}?days=30`);
       if (res.ok) {
         const data = await res.json();
-        if (document.getElementById("rptPatientName")) document.getElementById("rptPatientName").innerText = `Patient: ${data.report_metadata.patient_name || 'Rose'}`;
-        if (document.getElementById("rptPhenotype")) document.getElementById("rptPhenotype").innerText = data.report_metadata.assigned_phenotype || 'Uncalibrated';
+        const meta = data.report_metadata;
+        const analytics = data.pillar_analytics;
+        const cycles = data.cycle_summary;
+
+        // Metadata Header & Cards
+        if (document.getElementById("rptPatientName")) document.getElementById("rptPatientName").innerText = `Patient: ${meta.patient_name}`;
+        if (document.getElementById("rptPhenotype")) document.getElementById("rptPhenotype").innerText = meta.assigned_phenotype;
+        if (document.getElementById("rptBmi")) document.getElementById("rptBmi").innerText = `${meta.bmi} (${meta.bmi_category})`;
+        if (document.getElementById("rptAvgCal")) document.getElementById("rptAvgCal").innerText = `${analytics.diet.total_calories_logged} kcal`;
+        if (document.getElementById("rptWorkouts")) document.getElementById("rptWorkouts").innerText = `${analytics.exercise.total_completed_workouts} sessions`;
+
+        // Cycle Tracking Summary
+        const cycleContainer = document.getElementById("rptCycleDetails");
+        if (cycleContainer) {
+          if (cycles.recent_periods && cycles.recent_periods.length > 0) {
+            cycleContainer.innerHTML = cycles.recent_periods.map(c => `
+              <div class="flex justify-between py-1 border-b border-slate-800/40">
+                <span class="font-semibold text-purple-300">Start Date: ${c.start}</span>
+                <span class="text-slate-400">Flow: ${c.flow} · Cycle Length: ${c.length} Days</span>
+              </div>
+            `).join("");
+          } else {
+            cycleContainer.innerText = "No cycle data logged in the last 30 days.";
+          }
+        }
+
+        // 5 Pillars Summary
+        if (document.getElementById("rptHighGi")) document.getElementById("rptHighGi").innerText = `High GI Meals: ${analytics.diet.high_gi_meals_count}`;
+        if (document.getElementById("rptBurned")) document.getElementById("rptBurned").innerText = `Calories Burned: ${analytics.exercise.total_calories_burned} kcal`;
+        if (document.getElementById("rptActiveMeds")) {
+          const medsList = analytics.medications.active_protocol;
+          document.getElementById("rptActiveMeds").innerText = `Active Meds: ${medsList.length > 0 ? medsList.join(', ') : 'None'}`;
+        }
+        if (document.getElementById("rptResets")) document.getElementById("rptResets").innerText = `Parasympathetic Resets: ${analytics.stress_and_symptoms.total_resets_completed}`;
       }
     } catch (err) {
-      console.warn("Report render fallback active");
+      console.error("Report generation error:", err);
     }
   }
+  
   </script>
 </body>
 </html>
