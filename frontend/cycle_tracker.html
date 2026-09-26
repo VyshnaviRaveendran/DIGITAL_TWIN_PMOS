@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Twin PMOS - Cycle & Ovulation Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Strict authentication check
+    const token = localStorage.getItem("user_token");
+    const userId = localStorage.getItem("user_id");
+
+    if (!token || !userId) {
+      window.location.href = "login.html";
+    }
+  </script>
+</head>
+<body class="bg-[#0B0F19] text-slate-100 font-sans h-screen flex overflow-hidden selection:bg-indigo-500 selection:text-white">
+
+  <!-- ================= UNIFIED SIDEBAR ================= -->
+  <aside id="sidebar" class="w-64 bg-[#111625] border-r border-slate-800 flex flex-col justify-between p-5 h-full shrink-0 transition-all duration-300 relative z-30">
+    
+    <button onclick="toggleSidebar()" id="sidebarToggleBtn" class="absolute -right-3.5 top-7 w-7 h-7 bg-[#181F32] border border-slate-700 hover:border-indigo-500 text-indigo-300 rounded-full flex items-center justify-center text-xs shadow-md transition hover:scale-110 z-50">
+      ◀
+    </button>
+
+    <div>
+      <div onclick="window.location.href='dashboard.html'" class="flex items-center gap-3.5 mb-8 p-2 -m-2 rounded-xl hover:bg-slate-800/60 cursor-pointer transition group" title="Return to Dashboard">
+        <div id="sideAvatarBadge" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-extrabold text-white text-sm shadow-lg shadow-indigo-500/20 group-hover:scale-105 shrink-0 transition-transform">
+          👤
+        </div>
+        <div class="overflow-hidden sidebar-label">
+          <h1 id="sideUserName" class="font-bold text-sm text-white leading-tight truncate">User Account</h1>
+          <p id="sideUserEmail" class="text-xs text-slate-400 truncate">user@example.com</p>
+        </div>
+      </div>
+
+      <!-- Standardized Nav Links -->
+      <nav class="space-y-2">
+        <button onclick="window.location.href='dashboard.html'" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">❖</span> <span class="sidebar-label truncate">Digital Twin</span>
+        </button>
+
+        <button onclick="window.location.href='five_pillars.html'" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">🏛️</span> <span class="sidebar-label truncate">5 Pillars</span>
+        </button>
+
+        <!-- Active Menu Option -->
+        <button onclick="window.location.href='cycle_tracker.html'" class="w-full flex items-center gap-3.5 px-4 py-2.5 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">🌸</span> <span class="sidebar-label truncate">Cycle Tracker</span>
+        </button>
+
+        <button onclick="window.location.href='dashboard.html'" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
+          <span class="text-base">📄</span> <span class="sidebar-label truncate">Health Report</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Standardized Sidebar Bottom Widgets -->
+    <div class="space-y-3">
+      <div onclick="window.location.href='dashboard.html'" class="bg-[#181F32] hover:bg-[#1f283f] border border-cyan-500/30 rounded-2xl p-3 text-center cursor-pointer transition group sidebar-label">
+        <div class="flex items-center justify-between text-[11px] text-cyan-300 font-semibold mb-1">
+          <span class="flex items-center gap-1"><span>📐</span> BMI Metric</span>
+          <span class="text-[10px] text-slate-400 group-hover:text-cyan-300 underline">Edit</span>
+        </div>
+        <div class="flex items-center justify-center gap-2">
+          <span id="sideBmiScore" class="text-base font-extrabold text-white">22.1</span>
+          <span id="sideBmiCategory" class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/30 truncate max-w-[110px]">Normal</span>
+        </div>
+      </div>
+
+      <div class="bg-[#181F32] border border-slate-800 rounded-2xl p-3.5 text-center sidebar-label">
+        <div class="flex items-center justify-center gap-2 text-xs text-slate-400 mb-1.5" id="syncStatusBadge">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Monitored
+        </div>
+        <div class="relative w-14 h-14 mx-auto flex items-center justify-center rounded-full border-2 border-purple-500/30 border-t-purple-500 mb-1">
+          <span id="sideCyclePhase" class="text-base font-bold text-purple-300">🌸</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Cycle Status</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="flex-1 px-8 py-6 overflow-y-auto h-full flex flex-col space-y-6 min-w-0">
+    
+    <header class="flex justify-between items-center">
+      <div>
+        <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+          <span>🌸</span> Cycle & Ovulation Tracker
+        </h2>
+        <p class="text-xs text-slate-400 mt-0.5">Track phase telemetry, calculate fertility windows, and log symptoms</p>
+      </div>
+
+      <button onclick="window.location.href='dashboard.html'" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+        ← Back to Dashboard
+      </button>
+    </header>
+
+    <!-- Cycle Status Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <p class="text-slate-400 text-xs uppercase font-semibold">Current Phase</p>
+        <p id="valPhase" class="text-lg font-bold text-purple-300 mt-2">Follicular Phase</p>
+      </div>
+
+      <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <p class="text-slate-400 text-xs uppercase font-semibold">Cycle Day</p>
+        <p id="valCycleDay" class="text-lg font-bold text-indigo-400 mt-2">Day --</p>
+      </div>
+
+      <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <p class="text-slate-400 text-xs uppercase font-semibold">Estimated Ovulation</p>
+        <p id="valOvulation" class="text-lg font-bold text-amber-400 mt-2">--</p>
+      </div>
+
+      <div class="bg-[#111625] border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <p class="text-slate-400 text-xs uppercase font-semibold">Next Expected Period</p>
+        <p id="valNextPeriod" class="text-lg font-bold text-rose-400 mt-2">--</p>
+      </div>
+    </div>
+
+    <!-- Clinical Guidance Banner -->
+    <div class="bg-[#111625] border border-indigo-500/30 rounded-2xl p-6 shadow-xl space-y-2">
+      <h3 class="text-sm font-bold text-indigo-300 flex items-center gap-2">
+        <span>💡</span> Biological Phase Recommendations
+      </h3>
+      <p id="guidanceText" class="text-xs text-slate-300 leading-relaxed">
+        Log your last period start date to calculate ovulation and cycle phase recommendations.
+      </p>
+    </div>
+
+    <!-- Log Period Form -->
+    <div class="bg-[#111625] border border-slate-800 rounded-2xl p-6 shadow-xl max-w-xl">
+      <h3 class="text-base font-bold text-white mb-4">Log New Cycle Entry</h3>
+      
+      <form id="cycleForm" onsubmit="handleCycleSubmit(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Period Start Date</label>
+          <input type="date" id="inputStartDate" required class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Average Cycle Length (Days)</label>
+            <input type="number" id="inputCycleLength" value="28" min="20" max="45" class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
+          </div>
+
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Flow Intensity</label>
+            <select id="inputFlow" class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500">
+              <option value="Light">Light</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Heavy">Heavy</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Symptom Notes (Optional)</label>
+          <textarea id="inputNotes" placeholder="Cramps, mood shifts, energy levels..." rows="3" class="w-full bg-[#0B0F19] border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-indigo-500"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition shadow-lg shadow-indigo-600/20">
+          Save Cycle Log
+        </button>
+      </form>
+    </div>
+
+  </main>
+
+  <script>
+  const API_BASE = "http://127.0.0.1:8000";
+  let isSidebarCollapsed = false;
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("sidebarToggleBtn");
+    const labels = document.querySelectorAll(".sidebar-label");
+    isSidebarCollapsed = !isSidebarCollapsed;
+
+    if (isSidebarCollapsed) {
+      sidebar.classList.remove("w-64");
+      sidebar.classList.add("w-20", "items-center");
+      labels.forEach(el => el.classList.add("hidden"));
+      if (toggleBtn) toggleBtn.innerText = "▶";
+    } else {
+      sidebar.classList.remove("w-20", "items-center");
+      sidebar.classList.add("w-64");
+      labels.forEach(el => el.classList.remove("hidden"));
+      if (toggleBtn) toggleBtn.innerText = "◀";
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", async function() {
+    const fullName = localStorage.getItem("full_name") || "Rose";
+    const email = localStorage.getItem("user_email") || "rose@gmail.com";
+    if (document.getElementById("sideUserName")) document.getElementById("sideUserName").innerText = fullName;
+    if (document.getElementById("sideUserEmail")) document.getElementById("sideUserEmail").innerText = email;
+
+    await fetchCycleTracker();
+  });
+
+  async function fetchCycleTracker() {
+    const currentUserId = localStorage.getItem("user_id");
+    if (!currentUserId) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/cycle-tracker/${currentUserId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.has_logged) {
+          if (document.getElementById("valPhase")) document.getElementById("valPhase").innerText = data.current_phase;
+          if (document.getElementById("valCycleDay")) document.getElementById("valCycleDay").innerText = `Day ${data.cycle_day}`;
+          if (document.getElementById("valOvulation")) document.getElementById("valOvulation").innerText = data.estimated_ovulation || "--";
+          if (document.getElementById("valNextPeriod")) document.getElementById("valNextPeriod").innerText = data.next_period_date || "--";
+          if (document.getElementById("guidanceText")) document.getElementById("guidanceText").innerText = data.guidance;
+          if (document.getElementById("sideCyclePhase")) document.getElementById("sideCyclePhase").innerText = data.current_phase;
+        }
+      }
+    } catch (err) {
+      console.warn("Error fetching cycle tracker data:", err);
+    }
+  }
+
+  async function handleCycleSubmit(e) {
+    e.preventDefault();
+    const currentUserId = localStorage.getItem("user_id");
+    if (!currentUserId) return;
+
+    const payload = {
+      user_id: parseInt(currentUserId),
+      period_start_date: document.getElementById("inputStartDate").value,
+      cycle_length_days: parseInt(document.getElementById("inputCycleLength").value || 28),
+      flow_intensity: document.getElementById("inputFlow").value,
+      notes: document.getElementById("inputNotes").value || ""
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/api/log-cycle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        await fetchCycleTracker();
+        document.getElementById("inputNotes").value = "";
+      }
+    } catch (err) {
+      console.error("Failed to submit cycle log:", err);
+    }
+  }
+  </script>
+</body>
+</html>
