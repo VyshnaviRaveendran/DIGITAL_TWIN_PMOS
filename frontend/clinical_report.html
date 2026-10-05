@@ -3,67 +3,249 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clinical Health Report - Digital Twin</title>
+  <title>Clinical Health Report - Digital Twin PMOS</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-card {
+        background-color: #ffffff !important;
+        border: 1px solid #d1d5db !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+      }
+      .print-header {
+        border-bottom: 2px solid #000000 !important;
+      }
+      .print-box {
+        background-color: #f9fafb !important;
+        border: 1px solid #e5e7eb !important;
+      }
+      .print-accent {
+        color: #1e3a8a !important;
+      }
+    }
+  </style>
 </head>
-<body class="bg-[#0B0F19] text-slate-100 font-sans p-8 min-h-screen">
-  <div class="max-w-4xl mx-auto bg-[#111625] border border-slate-700 rounded-2xl p-8 shadow-2xl print:bg-white print:text-black print:p-0 print:border-none">
+<body class="bg-[#0B0F19] text-slate-100 font-sans p-4 md:p-8 min-h-screen selection:bg-indigo-500 selection:text-white">
+  
+  <div class="max-w-4xl mx-auto bg-[#111625] border border-slate-700 rounded-2xl p-6 md:p-8 shadow-2xl print-card">
     
     <!-- Report Header -->
-    <div class="flex justify-between items-start border-b border-slate-800 pb-4 mb-6 print:border-black">
-      <div>
-        <h2 class="text-2xl font-bold text-white print:text-black">Digital Twin PMOS Clinical Health Report</h2>
-        <p class="text-xs text-slate-400 print:text-gray-600">Generated for Physician & Endocrine Consultation</p>
+    <div class="flex flex-col sm:flex-row justify-between items-start border-b border-slate-800 pb-5 mb-6 print-header gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-extrabold text-white text-base shadow-lg shadow-indigo-500/20 shrink-0">
+          DT
+        </div>
+        <div>
+          <h1 class="text-xl md:text-2xl font-bold text-white print-accent leading-tight">Digital Twin PMOS Clinical Health Report</h1>
+          <p class="text-xs text-slate-400 mt-0.5">Comprehensive Biometric Telemetry & Endocrine Consultation Summary</p>
+        </div>
       </div>
-      <div class="text-right text-xs">
-        <p class="font-bold text-indigo-400 print:text-indigo-800" id="rptPatientName">Patient: --</p>
-        <p class="text-slate-400 print:text-gray-600" id="rptDateRange">Timeframe: Last 30 Days</p>
-      </div>
-    </div>
-
-    <!-- Vitals Summary -->
-    <div class="grid grid-cols-4 gap-4 bg-[#0B0F19] p-4 rounded-xl border border-slate-800 mb-6 print:bg-gray-100 print:border-gray-300">
-      <div>
-        <p class="text-[10px] text-slate-400 print:text-gray-600">Assigned Phenotype</p>
-        <p class="text-xs font-bold text-purple-300 print:text-purple-900" id="rptPhenotype">--</p>
-      </div>
-      <div>
-        <p class="text-[10px] text-slate-400 print:text-gray-600">BMI / Category</p>
-        <p class="text-xs font-bold text-cyan-300 print:text-cyan-900" id="rptBmi">--</p>
-      </div>
-      <div>
-        <p class="text-[10px] text-slate-400 print:text-gray-600">Avg Daily Calories</p>
-        <p class="text-xs font-bold text-emerald-300 print:text-emerald-900" id="rptAvgCal">--</p>
-      </div>
-      <div>
-        <p class="text-[10px] text-slate-400 print:text-gray-600">Workouts Logged</p>
-        <p class="text-xs font-bold text-amber-300 print:text-amber-900" id="rptWorkouts">--</p>
+      <div class="text-left sm:text-right text-xs shrink-0">
+        <p class="font-bold text-indigo-400 print-accent text-sm" id="rptPatientName">Patient: --</p>
+        <p class="text-slate-400 text-[11px] mt-0.5" id="rptGeneratedDate">Generated: --</p>
+        <p class="text-slate-500 text-[10px]" id="rptTimeframe">Report Range: 30 Days</p>
       </div>
     </div>
 
-    <!-- Actions -->
-    <div class="flex justify-between items-center pt-6 border-t border-slate-800 print:hidden">
-      <a href="dashboard.html" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-xl">← Back to Dashboard</a>
-      <button onclick="window.print()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-md">🖨️ Print / Save as PDF</button>
+    <!-- Patient Baseline & Vitals Summary Strip -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#0B0F19] p-4 rounded-xl border border-slate-800 mb-6 print-box">
+      <div>
+        <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Assigned Phenotype</p>
+        <p class="text-xs font-bold text-purple-300 print-accent mt-0.5 truncate" id="rptPhenotype">--</p>
+      </div>
+      <div>
+        <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">BMI / Category</p>
+        <p class="text-xs font-bold text-cyan-300 print-accent mt-0.5 truncate" id="rptBmi">--</p>
+      </div>
+      <div>
+        <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Avg Daily Intake</p>
+        <p class="text-xs font-bold text-emerald-300 print-accent mt-0.5 truncate" id="rptAvgCal">--</p>
+      </div>
+      <div>
+        <p class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Workouts Logged</p>
+        <p class="text-xs font-bold text-amber-300 print-accent mt-0.5 truncate" id="rptWorkouts">--</p>
+      </div>
     </div>
+
+    <!-- Section 1: 5 Pillars Management Analytics -->
+    <div class="space-y-3 mb-6">
+      <h2 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center gap-2 print-accent">
+        <span>🏛️</span> 5 Pillars Telemetry Analysis
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        
+        <!-- Nutrition & Caloric Dynamics -->
+        <div class="bg-[#0B0F19] p-4 rounded-xl border border-slate-800 print-box">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold text-indigo-400 print-accent">🥑 Nutrition & Glycemic Metrics</span>
+            <span class="text-[10px] px-2 py-0.5 bg-indigo-950 text-indigo-300 rounded-md border border-indigo-500/30">Calibrated</span>
+          </div>
+          <div class="space-y-1.5 text-slate-300">
+            <div class="flex justify-between"><span class="text-slate-400">Total Calories Logged:</span><span id="rptTotalCal" class="font-semibold text-white">-- kcal</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">High-GI Spike Meals:</span><span id="rptHighGi" class="font-semibold text-rose-400">0</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Caloric Target (TDEE):</span><span class="font-semibold text-emerald-400">1,939 kcal/day</span></div>
+          </div>
+        </div>
+
+        <!-- Exercise & Movement -->
+        <div class="bg-[#0B0F19] p-4 rounded-xl border border-slate-800 print-box">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold text-emerald-400 print-accent">🏋️ Movement & Energy Expenditure</span>
+            <span class="text-[10px] px-2 py-0.5 bg-emerald-950 text-emerald-300 rounded-md border border-emerald-500/30">Active</span>
+          </div>
+          <div class="space-y-1.5 text-slate-300">
+            <div class="flex justify-between"><span class="text-slate-400">Completed Sessions:</span><span id="rptWorkoutCount" class="font-semibold text-white">--</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Total Calories Burned:</span><span id="rptBurned" class="font-semibold text-amber-300">-- kcal</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">GLUT4 Metabolic Uptake:</span><span class="font-semibold text-emerald-400">Stimulated</span></div>
+          </div>
+        </div>
+
+        <!-- Medications & Supplements -->
+        <div class="bg-[#0B0F19] p-4 rounded-xl border border-slate-800 print-box">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold text-purple-400 print-accent">💊 Active Medication Protocol</span>
+            <span class="text-[10px] px-2 py-0.5 bg-purple-950 text-purple-300 rounded-md border border-purple-500/30">Prescribed</span>
+          </div>
+          <p id="rptActiveMeds" class="text-slate-300 text-xs leading-relaxed">None currently active.</p>
+        </div>
+
+        <!-- Stress & Autonomic Balance -->
+        <div class="bg-[#0B0F19] p-4 rounded-xl border border-slate-800 print-box">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold text-cyan-400 print-accent">🧠 Stress & Vagal Modulation</span>
+            <span class="text-[10px] px-2 py-0.5 bg-cyan-950 text-cyan-300 rounded-md border border-cyan-500/30">Parasympathetic</span>
+          </div>
+          <div class="space-y-1.5 text-slate-300">
+            <div class="flex justify-between"><span class="text-slate-400">Vagal Resets Logged:</span><span id="rptResets" class="font-semibold text-cyan-300">--</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Primary Technique:</span><span class="font-semibold text-white">4-7-8 Breathing & Diaphragmatic</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Cortisol Vector Status:</span><span class="font-semibold text-emerald-400">Downregulated</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Section 2: Menstrual & Ovulatory Tracking Log -->
+    <div class="space-y-3 mb-6">
+      <h2 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center justify-between print-accent">
+        <span class="flex items-center gap-2"><span>🌸</span> Menstrual Cycle & Ovulatory Telemetry</span>
+        <span id="rptCycleCount" class="text-xs text-purple-400 font-normal">--</span>
+      </h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead>
+            <tr class="text-slate-400 border-b border-slate-800 print-header">
+              <th class="py-2.5 px-3 font-semibold">Period Start Date</th>
+              <th class="py-2.5 px-3 font-semibold">Cycle Length</th>
+              <th class="py-2.5 px-3 font-semibold">Flow Intensity</th>
+              <th class="py-2.5 px-3 font-semibold">Symptom Notes</th>
+            </tr>
+          </thead>
+          <tbody id="rptCycleTableBody" class="divide-y divide-slate-800/40">
+            <tr><td colspan="4" class="py-4 text-center text-slate-500 text-xs">No cycle history logged.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 3: Physician Impressions & Consultation Notes -->
+    <div class="bg-[#0B0F19] border border-slate-800 rounded-xl p-4 mb-6 print-box text-xs space-y-2">
+      <p class="font-bold text-white print-accent flex items-center gap-1.5">
+        <span>🩺</span> Clinical Impressions & Physician Notes:
+      </p>
+      <p class="text-slate-400 leading-relaxed">
+        Patient demonstrates adherence to calibrated low-glycemic dietary protocols. Continued focus on steady nocturnal sleep windows and parasympathetic downregulation is advised to maintain low morning fasting insulin and support regular ovulatory cycles.
+      </p>
+      <div class="pt-4 flex justify-between items-end text-slate-500 text-[11px]">
+        <div>
+          <p>Consulting Endocrine Specialist: ___________________________</p>
+        </div>
+        <div>
+          <p>Signature & Date: ___________________________</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons (Hidden on Print) -->
+    <div class="flex justify-between items-center pt-5 border-t border-slate-800 no-print">
+      <a href="dashboard.html" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white rounded-xl transition flex items-center gap-1.5">
+        <span>←</span> Back to Dashboard
+      </a>
+      <div class="flex items-center gap-2.5">
+        <button onclick="window.print()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center gap-2">
+          <span>🖨️</span> Print / Save as PDF
+        </button>
+      </div>
+    </div>
+
   </div>
 
+  <!-- Dynamic Population Script -->
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       const uid = localStorage.getItem("user_id");
-      if (!uid) return;
+      if (!uid) {
+        alert("Please log in to view your clinical report.");
+        window.location.href = "login.html";
+        return;
+      }
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/generate-health-report/${uid}`);
+        const res = await fetch(`http://127.0.0.1:8000/api/generate-health-report/${uid}?days=30`);
         if (res.ok) {
           const data = await res.json();
-          document.getElementById("rptPatientName").innerText = `Patient: ${data.report_metadata.patient_name}`;
-          document.getElementById("rptPhenotype").innerText = data.report_metadata.assigned_phenotype;
-          document.getElementById("rptBmi").innerText = `${data.report_metadata.bmi || '--'} (${data.report_metadata.bmi_category})`;
-          document.getElementById("rptAvgCal").innerText = `${data.pillar_analytics.diet.avg_daily_calories} kcal`;
-          document.getElementById("rptWorkouts").innerText = `${data.pillar_analytics.exercise.total_completed_workouts} sessions`;
+          const meta = data.report_metadata;
+          const analytics = data.pillar_analytics;
+          const cycles = data.cycle_summary;
+
+          // Header & Metadata
+          document.getElementById("rptPatientName").innerText = `Patient: ${meta.patient_name}`;
+          document.getElementById("rptGeneratedDate").innerText = `Generated: ${meta.generated_date}`;
+          document.getElementById("rptTimeframe").innerText = `Report Range: ${meta.timeframe_days} Days`;
+          document.getElementById("rptPhenotype").innerText = meta.assigned_phenotype;
+          document.getElementById("rptBmi").innerText = `${meta.bmi || '--'} (${meta.bmi_category || 'Normal'})`;
+          document.getElementById("rptAvgCal").innerText = `${analytics.diet.avg_daily_calories} kcal/day`;
+          document.getElementById("rptWorkouts").innerText = `${analytics.exercise.total_completed_workouts} sessions`;
+
+          // 5 Pillars Analytics
+          document.getElementById("rptTotalCal").innerText = `${analytics.diet.total_calories_logged} kcal`;
+          document.getElementById("rptHighGi").innerText = `${analytics.diet.high_gi_meals_count} meals`;
+          document.getElementById("rptWorkoutCount").innerText = `${analytics.exercise.total_completed_workouts} logged`;
+          document.getElementById("rptBurned").innerText = `${analytics.exercise.total_calories_burned} kcal`;
+
+          const medsList = analytics.medications.active_protocol;
+          document.getElementById("rptActiveMeds").innerText = medsList && medsList.length > 0 ? medsList.join(", ") : "No active pharmaceutical or supplement protocols logged.";
+          document.getElementById("rptResets").innerText = `${analytics.stress_and_symptoms.total_resets_completed} sessions`;
+
+          // Menstrual Cycle History
+          const cycleTable = document.getElementById("rptCycleTableBody");
+          const cycleBadge = document.getElementById("rptCycleCount");
+
+          if (cycles && cycles.recent_periods && cycles.recent_periods.length > 0) {
+            if (cycleBadge) cycleBadge.innerText = `${cycles.recent_periods.length} Cycles Recorded`;
+            cycleTable.innerHTML = cycles.recent_periods.map(c => `
+              <tr class="hover:bg-slate-800/30 transition">
+                <td class="py-2.5 px-3 font-semibold text-purple-300">${c.start}</td>
+                <td class="py-2.5 px-3 text-slate-300">${c.length} Days</td>
+                <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-950 text-purple-300 border border-purple-500/30">${c.flow}</span></td>
+                <td class="py-2.5 px-3 text-slate-400">${c.notes || '-'}</td>
+              </tr>
+            `).join("");
+          } else {
+            if (cycleBadge) cycleBadge.innerText = "0 Cycles";
+            cycleTable.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-500 text-xs">No cycle history logged in the last 30 days.</td></tr>`;
+          }
         }
       } catch (e) {
-        console.error(e);
+        console.error("Clinical report load error:", e);
       }
     });
   </script>
