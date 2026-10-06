@@ -45,10 +45,6 @@
         <button class="w-full flex items-center gap-3.5 px-4 py-2.5 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded-xl text-sm font-medium transition text-left">
           <span class="text-base">🏛️</span> <span class="sidebar-label truncate">5 Pillars</span>
         </button>
-
-        <button onclick="window.location.href='dashboard.html'" class="w-full flex items-center gap-3.5 px-4 py-2.5 text-slate-400 hover:bg-slate-800/50 rounded-xl text-sm font-medium transition text-left">
-          <span class="text-base">📊</span> <span class="sidebar-label truncate">Telemetry Log</span>
-        </button>
       </nav>
     </div>
 
@@ -60,8 +56,8 @@
           <span class="text-[10px] text-slate-400 group-hover:text-cyan-300 underline">Edit</span>
         </div>
         <div class="flex items-center justify-center gap-2">
-          <span id="sideBmiScore" class="text-base font-extrabold text-white">22.1</span>
-          <span id="sideBmiCategory" class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/30 truncate max-w-[110px]">Normal</span>
+          <span id="sideBmiScore" class="text-base font-extrabold text-white">--</span>
+          <span id="sideBmiCategory" class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/30 truncate max-w-[110px]">Unset</span>
         </div>
       </div>
 
@@ -70,7 +66,7 @@
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Synced
         </div>
         <div class="relative w-14 h-14 mx-auto flex items-center justify-center rounded-full border-2 border-indigo-500/30 border-t-indigo-500 mb-1">
-          <span id="scoreDisplay" class="text-base font-bold text-slate-400">99</span>
+          <span id="scoreDisplay" class="text-base font-bold text-slate-400">100</span>
         </div>
         <p class="text-[11px] text-slate-400">Stability Index</p>
       </div>
@@ -89,7 +85,7 @@
 
       <div class="flex items-center gap-2.5">
         <button onclick="openBmiModal()" id="navBmiBtn" class="px-3.5 py-2 bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-500/40 text-cyan-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow-sm">
-          <span>📐</span> <span id="navBmiDisplay">BMI: 22.1</span>
+          <span>📐</span> <span id="navBmiDisplay">BMI: --</span>
         </button>
         <button onclick="window.location.href='dashboard.html'" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium rounded-xl transition">
           ❖ Back to Twin
@@ -99,7 +95,7 @@
 
     <!-- 5 Navigation Tabs -->
     <div class="flex items-center gap-2.5 flex-wrap shrink-0">
-      <button id="tabPillarDiet" onclick="switchPillarTab('diet')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
+      <button id="tabPillarDiet" onclick="switchPillarTab('diet')" class="bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm">
         🥑 Diet & Nutrition
       </button>
       <button id="tabPillarExercise" onclick="switchPillarTab('exercise')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
@@ -111,7 +107,7 @@
       <button id="tabPillarMeds" onclick="switchPillarTab('meds')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
         💊 Medicine & Supplements
       </button>
-      <button id="tabPillarStress" onclick="switchPillarTab('stress')" class="bg-indigo-900/40 border border-indigo-500 text-indigo-300 font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm">
+      <button id="tabPillarStress" onclick="switchPillarTab('stress')" class="bg-[#111625] border border-slate-800 text-slate-400 hover:text-indigo-300 hover:border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 transition">
         🧠 Stress Reset (4-7-8)
       </button>
     </div>
@@ -144,7 +140,7 @@
           <div class="space-y-2 mb-3">
             <div class="grid grid-cols-12 gap-2">
               <div class="col-span-7">
-                <input type="text" id="mealNameInput" value="Fresh Fruit Bowl" placeholder="Meal Item Name" class="bg-[#0B0F19] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-indigo-500">
+                <input type="text" id="mealNameInput" value="" placeholder="Meal Item Name" class="bg-[#0B0F19] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white w-full focus:outline-none focus:border-indigo-500">
               </div>
               <div class="col-span-5">
                 <select id="mealSlotSelect" class="bg-[#0B0F19] border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-indigo-300 font-semibold w-full focus:outline-none focus:border-indigo-500">
@@ -163,28 +159,28 @@
 
           <div id="mlScanResult" class="bg-[#0B0F19] border border-slate-800 rounded-xl p-3 mb-3">
             <div class="flex justify-between items-center mb-2">
-              <span class="font-bold text-white text-xs truncate max-w-[180px]" id="resMealName">Fresh Fruit Bowl</span>
-              <span class="bg-emerald-900/50 text-emerald-400 border border-emerald-600/50 text-[10px] px-2.5 py-0.5 rounded-full font-medium" id="resPhenotypeTag">
-                Optimal Choice
+              <span class="font-bold text-white text-xs truncate max-w-[180px]" id="resMealName">No Meal Selected</span>
+              <span class="bg-slate-800 text-slate-400 border border-slate-700 text-[10px] px-2.5 py-0.5 rounded-full font-medium" id="resPhenotypeTag">
+                Pending Scan
               </span>
             </div>
 
             <div class="grid grid-cols-4 gap-2 text-center">
               <div class="bg-[#111625] p-1.5 rounded-lg border border-slate-800">
                 <p class="text-slate-400 text-[9px]">KCAL</p>
-                <p class="text-indigo-400 font-bold text-xs" id="resCalories">520</p>
+                <p class="text-indigo-400 font-bold text-xs" id="resCalories">0</p>
               </div>
               <div class="bg-[#111625] p-1.5 rounded-lg border border-slate-800">
                 <p class="text-slate-400 text-[9px]">PROT</p>
-                <p class="text-emerald-400 font-bold text-xs" id="resProtein">36g</p>
+                <p class="text-emerald-400 font-bold text-xs" id="resProtein">0g</p>
               </div>
               <div class="bg-[#111625] p-1.5 rounded-lg border border-slate-800">
                 <p class="text-slate-400 text-[9px]">CARB</p>
-                <p class="text-amber-400 font-bold text-xs" id="resCarbs">42g</p>
+                <p class="text-amber-400 font-bold text-xs" id="resCarbs">0g</p>
               </div>
               <div class="bg-[#111625] p-1.5 rounded-lg border border-slate-800">
                 <p class="text-slate-400 text-[9px]">FAT</p>
-                <p class="text-cyan-400 font-bold text-xs" id="resFats">28g</p>
+                <p class="text-cyan-400 font-bold text-xs" id="resFats">0g</p>
               </div>
             </div>
           </div>
@@ -212,7 +208,7 @@
           <div class="grid grid-cols-3 gap-2 text-center mb-3">
             <div class="bg-[#0B0F19] p-2 rounded-xl border border-slate-800">
               <p class="text-slate-400 text-[10px]">Target</p>
-              <p class="text-xs font-bold text-white"><span id="valTDEE">1,939</span> kcal</p>
+              <p class="text-xs font-bold text-white"><span id="valTDEE">--</span> kcal</p>
             </div>
             <div class="bg-[#0B0F19] p-2 rounded-xl border border-slate-800">
               <p class="text-slate-400 text-[10px]">Logged</p>
@@ -220,26 +216,26 @@
             </div>
             <div class="bg-[#0B0F19] p-2 rounded-xl border border-slate-800">
               <p class="text-slate-400 text-[10px]">Remaining</p>
-              <p class="text-xs font-bold text-indigo-400"><span id="valRemaining">1,939</span> kcal</p>
+              <p class="text-xs font-bold text-indigo-400"><span id="valRemaining">--</span> kcal</p>
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-2 text-xs" id="allowanceSlotsContainer">
             <div id="slotRow_Breakfast" class="flex justify-between items-center bg-[#0B0F19] px-3 py-2 rounded-xl border border-slate-800">
               <span class="text-slate-300">🍳 Breakfast</span>
-              <span class="font-bold text-rose-400" id="valBreakfastSplit">485 kcal</span>
+              <span class="font-bold text-rose-400" id="valBreakfastSplit">-- kcal</span>
             </div>
             <div id="slotRow_Lunch" class="flex justify-between items-center bg-[#0B0F19] px-3 py-2 rounded-xl border border-slate-800">
               <span class="text-slate-300">🥗 Lunch</span>
-              <span class="font-bold text-rose-400" id="valLunchSplit">679 kcal</span>
+              <span class="font-bold text-rose-400" id="valLunchSplit">-- kcal</span>
             </div>
             <div id="slotRow_Dinner" class="flex justify-between items-center bg-[#0B0F19] px-3 py-2 rounded-xl border border-slate-800">
               <span class="text-slate-300">🍲 Dinner</span>
-              <span class="font-bold text-rose-400" id="valDinnerSplit">582 kcal</span>
+              <span class="font-bold text-rose-400" id="valDinnerSplit">-- kcal</span>
             </div>
             <div id="slotRow_Snack" class="flex justify-between items-center bg-[#0B0F19] px-3 py-2 rounded-xl border border-slate-800">
               <span class="text-slate-300">🥜 Snack</span>
-              <span class="font-bold text-rose-400" id="valSnackSplit">193 kcal</span>
+              <span class="font-bold text-rose-400" id="valSnackSplit">-- kcal</span>
             </div>
           </div>
 
@@ -257,7 +253,7 @@
               <span>🍽️</span> 4-Meal Calibrated Recommendations
             </h3>
             <span id="recomPhenoBadge" class="bg-purple-900/40 text-purple-300 border border-purple-500/40 text-[10px] px-2.5 py-1 rounded-full font-medium">
-              Active Phenotype Plan
+              Assessment Pending
             </span>
           </div>
 
@@ -295,32 +291,32 @@
           </div>
 
           <div class="flex items-center gap-3 mb-2">
-            <span class="text-3xl p-2.5 bg-[#0B0F19] rounded-2xl border border-slate-800" id="exMainIcon">🦵</span>
+            <span class="text-3xl p-2.5 bg-[#0B0F19] rounded-2xl border border-slate-800" id="exMainIcon">🏃</span>
             <div>
-              <h3 class="text-lg font-bold text-white" id="exPlanTitle">Legs & Lower Body Workout</h3>
-              <p class="text-xs text-slate-400" id="exSubTitle">Targeted activity for glucose regulation</p>
+              <h3 class="text-lg font-bold text-white" id="exPlanTitle">Daily Workout Plan</h3>
+              <p class="text-xs text-slate-400" id="exSubTitle">Targeted activity for metabolic regulation</p>
             </div>
           </div>
 
           <div class="bg-[#0B0F19] p-4 rounded-xl border border-slate-800 my-4">
             <p class="text-[11px] uppercase tracking-wider text-slate-400 font-bold mb-1.5">What to do today:</p>
             <p class="text-xs font-semibold text-indigo-300 leading-relaxed" id="exRoutineList">
-              Bodyweight Squats (3 sets of 12) · Glute Bridges (3 sets of 15) · Walking Lunges (3 sets of 10)
+              Loading tailored exercises...
             </p>
           </div>
 
           <div class="grid grid-cols-3 gap-3 text-center my-4">
             <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
               <p class="text-[10px] text-slate-500 uppercase font-semibold">Target Time</p>
-              <p class="text-base font-bold text-white mt-0.5" id="exTargetDuration">25 mins</p>
+              <p class="text-base font-bold text-white mt-0.5" id="exTargetDuration">-- mins</p>
             </div>
             <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
               <p class="text-[10px] text-slate-500 uppercase font-semibold">Target Burn</p>
-              <p class="text-base font-bold text-amber-400 mt-0.5" id="exTargetBurn">180 kcal</p>
+              <p class="text-base font-bold text-amber-400 mt-0.5" id="exTargetBurn">-- kcal</p>
             </div>
             <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
               <p class="text-[10px] text-slate-500 uppercase font-semibold">Matched Meal</p>
-              <p class="text-xs font-bold text-cyan-400 mt-1 truncate" id="exMatchedMeal">Last Meal</p>
+              <p class="text-xs font-bold text-cyan-400 mt-1 truncate" id="exMatchedMeal">--</p>
             </div>
           </div>
 
@@ -387,7 +383,7 @@
         <div class="flex justify-between items-center">
           <h3 class="text-sm font-bold text-white">Circadian Optimization & Recovery</h3>
           <span class="px-3 py-1 bg-purple-950 text-purple-300 border border-purple-500/30 text-xs font-semibold rounded-full">
-            Follicular Restoration
+            Restoration Target
           </span>
         </div>
         <div class="grid grid-cols-3 gap-3 text-center">
@@ -397,11 +393,11 @@
           </div>
           <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
             <p class="text-[10px] text-slate-500 uppercase">Last Duration</p>
-            <p class="text-base font-bold text-white" id="sleepLastVal">6.0 hrs</p>
+            <p class="text-base font-bold text-white" id="sleepLastVal">-- hrs</p>
           </div>
           <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800">
             <p class="text-[10px] text-slate-500 uppercase">Sleep Debt</p>
-            <p class="text-base font-bold text-rose-400" id="sleepDebtVal">+2.0 hrs</p>
+            <p class="text-base font-bold text-rose-400" id="sleepDebtVal">0 hrs</p>
           </div>
         </div>
         <div class="bg-[#0B0F19] p-4 rounded-xl border border-slate-800 space-y-2">
@@ -415,11 +411,11 @@
           </div>
           <div class="flex justify-between text-xs">
             <span class="text-slate-400">Sleep Hygiene Protocol:</span>
-            <span class="text-emerald-400 font-semibold">Magnesium Glycinate + Dim Lighting</span>
+            <span class="text-emerald-400 font-semibold">Dim Lighting + Consistent Bedtime</span>
           </div>
         </div>
         <p class="text-xs text-slate-300 leading-relaxed" id="sleepCircadianAdvice">
-          Melatonin secretion is crucial for ovarian follicle maturation. Dim blue light 60 mins before bedtime.
+          Log your regular sleep hours to receive tailored circadian rhythm optimizations.
         </p>
       </div>
 
@@ -530,7 +526,7 @@
 
     </div>
 
-    <!-- ================= 5. STRESS RESET (UPDATED WITH SYMPTOM LOGGING & RESET DAY) ================= -->
+    <!-- ================= 5. STRESS RESET ================= -->
     <div id="pillarStressContainer" class="hidden grid-cols-1 md:grid-cols-12 gap-5 items-start">
       
       <!-- Left Column: Breathing Visualizer & Technique Selector (7 cols) -->
@@ -545,12 +541,10 @@
           </div>
           
           <div class="flex items-center gap-2">
-            <!-- Reset Day Button -->
             <button onclick="resetStressDay()" class="bg-indigo-950 hover:bg-indigo-900 border border-indigo-500/40 text-indigo-300 text-[10px] px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1 shadow-sm" title="Reset all stress and symptom logs for today">
               <span>🔄</span> Reset Day
             </button>
 
-            <!-- Technique Selector -->
             <select id="selectStressTechnique" onchange="switchBreathingTechnique(this.value)" class="bg-[#0B0F19] border border-slate-700 text-indigo-300 font-semibold text-xs px-3 py-1.5 rounded-xl focus:outline-none focus:border-indigo-500">
               <option value="4-7-8">4-7-8 Vagus Reset</option>
               <option value="box">Box Breathing (4-4-4-4)</option>
@@ -577,7 +571,6 @@
           </button>
         </div>
 
-        <!-- Complete & Sync Button -->
         <button onclick="completeStressSession()" id="btnSyncStressSession" class="w-full py-2.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2">
           <span>✓</span> Complete & Boost Stability Index (+5 pts)
         </button>
@@ -592,7 +585,6 @@
             </h4>
             <p class="text-xs text-slate-400 mb-3">Tag any symptoms you feel right now to log with your Digital Twin:</p>
 
-            <!-- Interactive Symptom Tag Grid -->
             <div class="flex flex-wrap gap-2" id="stressSymptomTags">
               <button type="button" onclick="toggleSymptomTag(this, 'Brain Fog')" class="symptom-tag px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">🧠 Brain Fog</button>
               <button type="button" onclick="toggleSymptomTag(this, 'Heart Racing')" class="symptom-tag px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-slate-200 text-[11px] transition">⚡ Heart Racing</button>
@@ -602,7 +594,6 @@
             </div>
           </div>
 
-          <!-- Clinical Endocrine Explanation -->
           <div class="p-3.5 bg-[#0B0F19] rounded-xl border border-slate-800 text-xs space-y-1.5">
             <p class="font-bold text-indigo-300">Clinical Mechanism:</p>
             <p class="text-slate-300 leading-relaxed text-[11px]" id="techniqueClinicalNote">
@@ -610,13 +601,11 @@
             </p>
           </div>
 
-          <!-- Cycle / Routine Window -->
           <div class="p-3 bg-purple-950/30 border border-purple-500/30 rounded-xl text-xs text-purple-200">
             <span class="font-bold text-purple-300">Target Window:</span> Practice 5 minutes post-lunch or directly before sleep to prevent nocturnal cortisol peaks.
           </div>
         </div>
 
-        <!-- Log Selected Symptoms Button -->
         <button onclick="logSelectedSymptoms()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 mt-4">
           <span>📌</span> Log Selected Symptoms
         </button>
@@ -634,27 +623,27 @@
           <span class="text-lg">📐</span>
           <h3 class="text-base font-bold text-white">Anthropometry & BMI</h3>
         </div>
-        <button onclick="closeBmiModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+        <button onclick="closeBmiModal()" class="text-slate-400 hover:text-white text-lg font-bold">×</button>
       </div>
 
       <form id="globalBmiForm" onsubmit="submitBmiUpdate(event)" class="space-y-4 text-xs">
         <div>
           <label class="block text-slate-300 font-medium mb-1">Height (cm)</label>
-          <input type="number" id="inputHeight" step="0.5" value="162" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-500">
+          <input type="number" id="inputHeight" step="0.5" placeholder="e.g. 162" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-500">
         </div>
         <div>
           <label class="block text-slate-300 font-medium mb-1">Weight (kg)</label>
-          <input type="number" id="inputWeight" step="0.1" value="58" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-500">
+          <input type="number" id="inputWeight" step="0.1" placeholder="e.g. 58" required class="w-full bg-[#181F32] border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-500">
         </div>
 
         <div class="bg-[#0B0F19] p-3 rounded-xl border border-slate-800 flex justify-between items-center">
           <div>
             <p class="text-[10px] text-slate-400">Current Category</p>
-            <p id="modalBmiCategory" class="text-xs font-bold text-cyan-300">Normal (Lean PMOS)</p>
+            <p id="modalBmiCategory" class="text-xs font-bold text-cyan-300">Unset</p>
           </div>
           <div class="text-right">
             <p class="text-[10px] text-slate-400">Score</p>
-            <p id="modalBmiScore" class="text-sm font-bold text-white">22.1</p>
+            <p id="modalBmiScore" class="text-sm font-bold text-white">--</p>
           </div>
         </div>
 
@@ -668,25 +657,34 @@
 
   <!-- ================= JAVASCRIPT ================= -->
   <script>
-  let currentScannedCalories = 520;
-  let currentScannedProtein = 36;
-  let currentScannedCarbs = 42;
-  let currentScannedFats = 28;
-  let currentScannedClassification = "Optimal Choice";
-  let currentTargetDuration = 25;
-  let currentTargetBurn = 180;
+  const API_BASE = "http://127.0.0.1:8000";
+  let currentScannedCalories = 0;
+  let currentScannedProtein = 0;
+  let currentScannedCarbs = 0;
+  let currentScannedFats = 0;
+  let currentScannedClassification = "Pending Scan";
+  let currentTargetDuration = 0;
+  let currentTargetBurn = 0;
   let currentWorkoutTitle = "Daily Workout";
   let userMedicationsList = [];
   let isSidebarCollapsed = false;
 
-  // Stress State Variables
   let selectedSymptoms = [];
   let currentBreathingTechnique = "4-7-8";
   let breathingInterval = null;
 
   function getCleanUserId() {
-    const rawUserId = localStorage.getItem("user_id") || "1";
-    return parseInt(rawUserId, 10) || 1;
+    const rawUserId = localStorage.getItem("user_id");
+    if (!rawUserId) {
+      window.location.href = "login.html";
+      return null;
+    }
+    const cleanId = parseInt(rawUserId, 10);
+    if (isNaN(cleanId)) {
+      window.location.href = "login.html";
+      return null;
+    }
+    return cleanId;
   }
 
   function toggleSidebar() {
@@ -714,11 +712,9 @@
   document.addEventListener("DOMContentLoaded", async function() {
     refreshUserDisplay();
     await fetchUserProfile();
-    fetchDietSummary();
-    loadPhenotypeDietSuggestions();
-    loadExerciseRecommendation();
-    loadSleepRecommendation();
-    loadUserMedications();
+    
+    // Explicitly select and show the Diet tab by default
+    switchPillarTab('diet');
 
     const dropZone = document.getElementById('dropZone');
     if (dropZone) {
@@ -730,7 +726,7 @@
   });
 
   function refreshUserDisplay() {
-    const fullName = localStorage.getItem("full_name") || "User";
+    const fullName = localStorage.getItem("full_name") || "User Account";
     const email = localStorage.getItem("user_email") || "user@example.com";
     const initials = fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "U";
     if (document.getElementById("sideAvatarBadge")) document.getElementById("sideAvatarBadge").innerText = initials;
@@ -740,8 +736,9 @@
 
   async function fetchUserProfile() {
     const userId = getCleanUserId();
+    if (!userId) return;
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/user-profile/${userId}`);
+      const res = await fetch(`${API_BASE}/api/user-profile/${userId}`);
       if (res.ok) {
         const data = await res.json();
         if (data.height_cm && document.getElementById("inputHeight")) document.getElementById("inputHeight").value = data.height_cm;
@@ -757,7 +754,7 @@
         }
       }
     } catch (err) {
-      console.error(err);
+      console.error("Profile fetch error:", err);
     }
   }
 
@@ -831,11 +828,12 @@
   async function scanMealWithML() {
     const mealFileName = document.getElementById("mealNameInput").value || "Custom Meal";
     const userId = getCleanUserId();
+    if (!userId) return;
     const statusBadge = document.getElementById("scanStatusBadge");
     if (statusBadge) statusBadge.innerText = "Evaluating...";
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/scan-meal-image", {
+      const response = await fetch(`${API_BASE}/api/scan-meal-image`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: userId, image_filename: mealFileName, meal_name: mealFileName })
@@ -875,6 +873,7 @@
 
   async function addMealToLog() {
     const userId = getCleanUserId();
+    if (!userId) return;
     const mealName = document.getElementById("resMealName")?.innerText || "Logged Meal";
     const mealSlot = document.getElementById("mealSlotSelect")?.value || "Dinner";
 
@@ -890,7 +889,7 @@
     };
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/log-meal", {
+      const res = await fetch(`${API_BASE}/api/log-meal`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -901,8 +900,7 @@
         await loadPhenotypeDietSuggestions();
         await loadExerciseRecommendation();
 
-        // Refresh telemetry so the sidebar stability index drops immediately
-        const telemRes = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+        const telemRes = await fetch(`${API_BASE}/api/latest-telemetry/${userId}`);
         if (telemRes.ok) {
           const telemData = await telemRes.json();
           const scoreDisplay = document.getElementById("scoreDisplay");
@@ -916,13 +914,14 @@
 
   async function fetchDietSummary() {
     const userId = getCleanUserId();
+    if (!userId) return;
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/diet-summary/${userId}`);
-      const data = await res.json();
+      const res = await fetch(`${API_BASE}/api/diet-summary/${userId}`);
       if (res.ok) {
-        document.getElementById("valTDEE").innerText = Math.round(data.daily_target);
-        document.getElementById("valLogged").innerText = data.logged_today;
-        document.getElementById("valRemaining").innerText = Math.round(data.remaining_balance);
+        const data = await res.json();
+        document.getElementById("valTDEE").innerText = Math.round(data.daily_target) || "--";
+        document.getElementById("valLogged").innerText = data.logged_today || 0;
+        document.getElementById("valRemaining").innerText = Math.round(data.remaining_balance) || "--";
 
         const slots = ["Breakfast", "Lunch", "Dinner", "Snack"];
         slots.forEach(slot => {
@@ -933,7 +932,7 @@
             if (splitValEl) splitValEl.innerText = "✓ Logged";
           } else {
             if (row) row.classList.remove("opacity-40", "bg-slate-900/60");
-            if (splitValEl) splitValEl.innerText = `${data.allowance_split[slot] || 0} kcal`;
+            if (splitValEl) splitValEl.innerText = `${data.allowance_split ? data.allowance_split[slot] || 0 : 0} kcal`;
           }
         });
 
@@ -962,41 +961,56 @@
 
   async function loadPhenotypeDietSuggestions() {
     const userId = getCleanUserId();
+    if (!userId) return;
+    const container = document.getElementById("recipeContainer");
+
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/diet-recommendations/${userId}`);
-      const data = await res.json();
+      const res = await fetch(`${API_BASE}/api/diet-recommendations/${userId}`);
       if (res.ok) {
-        document.getElementById("recommendationTitle").innerHTML = `<span>💡</span> ${data.guidance_title}`;
-        document.getElementById("recommendationBody").innerText = data.guidance_body;
-        if (data.assigned_phenotype && document.getElementById("recomPhenoBadge")) {
-          document.getElementById("recomPhenoBadge").innerText = data.assigned_phenotype;
+        const data = await res.json();
+        
+        if (!data.assigned_phenotype || data.assigned_phenotype === "Pending Assessment" || !data.recipes || data.recipes.length === 0) {
+          if (document.getElementById("recomPhenoBadge")) document.getElementById("recomPhenoBadge").innerText = "Uncalibrated";
+          if (document.getElementById("recommendationTitle")) document.getElementById("recommendationTitle").innerHTML = `<span>💡</span> Initializing Plan:`;
+          if (document.getElementById("recommendationBody")) document.getElementById("recommendationBody").innerText = "Complete your health assessment in the main dashboard to calculate personalized meal recommendations.";
+          if (container) {
+            container.innerHTML = `
+              <div class="col-span-2 p-6 text-center bg-[#0B0F19] border border-slate-800 rounded-xl">
+                <p class="text-xs text-slate-400">No calibrated recipes available yet.</p>
+              </div>`;
+          }
+          return;
         }
 
-        const container = document.getElementById("recipeContainer");
-        const slotIcons = { "Breakfast": "🍳", "Lunch": "🥗", "Dinner": "🍲", "Snack": "🥜" };
+        document.getElementById("recommendationTitle").innerHTML = `<span>💡</span> ${data.guidance_title}`;
+        document.getElementById("recommendationBody").innerText = data.guidance_body;
+        if (document.getElementById("recomPhenoBadge")) document.getElementById("recomPhenoBadge").innerText = data.assigned_phenotype;
 
-        container.innerHTML = data.recipes.map(r => `
-          <div class="bg-[#0B0F19] p-3.5 rounded-xl border ${r.is_logged ? 'border-slate-800/40 opacity-40' : 'border-slate-800 hover:border-indigo-500/40'} flex flex-col justify-between transition min-h-[125px]">
-            <div>
-              <div class="flex items-center justify-between mb-1.5">
-                <span class="text-[10px] font-bold px-2 py-0.5 bg-indigo-950 text-indigo-300 rounded-md border border-indigo-500/30">
-                  ${slotIcons[r.meal_slot] || '🍽️'} ${r.meal_slot}
-                </span>
-                <span class="text-xs font-bold text-indigo-400">${r.kcal} kcal</span>
+        const slotIcons = { "Breakfast": "🍳", "Lunch": "🥗", "Dinner": "🍲", "Snack": "🥜" };
+        if (container) {
+          container.innerHTML = data.recipes.map(r => `
+            <div class="bg-[#0B0F19] p-3.5 rounded-xl border ${r.is_logged ? 'border-slate-800/40 opacity-40' : 'border-slate-800 hover:border-indigo-500/40'} flex flex-col justify-between transition min-h-[125px]">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-[10px] font-bold px-2 py-0.5 bg-indigo-950 text-indigo-300 rounded-md border border-indigo-500/30">
+                    ${slotIcons[r.meal_slot] || '🍽️'} ${r.meal_slot}
+                  </span>
+                  <span class="text-xs font-bold text-indigo-400">${r.kcal} kcal</span>
+                </div>
+                <p class="text-xs font-bold text-white leading-snug line-clamp-1">${r.name}</p>
+                <p class="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">${r.desc}</p>
               </div>
-              <p class="text-xs font-bold text-white leading-snug line-clamp-1">${r.name}</p>
-              <p class="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">${r.desc}</p>
+              
+              <div class="mt-3 flex items-center justify-between pt-2 border-t border-slate-800/60">
+                <span class="text-[10px] text-slate-400 font-medium">${r.protein}g P · ${r.fats}g F · GI ${r.gi}</span>
+                ${r.is_logged ? 
+                  `<span class="text-emerald-400 font-bold text-xs">✓ Logged</span>` :
+                  `<button onclick="selectSuggestedRecipe('${r.meal_slot}', '${r.name}', ${r.kcal},${r.protein}, ${r.carbs},${r.fats})" class="bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-xs px-2.5 py-1 rounded-lg transition font-medium">+ Select</button>`
+                }
+              </div>
             </div>
-            
-            <div class="mt-3 flex items-center justify-between pt-2 border-t border-slate-800/60">
-              <span class="text-[10px] text-slate-400 font-medium">${r.protein}g P · ${r.fats}g F · GI ${r.gi}</span>
-              ${r.is_logged ? 
-                `<span class="text-emerald-400 font-bold text-xs">✓ Logged</span>` :
-                `<button onclick="selectSuggestedRecipe('${r.meal_slot}', '${r.name}', ${r.kcal},${r.protein}, ${r.carbs},${r.fats})" class="bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-xs px-2.5 py-1 rounded-lg transition font-medium">+ Select</button>`
-              }
-            </div>
-          </div>
-        `).join("");
+          `).join("");
+        }
       }
     } catch (err) {
       console.error(err);
@@ -1022,9 +1036,10 @@
 
   async function resetDayRollover() {
     const userId = getCleanUserId();
+    if (!userId) return;
     if (confirm("Reset day & refresh all 4 meal allowances?")) {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/reset-day/${userId}`, { method: "POST" });
+        const res = await fetch(`${API_BASE}/api/reset-day/${userId}`, { method: "POST" });
         if (res.ok) {
           await fetchDietSummary();
           await loadPhenotypeDietSuggestions();
@@ -1039,25 +1054,26 @@
   // ================= PILLAR 2: DAILY ROTATING EXERCISE & BMI =================
   async function loadExerciseRecommendation() {
     const userId = getCleanUserId();
+    if (!userId) return;
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/exercise-recommendation/${userId}`);
+      const res = await fetch(`${API_BASE}/api/exercise-recommendation/${userId}`);
       if (res.ok) {
         const data = await res.json();
         
-        currentTargetDuration = data.duration_mins;
-        currentTargetBurn = data.target_burn_kcal;
-        currentWorkoutTitle = data.workout_type;
+        currentTargetDuration = data.duration_mins || 25;
+        currentTargetBurn = data.target_burn_kcal || 150;
+        currentWorkoutTitle = data.workout_type || "Daily Workout";
 
-        if (document.getElementById("exDayBadge")) document.getElementById("exDayBadge").innerText = `📅 ${data.day}'s Plan`;
+        if (document.getElementById("exDayBadge")) document.getElementById("exDayBadge").innerText = `📅 ${data.day || "Today"}'s Plan`;
         if (document.getElementById("exMainIcon")) document.getElementById("exMainIcon").innerText = data.icon || "🏃";
-        if (document.getElementById("exPlanTitle")) document.getElementById("exPlanTitle").innerText = data.workout_type;
-        if (document.getElementById("exRoutineList")) document.getElementById("exRoutineList").innerText = data.exercises;
-        if (document.getElementById("exTargetDuration")) document.getElementById("exTargetDuration").innerText = `${data.duration_mins} mins`;
-        if (document.getElementById("exTargetBurn")) document.getElementById("exTargetBurn").innerText = `${data.target_burn_kcal} kcal`;
+        if (document.getElementById("exPlanTitle")) document.getElementById("exPlanTitle").innerText = data.workout_type || "Standard Routine";
+        if (document.getElementById("exRoutineList")) document.getElementById("exRoutineList").innerText = data.exercises || "Light walking (30 mins)";
+        if (document.getElementById("exTargetDuration")) document.getElementById("exTargetDuration").innerText = `${data.duration_mins || 20} mins`;
+        if (document.getElementById("exTargetBurn")) document.getElementById("exTargetBurn").innerText = `${data.target_burn_kcal || 150} kcal`;
         if (document.getElementById("exMatchedMeal")) document.getElementById("exMatchedMeal").innerText = data.last_meal_name || "Daily Target";
 
         const subTitleEl = document.getElementById("exSubTitle");
-        if (subTitleEl) subTitleEl.innerText = `${data.duration_mins} Mins • ${data.target_burn_kcal} Kcal Target`;
+        if (subTitleEl) subTitleEl.innerText = `${data.duration_mins || 20} Mins • ${data.target_burn_kcal || 150} Kcal Target`;
 
         const btnComplete = document.getElementById("btnCompleteExercise");
         const btnReset = document.getElementById("btnResetExercise");
@@ -1073,9 +1089,7 @@
             btnComplete.className = "w-full py-3.5 bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 font-bold text-xs rounded-xl cursor-not-allowed";
             btnComplete.disabled = true;
           }
-          if (btnReset) {
-            btnReset.classList.remove("hidden");
-          }
+          if (btnReset) btnReset.classList.remove("hidden");
         } else {
           if (statusLabel) {
             statusLabel.innerText = "Ready to start";
@@ -1086,9 +1100,7 @@
             btnComplete.className = "w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20";
             btnComplete.disabled = false;
           }
-          if (btnReset) {
-            btnReset.classList.add("hidden");
-          }
+          if (btnReset) btnReset.classList.add("hidden");
         }
       }
     } catch (err) {
@@ -1103,29 +1115,21 @@
 
   async function resetTodayExercise() {
     const userId = getCleanUserId();
+    if (!userId) return;
 
-    if (!confirm("Are you sure you want to reset today's completed workout status?")) {
-      return;
-    }
+    if (!confirm("Are you sure you want to reset today's completed workout status?")) return;
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/reset-exercise/${userId}`, {
-        method: "POST"
-      });
-
+      const res = await fetch(`${API_BASE}/api/reset-exercise/${userId}`, { method: "POST" });
       if (res.ok) {
         await loadExerciseRecommendation();
-
-        const telemRes = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+        const telemRes = await fetch(`${API_BASE}/api/latest-telemetry/${userId}`);
         if (telemRes.ok) {
           const telem = await telemRes.json();
           const scoreDisplay = document.getElementById("scoreDisplay");
           if (scoreDisplay) scoreDisplay.innerText = telem.stability_score;
         }
-
-        alert("Today's workout status has been reset. You can now log your workout again.");
-      } else {
-        alert("Failed to reset exercise status. Check backend server.");
+        alert("Today's workout status has been reset.");
       }
     } catch (err) {
       console.error("Error resetting exercise status:", err);
@@ -1134,6 +1138,7 @@
 
   async function submitExerciseWorkout(exerciseName, durationMins, caloriesBurned) {
     const userId = getCleanUserId();
+    if (!userId) return;
     const payload = {
       user_id: userId,
       exercise_name: exerciseName,
@@ -1141,14 +1146,14 @@
       calories_burned: parseInt(caloriesBurned, 10)
     };
 
-    const res = await fetch("http://127.0.0.1:8000/api/complete-exercise", {
+    const res = await fetch(`${API_BASE}/api/complete-exercise`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
     if (res.ok) {
-      const telemRes = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+      const telemRes = await fetch(`${API_BASE}/api/latest-telemetry/${userId}`);
       if (telemRes.ok) {
         const updatedTelem = await telemRes.json();
         localStorage.setItem("latest_stability", updatedTelem.stability_score);
@@ -1160,16 +1165,19 @@
   // ================= 3. SLEEP FUNCTIONS =================
   async function loadSleepRecommendation() {
     const userId = getCleanUserId();
+    if (!userId) return;
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/sleep-recommendation/${userId}`);
+      const res = await fetch(`${API_BASE}/api/sleep-recommendation/${userId}`);
       if (res.ok) {
         const data = await res.json();
-        document.getElementById("sleepTargetVal").innerText = `${data.target_hours} hrs`;
-        document.getElementById("sleepLastVal").innerText = `${data.last_logged_sleep} hrs`;
+        document.getElementById("sleepTargetVal").innerText = `${data.target_hours || 8.0} hrs`;
+        document.getElementById("sleepLastVal").innerText = data.last_logged_sleep ? `${data.last_logged_sleep} hrs` : "-- hrs";
         document.getElementById("sleepDebtVal").innerText = data.sleep_debt > 0 ? `+${data.sleep_debt} hrs` : "0 hrs";
-        document.getElementById("sleepBedtime").innerText = data.ideal_bedtime;
-        document.getElementById("sleepWaketime").innerText = data.ideal_waketime;
-        document.getElementById("sleepCircadianAdvice").innerText = data.circadian_advice;
+        document.getElementById("sleepBedtime").innerText = data.ideal_bedtime || "10:30 PM";
+        document.getElementById("sleepWaketime").innerText = data.ideal_waketime || "06:30 AM";
+        if (data.circadian_advice) {
+          document.getElementById("sleepCircadianAdvice").innerText = data.circadian_advice;
+        }
       }
     } catch (err) {
       console.error("Sleep fetch error:", err);
@@ -1179,12 +1187,13 @@
   async function submitSleepWindow(event) {
     event.preventDefault();
     const userId = getCleanUserId();
+    if (!userId) return;
     const bed = document.getElementById("sleepInputBed").value;
     const wake = document.getElementById("sleepInputWake").value;
     const quality = document.getElementById("sleepInputQuality").value;
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/log-sleep-schedule", {
+      const res = await fetch(`${API_BASE}/api/log-sleep-schedule`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1196,7 +1205,7 @@
         })
       });
       if (res.ok) {
-        alert("Sleep schedule synced with Digital Twin circadian telemetry!");
+        alert("Sleep schedule synced!");
         loadSleepRecommendation();
       }
     } catch (err) {
@@ -1204,17 +1213,23 @@
     }
   }
 
-  // ================= 4. DATASET-BACKED MEDICATION & AI OCR ENGINE =================
+  // ================= 4. DATASET-BACKED MEDICATION =================
   async function loadUserMedications() {
     const userId = getCleanUserId();
+    if (!userId) return;
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/user-medications/${userId}`);
+      const res = await fetch(`${API_BASE}/api/user-medications/${userId}`);
       if (res.ok) {
         userMedicationsList = await res.json();
+        renderMedicationsList();
+      } else {
+        userMedicationsList = [];
         renderMedicationsList();
       }
     } catch (err) {
       console.error("Error loading medications:", err);
+      userMedicationsList = [];
+      renderMedicationsList();
     }
   }
 
@@ -1222,8 +1237,12 @@
     const container = document.getElementById("medicationListContainer");
     if (!container) return;
 
-    if (userMedicationsList.length === 0) {
-      container.innerHTML = `<p class="text-xs text-slate-500 py-6 text-center">No active medications logged. Scan your prescription or add one from the right side.</p>`;
+    if (!userMedicationsList || userMedicationsList.length === 0) {
+      container.innerHTML = `
+        <div class="p-6 text-center border border-dashed border-slate-800 rounded-xl bg-[#0B0F19]">
+          <p class="text-xs text-slate-400 font-medium">No active medications or supplements logged.</p>
+          <p class="text-[11px] text-slate-500 mt-1">Scan a prescription photo or add your first item using the form.</p>
+        </div>`;
       if (document.getElementById("medAdherenceRate")) {
         document.getElementById("medAdherenceRate").innerText = "0% Protocol Compliance";
       }
@@ -1231,7 +1250,6 @@
     }
 
     let takenCount = 0;
-
     container.innerHTML = userMedicationsList.map(m => {
       if (m.is_taken_today) takenCount++;
 
@@ -1242,7 +1260,7 @@
             <div class="min-w-0">
               <h4 class="text-xs font-bold text-white leading-tight truncate">${m.name}</h4>
               <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                ${m.dosage_frequency} <span class="text-slate-600">|</span> <span class="text-slate-500">${m.clinical_purpose}</span>
+                ${m.dosage_frequency} <span class="text-slate-600">|</span> <span class="text-slate-500">${m.clinical_purpose || 'General'}</span>
               </p>
             </div>
           </div>
@@ -1256,13 +1274,11 @@
                 Take Dose
               </button>`
             }
-            
-            <button onclick="removeMedication(${m.id}, '${m.name}')" class="px-2.5 py-1.5 bg-rose-950/40 hover:bg-rose-900 text-rose-400 border border-rose-600/30 hover:border-rose-500 text-xs font-medium rounded-lg transition shadow-sm" title="Remove medication from your protocol">
+            <button onclick="removeMedication(${m.id}, '${m.name}')" class="px-2.5 py-1.5 bg-rose-950/40 hover:bg-rose-900 text-rose-400 border border-rose-600/30 hover:border-rose-500 text-xs font-medium rounded-lg transition shadow-sm">
               Remove
             </button>
           </div>
-        </div>
-      `;
+        </div>`;
     }).join("");
 
     const adherence = Math.round((takenCount / userMedicationsList.length) * 100);
@@ -1273,18 +1289,12 @@
 
   async function removeMedication(medId, medName) {
     const cleanMedId = parseInt(medId, 10);
-
     if (confirm(`Remove "${medName}" from your active daily protocol?`)) {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/delete-medication/${cleanMedId}`, { 
-          method: "DELETE" 
-        });
-
+        const res = await fetch(`${API_BASE}/api/delete-medication/${cleanMedId}`, { method: "DELETE" });
         if (res.ok) {
           userMedicationsList = userMedicationsList.filter(m => m.id !== cleanMedId);
           renderMedicationsList();
-        } else {
-          alert("Failed to delete medication from server.");
         }
       } catch (err) {
         console.error("Error removing medication:", err);
@@ -1294,7 +1304,7 @@
 
   async function toggleDose(medId) {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/toggle-medication-dose/${medId}`, { method: "POST" });
+      const res = await fetch(`${API_BASE}/api/toggle-medication-dose/${medId}`, { method: "POST" });
       if (res.ok) {
         const data = await res.json();
         const med = userMedicationsList.find(m => m.id === medId);
@@ -1308,9 +1318,10 @@
 
   async function resetMedicationsDay() {
     const userId = getCleanUserId();
+    if (!userId) return;
     if (confirm("Start a new day and reset all daily doses to pending?")) {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/reset-medications-day/${userId}`, { method: "POST" });
+        const res = await fetch(`${API_BASE}/api/reset-medications-day/${userId}`, { method: "POST" });
         if (res.ok) {
           userMedicationsList.forEach(m => m.is_taken_today = false);
           renderMedicationsList();
@@ -1321,7 +1332,6 @@
     }
   }
 
-  // Neural OCR + CSV-Driven Fuzzy Text Recognizer
   async function handleRxUpload(files) {
     if (!files || !files[0]) return;
     const file = files[0];
@@ -1341,68 +1351,35 @@
       });
 
       const recognizedText = ocrResult.data.text || "";
-
-      const res = await fetch("http://127.0.0.1:8000/api/scan-prescription", {
+      const res = await fetch(`${API_BASE}/api/scan-prescription`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: file.name,
-          extracted_text: recognizedText
-        })
+        body: JSON.stringify({ filename: file.name, extracted_text: recognizedText })
       });
 
       if (res.ok) {
         const data = await res.json();
-
         if (data.not_found || !data.name) {
           nameInput.value = "";
           dosageInput.value = "";
-          nameInput.placeholder = "e.g. Nostra CR, Metformin, Orofer...";
-          dosageInput.placeholder = "e.g. 10mg | Night (9:00 PM) After Meal";
-
-          alert(
-            `⚠️ No PMOS medication matched from this image.\n\n` +
-            `Extracted snippet:\n"${recognizedText.slice(0, 100).trim()}..."\n\n` +
-            `Please upload a valid prescription photo or enter the medication manually.`
-          );
+          alert(`⚠️️ No PMOS medication matched from this image.`);
         } else {
           nameInput.value = data.name;
           dosageInput.value = data.dosage;
-
-          const timingSelect = document.getElementById("selectMedTiming");
-          const dosageLow = data.dosage.toLowerCase();
-          if (dosageLow.includes("night") || dosageLow.includes("bedtime") || dosageLow.includes("sleep")) {
-            timingSelect.value = "Before Sleep";
-          } else if (dosageLow.includes("dinner")) {
-            timingSelect.value = "With Dinner";
-          } else if (dosageLow.includes("morning & evening") || dosageLow.includes("twice")) {
-            timingSelect.value = "Morning & Evening";
-          } else if (dosageLow.includes("morning")) {
-            timingSelect.value = "Morning";
-          }
-
-          alert(
-            `🧠 AI Vision Scanner Extracted:\n\n` +
-            `Prescribed: ${data.name}\n` +
-            `Schedule: ${data.dosage}\n` +
-            `Purpose: ${data.purpose}\n` +
-            `Confidence: ${Math.round((data.confidence || 0.95) * 100)}%\n\n` +
-            `Click "Add to Protocol" to store.`
-          );
+          alert(`🧠 AI Vision Scanner Extracted:\n\nPrescribed: ${data.name}\nSchedule: ${data.dosage}`);
         }
       }
     } catch (err) {
       console.error("AI OCR Error:", err);
       nameInput.value = "";
       dosageInput.value = "";
-      alert("Error executing neural OCR. Please ensure the image is clear and well-lit.");
+      alert("Error executing neural OCR.");
     } finally {
       const fileInput = document.getElementById("rxFileInput");
       if (fileInput) fileInput.value = "";
     }
   }
 
-  // Dataset Autocomplete Search
   async function handleMedSearch(query) {
     const box = document.getElementById("medSuggestionsBox");
     if (!query || query.trim().length === 0) {
@@ -1411,7 +1388,7 @@
     }
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/medication-suggestions?query=${encodeURIComponent(query)}`);
+      const res = await fetch(`${API_BASE}/api/medication-suggestions?query=${encodeURIComponent(query)}`);
       if (res.ok) {
         const suggestions = await res.json();
         if (suggestions.length === 0) {
@@ -1445,6 +1422,7 @@
   async function submitNewMedication(event) {
     event.preventDefault();
     const userId = getCleanUserId();
+    if (!userId) return;
     const name = document.getElementById("inputMedName").value.trim();
     const dosage = document.getElementById("inputMedDosage").value.trim();
     const timing = document.getElementById("selectMedTiming").value;
@@ -1458,30 +1436,23 @@
     const fullDosageStr = dosage.includes("|") ? dosage : `${dosage} | ${timing}`;
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/add-medication", {
+      const res = await fetch(`${API_BASE}/api/add-medication`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: userId,
-          med_name: name,
-          dosage_frequency: fullDosageStr
-        })
+        body: JSON.stringify({ user_id: userId, med_name: name, dosage_frequency: fullDosageStr })
       });
 
-      const data = await res.json();
       if (res.ok) {
         document.getElementById("inputMedName").value = "";
         document.getElementById("inputMedDosage").value = "";
         await loadUserMedications();
-      } else {
-        alert(`⚠️ ${data.detail || 'Could not add medication'}`);
       }
     } catch (err) {
       console.error("Error adding medication:", err);
     }
   }
 
-  // ================= 5. ENHANCED STRESS & VAGUS ENGINE =================
+  // ================= 5. STRESS & VAGUS ENGINE =================
   function toggleSymptomTag(btn, tag) {
     const idx = selectedSymptoms.indexOf(tag);
     if (idx > -1) {
@@ -1497,6 +1468,7 @@
 
   async function logSelectedSymptoms() {
     const userId = getCleanUserId();
+    if (!userId) return;
 
     if (selectedSymptoms.length === 0) {
       alert("Please select at least one symptom tag before logging.");
@@ -1504,7 +1476,7 @@
     }
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/log-stress-reset", {
+      const res = await fetch(`${API_BASE}/api/log-stress-reset`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1522,8 +1494,6 @@
           btn.classList.add("border-slate-800", "bg-[#0B0F19]", "text-slate-400");
         });
         selectedSymptoms = [];
-      } else {
-        alert("Failed to log symptoms.");
       }
     } catch (err) {
       console.error("Error logging symptoms:", err);
@@ -1532,23 +1502,19 @@
 
   async function resetStressDay() {
     const userId = getCleanUserId();
+    if (!userId) return;
 
     if (confirm("Reset all stress and symptom logs for today?")) {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/reset-stress-day/${userId}`, {
-          method: "POST"
-        });
-
+        const res = await fetch(`${API_BASE}/api/reset-stress-day/${userId}`, { method: "POST" });
         if (res.ok) {
           alert("Stress and symptom logs reset successfully.");
-          const telemRes = await fetch(`http://127.0.0.1:8000/api/latest-telemetry/${userId}`);
+          const telemRes = await fetch(`${API_BASE}/api/latest-telemetry/${userId}`);
           if (telemRes.ok) {
             const telemData = await telemRes.json();
             const scoreDisplay = document.getElementById("scoreDisplay");
             if (scoreDisplay) scoreDisplay.innerText = telemData.stability_score;
           }
-        } else {
-          alert("Failed to reset stress logs.");
         }
       } catch (err) {
         console.error("Error resetting stress day:", err);
@@ -1690,11 +1656,12 @@
   async function completeStressSession() {
     stopBreathingExercise();
     const userId = getCleanUserId();
+    if (!userId) return;
     const btn = document.getElementById("btnSyncStressSession");
     if (btn) { btn.innerText = "Syncing with Digital Twin..."; btn.disabled = true; }
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/log-stress-reset", {
+      const res = await fetch(`${API_BASE}/api/log-stress-reset`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1732,13 +1699,14 @@
   async function submitBmiUpdate(event) {
     event.preventDefault();
     const userId = getCleanUserId();
+    if (!userId) return;
     const height = parseFloat(document.getElementById("inputHeight").value);
     const weight = parseFloat(document.getElementById("inputWeight").value);
     const saveBtn = document.getElementById("saveBmiBtn");
     if (saveBtn) saveBtn.innerText = "Syncing...";
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/update-bmi", {
+      const res = await fetch(`${API_BASE}/api/update-bmi`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: userId, height_cm: height, weight_kg: weight })

@@ -1,11 +1,12 @@
+# Top of backend/models.py
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey, DateTime, Date, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
 
 
-# ================= USER ACCOUNT & SPECIFICATIONS =================
+
 class User(Base):
     __tablename__ = "users"
 
@@ -29,7 +30,7 @@ class User(Base):
     sleep_logs = relationship("SleepLog", back_populates="user", cascade="all, delete-orphan")
     medications = relationship("MedicationLog", back_populates="user", cascade="all, delete-orphan")
     stress_logs = relationship("StressResetLog", back_populates="user", cascade="all, delete-orphan")
-
+    cycle_logs = relationship("CycleLog", back_populates="user", cascade="all, delete-orphan")
 
 # ================= INTAKE ASSESSMENT TABLE =================
 class IntakeAssessment(Base):
@@ -150,3 +151,21 @@ class StressResetLog(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="stress_logs")
+
+  
+
+
+class CycleLog(Base):
+    __tablename__ = "cycle_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    period_start_date = Column(Date, nullable=False)
+    period_end_date = Column(Date, nullable=True)
+    cycle_length_days = Column(Integer, default=28)
+    flow_intensity = Column(String(50), nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Added missing relationship
+    user = relationship("User", back_populates="cycle_logs")

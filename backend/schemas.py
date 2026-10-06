@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
+from datetime import date
 
 # ================= AUTHENTICATION SCHEMAS =================
 class SignupSchema(BaseModel):
@@ -15,6 +16,8 @@ class LoginSchema(BaseModel):
 # ================= INTAKE ASSESSMENT SCHEMA =================
 class IntakeSchema(BaseModel):
     user_id: int
+    height_cm: Optional[float] = 162.0
+    weight_kg: Optional[float] = 58.0
     symp_periods: bool = False
     symp_hair: bool = False
     symp_thinning: bool = False
@@ -98,3 +101,15 @@ class StressResetLogRequest(BaseModel):
     technique: str
     duration_mins: int
     symptoms: List[str] = []
+
+
+
+class CycleLogCreate(BaseModel):
+    user_id: int
+    period_start_date: date
+    period_end_date: Optional[date] = None
+    cycle_length_days: Optional[int] = 28
+    flow_intensity: Optional[str] = "Medium"
+    notes: Optional[str] = None
+
+ 
